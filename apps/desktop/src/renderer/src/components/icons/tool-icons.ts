@@ -1,0 +1,72 @@
+export type ToolIconName =
+  | 'port'
+  | 'env'
+  | 'hosts'
+  | 'folder'
+  | 'regex'
+  | 'convert'
+  | 'color'
+  | 'key'
+  | 'lock'
+  | 'token'
+  | 'hash'
+  | 'clock'
+  | 'info'
+  | 'settings'
+  | 'search'
+  | 'theme-light'
+  | 'theme-dark'
+  | 'theme-system'
+  | 'category-system'
+  | 'category-encode'
+  | 'category-data'
+  | 'category-security'
+  | 'category-calculator'
+  | 'diff'
+  | 'mock'
+  | 'subnet'
+  | 'unknown'
+
+/** SVG path data (24x24 viewBox, stroke-based) */
+export const TOOL_ICON_PATHS: Record<ToolIconName, string> = {
+  port: 'M8 12h8M12 8v8M4 6h16v12H4z',
+  env: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z',
+  hosts: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+  folder: 'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z',
+  regex: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  convert: 'M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4',
+  color: 'M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a2.5 2.5 0 00-4.9 0A9 9 0 0012 3z',
+  key: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
+  lock: 'M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4',
+  token: 'M4 4h16v16H4z M8 8h8M8 12h8M8 16h5',
+  hash: 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
+  clock: 'M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  info: 'M12 16v-4M12 8h.01M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z',
+  settings: 'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z',
+  search: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  'theme-light': 'M12 3v2M12 19v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2M19 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 7a5 5 0 100 10 5 5 0 000-10z',
+  'theme-dark': 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z',
+  'theme-system': 'M4 6h16v12H4z M9 6v12',
+  'category-system': 'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z',
+  'category-encode': 'M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2 M9 2h6v4H9z',
+  'category-data': 'M18 20V10M12 20V4M6 20v-6',
+  'category-security': 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  'category-calculator': 'M4 4h16v16H4z M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h8',
+  diff: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  mock: 'M4 7V4h16v3M9 20h6M12 4v16',
+  subnet: 'M12 2a10 10 0 100 20 10 10 0 000-20z M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z',
+  unknown: 'M12 16v-4M12 8h.01M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z'
+}
+
+export const CATEGORY_ICON_MAP: Record<string, ToolIconName> = {
+  system: 'category-system',
+  encode: 'category-encode',
+  data: 'category-data',
+  security: 'category-security',
+  calculator: 'category-calculator'
+}
+
+export function resolveToolIcon(name: string): ToolIconName {
+  if (name in TOOL_ICON_PATHS) return name as ToolIconName
+  return 'unknown'
+}

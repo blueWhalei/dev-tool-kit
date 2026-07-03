@@ -1,0 +1,22 @@
+export default {
+    title: 'About',
+    description: 'DevToolkit — local-first developer toolbox',
+    copyVersion: 'Copy version',
+    versionCopied: 'Version copied',
+    runtime: 'Runtime',
+    runtimeDescription: 'Local desktop app — data stays on your device',
+    platform: 'Platform',
+    electron: 'Electron',
+    node: 'Node.js',
+    chromium: 'Chromium',
+    license: 'License',
+    shortcutsGlobal: 'Global',
+    shortcutsOverlay: 'Search overlay',
+    shortcutsPage: 'In-page',
+    shortcutsTitle: '{scope} shortcuts',
+    shortcutAction: 'Action',
+    shortcutKeys: 'Shortcut',
+    shortcutPage: 'Page',
+    tagline: 'Small · Local-first · Developer toolbox',
+    shortcutCount: '{count} shortcuts in total'
+  }

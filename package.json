@@ -1,0 +1,32 @@
+{
+  "name": "dev-tool-kit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Modular desktop developer toolkit",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "test": "vitest run",
+    "check:locales": "vitest run scripts/check-locale-keys.test.ts",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "electron": "29.4.6",
+    "jsdom": "^29.0.2",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "jszip": "^3.10.1"
+  }
+}

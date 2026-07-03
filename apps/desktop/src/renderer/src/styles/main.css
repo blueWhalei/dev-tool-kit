@@ -1,0 +1,403 @@
+/* DevToolkit Main Styles */
+/* Apple Design System must be imported first */
+@import './design-system.css';
+
+/* Override text colors for better readability */
+:root {
+  --color-text-secondary: #333333;
+  --color-text-tertiary: #555555;
+}
+
+/* Dark mode overrides for text */
+.dark {
+  --color-text-secondary: #e5e5e7;
+  --color-text-tertiary: #a1a1a6;
+}
+
+/* App-specific styles */
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* App Layout */
+.app-layout {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Sidebar — layout lives in AppLayout.vue (flex column + scrollable menu) */
+.sidebar {
+  background: var(--color-bg-secondary) !important;
+  border-right: 1px solid var(--color-border) !important;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-menu {
+  padding: var(--space-2) 0;
+}
+
+/* Header */
+.app-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+  -webkit-app-region: drag;
+}
+
+.app-header-title {
+  font-size: var(--font-size-subheadline);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.window-controls {
+  display: flex;
+  gap: var(--space-1);
+  -webkit-app-region: no-drag;
+}
+
+.window-controls .n-button {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.window-controls .n-button:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.window-controls .close-btn:hover {
+  background-color: var(--color-error) !important;
+  color: white !important;
+}
+
+/* Content Area */
+.app-content {
+  padding: var(--space-6);
+  overflow-y: auto;
+  height: calc(100vh - var(--header-height));
+  background: var(--color-bg-primary);
+}
+
+/* Card Styles */
+.app-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: box-shadow var(--transition-normal);
+}
+
+.app-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.app-card-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-card-title {
+  font-size: var(--font-size-subheadline);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.app-card-body {
+  padding: var(--space-5);
+}
+
+/* Module Card */
+.module-card {
+  cursor: pointer;
+  padding: var(--space-5);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.module-card-icon {
+  font-size: 32px;
+  margin-bottom: var(--space-3);
+}
+
+.module-card-title {
+  font-size: var(--font-size-subheadline);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.module-card-desc {
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-title3);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-desc {
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-secondary);
+  max-width: 300px;
+}
+
+/* Table Styles */
+.app-table .n-data-table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Button overrides */
+.n-button--quaternary:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Naive UI text color fixes - only for content areas, not UI elements */
+.n-input .n-input__input-el,
+.n-input .n-input__textarea-el,
+.n-input .n-input__input-mirror,
+.n-data-table .n-data-table td,
+.n-data-table .n-data-table-th,
+.n-data-table .n-data-table-td,
+.n-data-table .n-data-table-th,
+.n-select .n-select-selection,
+.n-modal .n-modal-header .n-modal-header__title,
+.n-modal .n-modal-footer,
+.n-card .n-card__content,
+.n-list .n-list-item,
+.n-tab-pane,
+.n-input .n-input__placeholder {
+  color: var(--color-text-primary) !important;
+}
+
+/* Inputs */
+.n-input .n-input__placeholder {
+  color: var(--color-text-tertiary) !important;
+}
+
+/* Tables */
+.n-data-table {
+  color: var(--color-text-primary);
+}
+
+.n-data-table .n-data-table-th {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+/* Menu dividers */
+.n-menu-item-divider {
+  background: var(--color-border);
+}
+
+/* Status Tags - Custom colors for status labels */
+.status-tag {
+  font-weight: 500;
+}
+
+.status-tag--running {
+  color: #059669 !important;
+  background: #d1fae5 !important;
+  border-color: #059669 !important;
+}
+
+.status-tag--stopped {
+  color: #dc2626 !important;
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+}
+
+.status-tag--warning {
+  color: #d97706 !important;
+  background: #fef3c7 !important;
+  border-color: #d97706 !important;
+}
+
+.status-tag--info {
+  color: #2563eb !important;
+  background: #dbeafe !important;
+  border-color: #2563eb !important;
+}
+
+/* Primary Buttons - 蓝色背景 */
+.n-button--primary-type {
+  background: #007AFF !important;
+  color: white !important;
+  border-color: #007AFF !important;
+}
+
+/* Default buttons - 次要操作，浅灰色背景 */
+.n-button:not(.n-button--primary-type):not(.n-button--text):not(.n-button--quaternary):not(.n-button--error-type):not(.n-button--warning-type):not(.n-button--success-type) {
+  background: #F5F5F7 !important;
+  color: #1D1D1F !important;
+  border: 1px solid #D2D2D7 !important;
+}
+
+.n-button:not(.n-button--primary-type):not(.n-button--text):not(.n-button--quaternary):not(.n-button--error-type):not(.n-button--warning-type):not(.n-button--success-type):hover {
+  background: #E8E8ED !important;
+}
+
+/* Dark mode default buttons */
+.dark .n-button:not(.n-button--primary-type):not(.n-button--text):not(.n-button--quaternary):not(.n-button--error-type):not(.n-button--warning-type):not(.n-button--success-type) {
+  background: #2C2C2E !important;
+  color: #F5F5F7 !important;
+  border: 1px solid #3A3A3C !important;
+}
+
+.dark .n-button:not(.n-button--primary-type):not(.n-button--text):not(.n-button--quaternary):not(.n-button--error-type):not(.n-button--warning-type):not(.n-button--success-type):hover {
+  background: #3A3A3C !important;
+}
+
+/* Quaternary buttons - 简洁风格 */
+.n-button--quaternary {
+  background: transparent !important;
+  color: #007AFF !important;
+}
+
+.n-button--quaternary:hover {
+  background: rgba(0, 122, 255, 0.1) !important;
+}
+
+/* Error buttons - 红色背景，危险操作 */
+.n-button--error-type {
+  background: #FF3B30 !important;
+  color: white !important;
+  border-color: #FF3B30 !important;
+}
+
+/* Warning buttons - 橙色背景，警告操作 */
+.n-button--warning-type {
+  background: #FF9500 !important;
+  color: white !important;
+  border-color: #FF9500 !important;
+}
+
+/* Success buttons - 绿色背景，成功操作 */
+.n-button--success-type {
+  background: #34C759 !important;
+  color: white !important;
+  border-color: #34C759 !important;
+}
+
+/* ============================================
+   Input Styles - 输入框样式
+   ============================================ */
+
+/* Input border - 浅色模式 */
+.n-input {
+  border: 1px solid rgba(60, 60, 67, 0.25) !important;
+}
+
+.n-input:hover {
+  border-color: rgba(60, 60, 67, 0.35) !important;
+}
+
+.n-input:focus-within {
+  border-color: #007AFF !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* Input border - 深色模式 */
+.dark .n-input {
+  border: 1px solid rgba(84, 84, 88, 0.6) !important;
+}
+
+.dark .n-input:hover {
+  border-color: rgba(84, 84, 88, 0.8) !important;
+}
+
+.dark .n-input:focus-within {
+  border-color: #0A84FF !important;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2) !important;
+}
+
+/* Textarea styles */
+.n-input__textarea-el {
+  border: none !important;
+}
+
+/* ============================================
+   Page Layout System - 统一页面布局系统
+   ============================================ */
+
+/* Page Container - 页面容器 */
+.page-container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Page Header - 页面标题区 */
+.page-header {
+  margin-bottom: var(--page-header-margin-bottom);
+}
+
+/* Page Title - 页面标题 */
+.page-title {
+  font-size: var(--page-title-size);
+  font-weight: var(--page-title-weight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--page-title-margin-bottom) 0;
+  line-height: 1.2;
+}
+
+/* Page Description - 页面描述 */
+.page-description {
+  font-size: var(--font-size-subheadline);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Page Actions - 页面操作区 */
+.page-actions {
+  margin-bottom: var(--page-actions-margin-bottom);
+  display: flex;
+  gap: var(--page-actions-gap);
+  align-items: center;
+}
+
+/* Page Content - 页面内容区 */
+.page-content {
+  /* 内容区基础样式，可根据需要扩展 */
+}

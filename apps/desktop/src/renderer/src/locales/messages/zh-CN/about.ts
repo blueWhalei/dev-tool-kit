@@ -1,0 +1,22 @@
+export default {
+    title: '关于',
+    description: 'DevToolkit 本地开发者工具箱',
+    copyVersion: '复制版本',
+    versionCopied: '版本号已复制',
+    runtime: '运行环境',
+    runtimeDescription: '本地桌面应用，数据不上传',
+    platform: '当前平台',
+    electron: 'Electron',
+    node: 'Node.js',
+    chromium: 'Chromium',
+    license: '许可证',
+    shortcutsGlobal: '全局',
+    shortcutsOverlay: '搜索浮层',
+    shortcutsPage: '页面内',
+    shortcutsTitle: '{scope}快捷键',
+    shortcutAction: '操作',
+    shortcutKeys: '快捷键',
+    shortcutPage: '页面',
+    tagline: '小而美 · 本地优先 · 开发者工具箱',
+    shortcutCount: '共 {count} 项快捷键'
+  }

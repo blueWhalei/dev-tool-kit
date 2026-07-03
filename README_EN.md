@@ -1,0 +1,171 @@
+# Dev Tool Kit
+
+<p align="center">
+  <strong>Small & Beautiful · Local-First · Developer Toolkit</strong>
+</p>
+
+<p align="center">
+  A desktop developer toolset pursuing minimalism and elegance, inspired by Apple's design philosophy
+</p>
+
+<p align="center">
+  <a href="README.md">中文文档</a> | English Documentation
+</p>
+
+## Screenshots
+
+![Port Manager](./screenshots/en/port-manager.png)
+![Encoding Converter](./screenshots/en/code-format-converter.png)
+![Settings Page](./screenshots/en/settings.png)
+
+## Design Philosophy
+
+**Small & Beautiful** — Each tool page focuses on doing one thing well; avoid duplication through search and aggregation entry, keep the sidebar clear.
+
+**Local-First** — All features run completely locally, no network connection required. Your data always stays on your device, privacy and security guaranteed.
+
+**Elegant Experience** — Following Apple Human Interface Guidelines, pursuing clean interfaces, smooth animations, and intuitive operations.
+
+**Language Support** — Full bilingual support (Chinese & English) with seamless in-app language switching.
+
+## Features Overview
+
+### System Tools
+
+| Tool | Description |
+|------|------|
+| Port Manager | Local port scanning, common ports, process termination (Windows) |
+| Environment Variables | Windows user/system variables, PATH, backup & export/import |
+| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush |
+| File Renamer | Batch rename, rule library, conflict preview, partial selection |
+| Regex Tester | Regex matching, replacement, common expression library |
+
+### Encoding & Decoding
+
+| Tool | Description |
+|------|------|
+| Encoding & Format Conversion | Base64, URL, JSON, YAML, TOML, timestamp, radix, naming, HTML (unified entry with Tab memory) |
+| Text Diff | Line-by-line diff, ignore whitespace/case, unified/split view |
+
+### Data Conversion
+
+| Tool | Description |
+|------|------|
+| Color Converter | HEX, RGB, HSL conversion |
+| UUID Generator | Batch generate UUID/GUID |
+| Mock Data | Preset templates, field-based JSON generation, export JSON/CSV |
+
+### Password & Keys
+
+| Tool | Description |
+|------|------|
+| Password Generator | Custom rule random passwords |
+| JWT Tool | Secret generation, token decoding, exp/iat validation, HMAC signature verification |
+| Hash Generator | MD5, SHA-1, SHA-256, SHA-512 |
+
+### Calculators
+
+| Tool | Description |
+|------|------|
+| Cron Parser | Cron expression parsing, next 5 execution times with relative countdown |
+| Subnet Calculator | CIDR input, output network/broadcast/mask/host range |
+
+## Keyboard Shortcuts
+
+### Global
+
+- `Ctrl+K` — Open/close global search (supports deep links to encoding conversion sub-tabs like yaml, toml, json)
+- Search overlay: `↑` / `↓` navigate, `Enter` open, `Esc` close
+
+### In-Page
+
+- `Ctrl+Shift+C` — Copy output in dual-panel tool pages (Hash, encoding conversion, etc.)
+- `Ctrl+Enter` — Execute current tab's main action in encoding & format conversion page
+- `R` — Refresh scan in port manager page (when not focused on input field)
+
+### Others
+
+- Sidebar bottom — Settings / About; Top bar — Theme switch (Light · Dark · System)
+- Settings page — Configure sidebar favorites, default homepage, theme, config export/import
+
+Full keyboard shortcuts list available in the app's **About** page.
+
+## Platform Capability Matrix
+
+| Feature | Windows | macOS | Linux | Notes |
+|---------|---------|-------|-------|-------|
+| Port Scanning | Full Support | Full Support | Full Support | — |
+| Kill Process | Full Support | Not Supported | Not Supported | Non-Windows please manually `kill` |
+| Environment Variables | Full Support | Not Supported | Not Supported | Currently only Windows registry |
+| Hosts Editor | Partial Support | Partial Support | Partial Support | Write may require admin privileges |
+| DNS Flush | Full Support | Full Support | Partial Support | Linux depends on systemd-resolve / nscd |
+| File Renamer | Full Support | Full Support | Full Support | — |
+| Encoding / Hash / JWT etc. | Local Available | Local Available | Local Available | Renderer process local computation, consistent across platforms |
+
+## Deep Link Routes
+
+| Path | Target |
+|------|------|
+| `/base64` | Encoding Conversion · Base64 Tab |
+| `/url` | Encoding Conversion · URL Tab |
+| `/yaml` | Encoding Conversion · YAML Tab |
+| `/toml` | Encoding Conversion · TOML Tab |
+| `/json-formatter` | Encoding Conversion · JSON Tab |
+| `/timestamp` | Encoding Conversion · Timestamp Tab |
+
+## Tech Stack
+
+- **Electron** — Cross-platform desktop application framework
+- **Vue 3** — Progressive JavaScript framework
+- **Naive UI** — Vue 3 component library
+- **TypeScript** — Type-safe JavaScript superset
+- **Vite** — Next-generation frontend build tool
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- pnpm >= 9.0.0
+
+### Install Dependencies
+
+```bash
+pnpm install
+```
+
+### Development Mode
+
+```bash
+pnpm dev
+```
+
+### Build Application
+
+```bash
+pnpm build
+```
+
+### Code Quality
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+```
+
+## Project Structure
+
+Monorepo architecture: `apps/desktop` (Electron app) + `packages/shared` (shared utility modules)
+
+## Why Choose Dev Tool Kit?
+
+- **No Network Dependency** — Works in intranet environments, offline state, anytime anywhere
+- **Data Privacy** — All data processed locally, no information uploaded
+- **Fast Startup** — Lightweight design, instant launch
+- **Native Experience** — Desktop app native performance, no browser limitations
+- **Continuous Evolution** — More practical tools continuously being added
+
+## License
+
+[MIT](LICENSE)

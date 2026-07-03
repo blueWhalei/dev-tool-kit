@@ -1,0 +1,113 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+jspm_packages/
+
+# Build outputs
+dist/
+out/
+build/
+build/Release
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.vscode-test
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Cache directories
+.turbo/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.npm
+.grunt
+.fusebox/
+.firebase/
+.dynamodb/
+.serverless/
+.svelte-kit/
+
+# Temporary
+*.tmp
+*.temp
+.node_repl_history
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.yarn-integrity
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+**/.vitepress/dist
+**/.vitepress/cache
+
+# Framework outputs
+.next/
+.nuxt/
+.vuepress/dist
+.docusaurus
+
+# Package files
+*.tgz
+*.lock-wscript
+
+# Other
+bower_components/
+web_modules/
+.tern-port
+
+# Electron specific
+release/
+*.dmg
+*.AppImage
+*.snap
+*.deb
+*.rpm
+*.exe
+*.msi

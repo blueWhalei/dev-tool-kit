@@ -1,0 +1,51 @@
+{
+  "name": "@dev-tool-kit/shared",
+  "version": "1.0.0",
+  "description": "Shared types, utilities, and constants for DevToolkit",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/index.mjs",
+      "require": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
+    },
+    "./constants": {
+      "import": "./dist/constants/index.mjs",
+      "require": "./dist/constants/index.js",
+      "types": "./dist/constants/index.d.ts"
+    },
+    "./ipc": {
+      "import": "./dist/ipc/index.mjs",
+      "require": "./dist/ipc/index.js",
+      "types": "./dist/ipc/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "echo \"Use pnpm build:watch to build shared package\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "smol-toml": "^1.7.0",
+    "yaml": "^2.9.0"
+  }
+}

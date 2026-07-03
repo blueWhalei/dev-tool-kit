@@ -1,0 +1,470 @@
+/**
+ * DevToolkit Design System
+ * Based on Apple Human Interface Guidelines 2026
+ * 
+ * Core Philosophy:
+ * - Clarity: Information is legible and easy to navigate
+ * - Deference: UI doesn't compete with content
+ * - Depth: Visual layers create hierarchy and understanding
+ */
+
+/* ============================================
+   CSS Variables - Design Tokens
+   ============================================ */
+
+:root {
+  /* Colors - Primary */
+  --color-primary: #007AFF;
+  --color-primary-hover: #0A84FF;
+  --color-primary-pressed: #0056B3;
+  --color-primary-light: rgba(0, 122, 255, 0.1);
+  
+  /* Colors - Semantic */
+  --color-success: #34C759;
+  --color-success-light: rgba(52, 199, 89, 0.1);
+  --color-warning: #FF9500;
+  --color-warning-light: rgba(255, 149, 0, 0.1);
+  --color-error: #FF3B30;
+  --color-error-light: rgba(255, 59, 48, 0.1);
+  
+/* Colors - Background (Light Mode) */
+   --color-bg-primary: #F5F5F7;
+   --color-bg-secondary: #F2F2F7;
+   --color-bg-tertiary: #E5E5EA;
+   --color-bg-elevated: rgba(255, 255, 255, 0.8);
+  
+  /* Colors - Background (Dark Mode) */
+  --color-bg-primary-dark: #1C1C1E;
+  --color-bg-secondary-dark: #2C2C2E;
+  --color-bg-tertiary-dark: #3A3A3C;
+  --color-bg-elevated-dark: rgba(44, 44, 46, 0.8);
+  
+/* Colors - Text (Light Mode) */
+   --color-text-primary: #000000;
+   --color-text-secondary: rgba(0, 0, 0, 0.6);
+   --color-text-tertiary: rgba(0, 0, 0, 0.45);
+   --color-text-inverse: #FFFFFF;
+  
+  /* Colors - Text (Dark Mode) */
+  --color-text-primary-dark: #FFFFFF;
+  --color-text-secondary-dark: rgba(235, 235, 245, 0.65);
+  --color-text-tertiary-dark: rgba(235, 235, 245, 0.5);
+  --color-text-inverse-dark: #000000;
+  
+  /* Colors - Border */
+  --color-border: rgba(60, 60, 67, 0.12);
+  --color-border-secondary: rgba(60, 60, 67, 0.08);
+  --color-border-dark: rgba(84, 84, 88, 0.65);
+  --color-border-dark-secondary: rgba(84, 84, 88, 0.35);
+  
+  /* Typography - Font Family */
+  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-family-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-family-mono: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  
+  /* Typography - Font Size */
+  --font-size-caption2: 11px;
+  --font-size-caption1: 12px;
+  --font-size-footnote: 13px;
+  --font-size-subheadline: 15px;
+  --font-size-body: 14px;
+  --font-size-title3: 15px;
+  --font-size-title2: 17px;
+  --font-size-title1: 20px;
+  --font-size-headline: 24px;
+  --font-size-display: 28px;
+  --font-size-large-title: 34px;
+  
+  /* Typography - Font Weight */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Typography - Line Height */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.4;
+  --line-height-relaxed: 1.6;
+  
+  /* Typography - Letter Spacing */
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.02em;
+  
+  /* Spacing - Unified Scale */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Named aliases (prefer numeric scale) */
+  --space-xs: var(--space-1);
+  --space-sm: var(--space-2);
+  --space-md: var(--space-4);
+  --space-lg: var(--space-6);
+  --space-xl: var(--space-8);
+  --space-2xl: var(--space-12);
+  
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  
+  /* Shadows - Dark Mode */
+  --shadow-sm-dark: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md-dark: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg-dark: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms ease-out;
+  --transition-slow: 350ms ease-in-out;
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Z-Index */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+  
+  /* Layout */
+  --sidebar-width: 220px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 48px;
+  --content-max-width: 1200px;
+  
+  /* Page Layout */
+  --page-title-size: 28px;
+  --page-title-weight: 600;
+  --page-title-margin-bottom: 8px;
+  --page-header-margin-bottom: 24px;
+  --page-actions-margin-bottom: 20px;
+  --page-actions-gap: 12px;
+  
+  /* Card Styles */
+  --card-border-radius: 12px;
+  --card-padding: 20px;
+  --card-border-width: 1px;
+}
+
+/* ============================================
+   Dark Theme Overrides
+   ============================================ */
+
+html.dark,
+body.dark {
+  --color-bg-primary: var(--color-bg-primary-dark);
+  --color-bg-secondary: var(--color-bg-secondary-dark);
+  --color-bg-tertiary: var(--color-bg-tertiary-dark);
+  --color-bg-elevated: var(--color-bg-elevated-dark);
+
+  --color-text-primary: var(--color-text-primary-dark);
+  --color-text-secondary: var(--color-text-secondary-dark);
+  --color-text-tertiary: var(--color-text-tertiary-dark);
+  --color-text-inverse: var(--color-text-inverse-dark);
+
+  --color-border: var(--color-border-dark);
+  --color-border-secondary: var(--color-border-dark-secondary);
+
+  --shadow-sm: var(--shadow-sm-dark);
+  --shadow-md: var(--shadow-md-dark);
+  --shadow-lg: var(--shadow-lg-dark);
+}
+
+/* ============================================
+   CSS Reset
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  overflow: hidden;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+h1 { font-size: var(--font-size-large-title); }
+h2 { font-size: var(--font-size-headline); }
+h3 { font-size: var(--font-size-title1); }
+h4 { font-size: var(--font-size-title2); }
+h5 { font-size: var(--font-size-title3); }
+h6 { font-size: var(--font-size-body); }
+
+p {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-relaxed);
+}
+
+code, pre {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-footnote);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+  background-clip: padding-box;
+}
+
+/* ============================================
+   Selection
+   ============================================ */
+
+::selection {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* ============================================
+   Focus Styles
+   ============================================ */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   Glass Effect (Apple Liquid Glass)
+   ============================================ */
+
+.glass {
+  background: var(--color-bg-elevated);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+[data-theme="dark"] .glass {
+  background: var(--color-bg-elevated);
+}
+
+.glass-secondary {
+  background: rgba(255, 255, 255, 0.64);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+}
+
+[data-theme="dark"] .glass-secondary {
+  background: rgba(44, 44, 46, 0.72);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* Flexbox */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+
+/* Spacing */
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-6 { padding: var(--space-6); }
+
+.m-1 { margin: var(--space-1); }
+.m-2 { margin: var(--space-2); }
+.m-3 { margin: var(--space-3); }
+.m-4 { margin: var(--space-4); }
+
+/* Text */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-sm { font-size: var(--font-size-footnote); }
+.text-xs { font-size: var(--font-size-caption1); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+.text-primary { color: var(--color-primary); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Border */
+.rounded { border-radius: var(--radius-md); }
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadow */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp var(--transition-normal) ease-out;
+}
+
+.animate-fadeInScale {
+  animation: fadeInScale var(--transition-normal) ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft var(--transition-normal) ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Transition utilities */
+.transition {
+  transition: all var(--transition-fast);
+}
+
+.transition-colors {
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.transition-transform {
+  transition: transform var(--transition-fast);
+}
+
+.transition-opacity {
+  transition: opacity var(--transition-fast);
+}

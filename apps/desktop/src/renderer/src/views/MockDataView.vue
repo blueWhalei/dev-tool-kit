@@ -1,0 +1,277 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import {
+  NButton,
+  NInputNumber,
+  NCard,
+  NInput,
+  NSelect,
+  NDataTable,
+  NButtonGroup,
+  useMessage,
+  type DataTableColumns
+} from 'naive-ui'
+import PageLayout from '../components/PageLayout.vue'
+import { useToolI18n } from '../composables/useToolI18n'
+import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import {
+  generateMockRecords,
+  MOCK_PRESETS,
+  recordsToCsv,
+  downloadTextFile,
+  type MockField,
+  type MockFieldType
+} from '@dev-tool-kit/shared'
+
+const message = useMessage()
+const page = useToolI18n('mockData')
+const { copy } = useCopyToClipboard()
+
+const count = ref(10)
+const activePreset = ref<string | null>('user')
+const fields = ref<MockField[]>([...MOCK_PRESETS.user.fields])
+const records = ref<Record<string, unknown>[]>([])
+
+function getColumnTitle(key: string): string {
+  if (activePreset.value) {
+    const labelKey = `presets.${activePreset.value}.fields.${key}`
+    const label = page.t(labelKey)
+    if (label !== labelKey) return label
+  }
+  return key
+}
+
+function onFieldNameChange() {
+  activePreset.value = null
+}
+
+const presetOptions = computed(() =>
+  Object.keys(MOCK_PRESETS).map(value => ({
+    label: page.t(`presets.${value}.label`),
+    value
+  }))
+)
+
+const fieldTypeOptions = computed(() =>
+  (['name', 'email', 'phone', 'uuid', 'number', 'date', 'boolean'] as MockFieldType[]).map(value => ({
+    label: page.t(`fieldTypes.${value}`),
+    value
+  }))
+)
+
+const columns = computed<DataTableColumns<Record<string, unknown>>>(() => {
+  void page.locale.value
+  if (records.value.length === 0) return []
+  const keys = Object.keys(records.value[0])
+  return keys.map(key => ({
+    title: getColumnTitle(key),
+    key,
+    ellipsis: { tooltip: true },
+    render: (row: Record<string, unknown>) => String(row[key])
+  }))
+})
+
+function applyPreset(presetKey: string | null) {
+  if (!presetKey || !MOCK_PRESETS[presetKey]) return
+  activePreset.value = presetKey
+  fields.value = MOCK_PRESETS[presetKey].fields.map(field => ({ ...field }))
+  generate()
+}
+
+function addField() {
+  activePreset.value = null
+  fields.value.push({ name: `field_${fields.value.length + 1}`, type: 'number' })
+}
+
+function removeField(index: number) {
+  if (fields.value.length <= 1) {
+    message.warning(page.t('messages.minFields'))
+    return
+  }
+  activePreset.value = null
+  fields.value.splice(index, 1)
+}
+
+function generate() {
+  const validFields = fields.value.filter(field => field.name.trim())
+  if (validFields.length === 0) {
+    message.warning(page.t('messages.validFieldRequired'))
+    return
+  }
+  records.value = generateMockRecords(validFields, count.value)
+}
+
+const jsonOutput = computed(() =>
+  records.value.length ? JSON.stringify(records.value, null, 2) : ''
+)
+
+async function copyJson() {
+  if (!jsonOutput.value) {
+    message.warning(page.t('messages.generateFirst'))
+    return
+  }
+  await copy(jsonOutput.value, page.t('messages.copiedJson'))
+}
+
+function exportJson() {
+  if (!jsonOutput.value) {
+    message.warning(page.t('messages.generateFirst'))
+    return
+  }
+  downloadTextFile(`mock-data-${records.value.length}.json`, jsonOutput.value, 'application/json;charset=utf-8')
+  message.success(page.t('messages.exportedJson'))
+}
+
+function exportCsv() {
+  if (!records.value.length) {
+    message.warning(page.t('messages.generateFirst'))
+    return
+  }
+  downloadTextFile(`mock-data-${records.value.length}.csv`, recordsToCsv(records.value), 'text/csv;charset=utf-8')
+  message.success(page.t('messages.exportedCsv'))
+}
+
+generate()
+</script>
+
+<template>
+  <PageLayout
+    :title="page.title"
+    :description="page.description"
+    container-class="mock-data-view"
+  >
+    <template #actions>
+      <NSelect
+        :options="presetOptions"
+        :placeholder="page.t('placeholders.preset')"
+        clearable
+        style="width: 160px"
+        @update:value="applyPreset"
+      />
+      <div class="count-control">
+        <span class="control-label">{{ page.t('labels.count') }}</span>
+        <NInputNumber v-model:value="count" :min="1" :max="1000" />
+      </div>
+      <NButton type="primary" @click="generate">{{ page.t('buttons.generate') }}</NButton>
+      <NButtonGroup>
+        <NButton @click="copyJson" :disabled="!records.length">{{ page.t('buttons.copyJson') }}</NButton>
+        <NButton @click="exportJson" :disabled="!records.length">{{ page.t('buttons.exportJson') }}</NButton>
+        <NButton @click="exportCsv" :disabled="!records.length">{{ page.t('buttons.exportCsv') }}</NButton>
+      </NButtonGroup>
+    </template>
+
+    <NCard class="fields-card" :bordered="false">
+      <template #header>
+        <div class="fields-header">
+          <span class="card-title">{{ page.t('labels.fieldConfig') }}</span>
+          <NButton size="small" @click="addField">{{ page.t('buttons.addField') }}</NButton>
+        </div>
+      </template>
+      <div class="fields-list">
+        <div v-for="(field, index) in fields" :key="index" class="field-row">
+          <NInput
+            v-model:value="field.name"
+            :placeholder="page.t('placeholders.fieldName')"
+            class="field-name"
+            @update:value="onFieldNameChange"
+          />
+          <NSelect
+            v-model:value="field.type"
+            :options="fieldTypeOptions"
+            class="field-type"
+          />
+          <NButton quaternary type="error" @click="removeField(index)">{{ page.t('buttons.delete') }}</NButton>
+        </div>
+      </div>
+    </NCard>
+
+    <NCard v-if="records.length" class="result-card" :bordered="false">
+      <template #header>
+        <div class="result-header">
+          <span class="card-title">{{ page.t('labels.preview', { count: records.length }) }}</span>
+          <NButtonGroup size="small">
+            <NButton @click="copyJson">{{ page.t('buttons.copyJson') }}</NButton>
+            <NButton @click="exportJson">{{ page.t('buttons.exportJson') }}</NButton>
+            <NButton @click="exportCsv">{{ page.t('buttons.exportCsv') }}</NButton>
+          </NButtonGroup>
+        </div>
+      </template>
+      <NDataTable
+        :columns="columns"
+        :data="records.slice(0, 20)"
+        :bordered="false"
+        size="small"
+        :max-height="360"
+        virtual-scroll
+      />
+      <p v-if="records.length > 20" class="preview-hint">{{ page.t('hints.previewLimit') }}</p>
+    </NCard>
+  </PageLayout>
+</template>
+
+<style scoped>
+.mock-data-view {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.count-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.control-label {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.fields-card,
+.result-card {
+  background: var(--color-bg-primary);
+  margin-bottom: var(--space-4);
+}
+
+.fields-header,
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.field-name {
+  flex: 1;
+  max-width: 240px;
+}
+
+.field-type {
+  width: 140px;
+}
+
+.preview-hint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+</style>
