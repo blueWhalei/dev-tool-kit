@@ -40,9 +40,7 @@ export default {
     },
     hints: {
       nonWindows: 'On non-Windows platforms only listening ports are shown; process info may be incomplete',
-      platformAlert: 'Port scanning is supported on {platform}; "Kill process" is Windows-only.',
-      darwin: 'macOS: use Activity Monitor or run kill <PID> in Terminal.',
-      linux: 'Linux: use kill <PID> or kill -9 <PID> to terminate a process.'
+      unixKillHint: 'Kill process is supported on {platform}, but some system processes require sudo. If kill fails, run sudo kill <PID> in terminal.'
     },
     messages: {
       killConfirm: 'Kill process {pid}?',
@@ -50,7 +48,8 @@ export default {
     },
     errors: {
       fetchFailed: 'Failed to fetch port list',
-      killFailed: 'Failed to kill process'
+      killFailed: 'Failed to kill process',
+      needSudo: 'Process {pid} requires sudo. Run sudo kill {pid} in terminal'
     },
     empty: 'No ports in use',
     refresh: 'Refresh',

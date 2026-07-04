@@ -38,6 +38,7 @@ coverage/
 *.swp
 *.swo
 .vscode-test
+.trae/
 
 # OS
 .DS_Store

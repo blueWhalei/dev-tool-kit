@@ -306,7 +306,7 @@ export class PortScanner {
     }
   }
 
-  async killProcess(pid: number, force = false): Promise<{ success: boolean; error?: string }> {
+  async killProcess(pid: number, force = false): Promise<{ success: boolean; error?: string; needSudo?: boolean }> {
     if (!Number.isInteger(pid) || pid <= 0) {
       return { success: false, error: 'Invalid PID' }
     }
@@ -334,12 +334,19 @@ export class PortScanner {
       const errorMsg = error instanceof Error ? error.message : String(error)
       logger.error(`Failed to kill process ${pid}:`, errorMsg)
 
+      const isPermissionDenied = /EPERM|Permission denied|Operation not permitted/i.test(errorMsg)
+
       if (!force && this.platform !== 'win32') {
         logger.info('Trying SIGKILL...')
-        return await this.killProcess(pid, true)
+        const sigkillResult = await this.killProcess(pid, true)
+        if (!sigkillResult.success) {
+          const sigkillDenied = /EPERM|Permission denied|Operation not permitted/i.test(sigkillResult.error || '')
+          return { ...sigkillResult, needSudo: sigkillDenied || isPermissionDenied }
+        }
+        return sigkillResult
       }
 
-      return { success: false, error: errorMsg }
+      return { success: false, error: errorMsg, needSudo: isPermissionDenied }
     }
   }
 

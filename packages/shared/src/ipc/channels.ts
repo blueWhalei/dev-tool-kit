@@ -79,6 +79,9 @@ export const IPC_INVOKE_CHANNELS = [
   'regex:test',
   'regex:replace',
   'regex:getCommon',
+  // Hash Generator
+  'hash-generator:selectFile',
+  'hash-generator:computeFileHash',
 ] as const
 
 export type IpcInvokeChannel = (typeof IPC_INVOKE_CHANNELS)[number]

@@ -40,9 +40,7 @@ export default {
     },
     hints: {
       nonWindows: '非 Windows 平台仅显示监听端口，进程信息可能不完整',
-      platformAlert: '当前平台（{platform}）支持端口扫描；「终止进程」仅 Windows 可用。',
-      darwin: 'macOS：可使用「活动监视器」手动结束进程，或终端执行 kill <PID>。',
-      linux: 'Linux：可使用 kill <PID> 或 kill -9 <PID> 结束进程。'
+      unixKillHint: '当前平台（{platform}）支持终止进程，但部分系统进程需要 sudo 权限。若终止失败，请在终端执行 sudo kill <PID>。'
     },
     messages: {
       killConfirm: '确定终止进程 {pid}？',
@@ -50,7 +48,8 @@ export default {
     },
     errors: {
       fetchFailed: '获取端口列表失败',
-      killFailed: '终止进程失败'
+      killFailed: '终止进程失败',
+      needSudo: '进程 {pid} 需要管理员权限，请在终端执行 sudo kill {pid}'
     },
     empty: '暂无端口占用',
     refresh: '刷新',

@@ -21,9 +21,9 @@ export const PLATFORM_CAPABILITIES: PlatformCapabilityRow[] = [
   {
     feature: '终止占用进程',
     win32: 'full',
-    darwin: 'none',
-    linux: 'none',
-    notes: '非 Windows 请手动 kill 进程'
+    darwin: 'partial',
+    linux: 'partial',
+    notes: 'Unix 下部分进程可能需要 sudo 权限'
   },
   {
     feature: '环境变量管理',

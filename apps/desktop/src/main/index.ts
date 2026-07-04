@@ -9,6 +9,7 @@ import { setupEnvManagerIPC } from './modules/env-manager'
 import { setupHostsEditorIPC } from './modules/hosts-editor'
 import { setupFileRenamerIPC } from './modules/file-renamer'
 import { setupRegexTesterIPC } from './modules/regex-tester'
+import { setupHashGeneratorIPC } from './modules/hash-generator'
 import { loadWindowState, saveWindowState } from './store/window-state'
 import { getWindowState } from './window'
 
@@ -152,6 +153,9 @@ app.whenReady().then(async () => {
 
   // Setup regex tester IPC
   setupRegexTesterIPC()
+
+  // Setup hash generator IPC
+  setupHashGeneratorIPC()
 
   // Create menu
   createAppMenu()

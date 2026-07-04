@@ -6,6 +6,7 @@ export * from './subnet'
 export * from './mock-data'
 export * from './text-diff'
 export * from './hosts-diff'
+export * from './color'
 
 // Formatting utilities
 export function formatBytes(bytes: number, decimals = 2): string {

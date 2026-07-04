@@ -1,149 +1,139 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NInput, NButton } from 'naive-ui'
+import { NInput, NButton, NSlider, NCard, NGrid, NGridItem } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import {
+  type ColorRGBA,
+  type ColorHSLA,
+  hexToRgba,
+  rgbaToHex,
+  rgbaToHsla,
+  hslaToRgba,
+  cssNameToRgba,
+  rgbaToCssName,
+  parseRgbString,
+  parseHslString,
+  rgbaToString,
+  hslaToString
+} from '@dev-tool-kit/shared'
 
 const { t } = useI18n()
 const { copy } = useCopyToClipboard()
 const page = useToolI18n('colorConverter')
 
+const RECENT_COLORS_KEY = 'dev-toolkit-recent-colors'
+const MAX_RECENT = 12
+
+const currentRgba = ref<ColorRGBA>({ r: 37, g: 99, b: 235, a: 1 })
 const hexInput = ref('#2563eb')
-const rgbInput = ref('37, 99, 235')
-const hslInput = ref('217, 91%, 60%')
+const rgbaInput = ref('37, 99, 235, 1')
+const hslaInput = ref('217, 91%, 60%, 1')
+const hex8Input = ref('#2563ebff')
+const cssNameInput = ref('')
+const resolvedCssName = ref<string | null>(null)
 
-const colorPreview = ref('#2563eb')
+const recentColors = ref<string[]>(loadRecentColors())
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      }
-    : null
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(x => {
-    const hex = Math.max(0, Math.min(255, Math.round(x))).toString(16)
-    return hex.length === 1 ? '0' + hex : hex
-  }).join('')
-}
-
-function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-  r /= 255
-  g /= 255
-  b /= 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  let h = 0
-  let s = 0
-  const l = (max + min) / 2
-
-  if (max !== min) {
-    const d = max - min
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
-      case g: h = ((b - r) / d + 2) / 6; break
-      case b: h = ((r - g) / d + 4) / 6; break
-    }
-  }
-
-  return {
-    h: Math.round(h * 360),
-    s: Math.round(s * 100),
-    l: Math.round(l * 100)
+function loadRecentColors(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_COLORS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
   }
 }
 
-function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
-  h /= 360
-  s /= 100
-  l /= 100
-
-  let r, g, b
-
-  if (s === 0) {
-    r = g = b = l
-  } else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1
-      if (t > 1) t -= 1
-      if (t < 1/6) return p + (q - p) * 6 * t
-      if (t < 1/2) return q
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
-      return p
-    }
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-    const p = 2 * l - q
-    r = hue2rgb(p, q, h + 1/3)
-    g = hue2rgb(p, q, h)
-    b = hue2rgb(p, q, h - 1/3)
-  }
-
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255)
-  }
+function saveRecentColor(hex8: string) {
+  const list = recentColors.value.filter(c => c !== hex8)
+  list.unshift(hex8)
+  recentColors.value = list.slice(0, MAX_RECENT)
+  localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recentColors.value))
 }
 
-function updateFromHex() {
-  const rgb = hexToRgb(hexInput.value)
-  if (rgb) {
-    rgbInput.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`
-    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
-    hslInput.value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`
-    colorPreview.value = hexInput.value
+const colorPreview = computed(() => rgbaToHex(currentRgba.value))
+
+const colorPreviewRgba = computed(() => {
+  const c = currentRgba.value
+  return `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})`
+})
+
+function updateFromRgba(rgba: ColorRGBA, source: string) {
+  currentRgba.value = { ...rgba }
+  if (source !== 'hex') hexInput.value = rgbaToHex(rgba)
+  if (source !== 'rgba') rgbaInput.value = rgbaToString(rgba).replace(/^rgba?\((.+)\)$/, '$1')
+  if (source !== 'hsla') {
+    const hsla = rgbaToHsla(rgba)
+    hslaInput.value = `${hsla.h}, ${hsla.s}%, ${hsla.l}%, ${hsla.a}`
   }
+  if (source !== 'hex8') hex8Input.value = rgbaToHex(rgba, true)
+  if (source !== 'cssName') {
+    resolvedCssName.value = rgbaToCssName(rgba)
+    if (source !== 'picker') cssNameInput.value = resolvedCssName.value || ''
+  }
+  if (source !== 'picker') saveRecentColor(rgbaToHex(rgba, true))
 }
 
-function updateFromRgb() {
-  const match = rgbInput.value.match(/^(\d+),\s*(\d+),\s*(\d+)$/)
-  if (match) {
-    const r = parseInt(match[1])
-    const g = parseInt(match[2])
-    const b = parseInt(match[3])
-    if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
-      hexInput.value = rgbToHex(r, g, b)
-      const hsl = rgbToHsl(r, g, b)
-      hslInput.value = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`
-      colorPreview.value = hexInput.value
-    }
-  }
+function onHexInput() {
+  let parsed = hexToRgba(hexInput.value)
+  if (!parsed) parsed = cssNameToRgba(hexInput.value)
+  if (parsed) updateFromRgba(parsed, 'hex')
 }
 
-function updateFromHsl() {
-  const match = hslInput.value.match(/^(\d+),\s*(\d+)%?,\s*(\d+)%?$/)
-  if (match) {
-    const h = parseInt(match[1])
-    const s = parseInt(match[2])
-    const l = parseInt(match[3])
-    if (h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100) {
-      const rgb = hslToRgb(h, s, l)
-      rgbInput.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`
-      hexInput.value = rgbToHex(rgb.r, rgb.g, rgb.b)
-      colorPreview.value = hexInput.value
-    }
+function onRgbaInput() {
+  const parsed = parseRgbString(rgbaInput.value)
+  if (parsed) updateFromRgba(parsed, 'rgba')
+}
+
+function onHslaInput() {
+  const parsed = parseHslString(hslaInput.value)
+  if (parsed) updateFromRgba(hslaToRgba(parsed), 'hsla')
+}
+
+function onHex8Input() {
+  const parsed = hexToRgba(hex8Input.value)
+  if (parsed) updateFromRgba(parsed, 'hex8')
+}
+
+function onCssNameInput() {
+  const parsed = cssNameToRgba(cssNameInput.value)
+  if (parsed) updateFromRgba(parsed, 'cssName')
+}
+
+function onPickerChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const parsed = hexToRgba(input.value)
+  if (parsed) {
+    parsed.a = currentRgba.value.a
+    updateFromRgba(parsed, 'picker')
   }
 }
 
-async function copyHex() {
-  await copy(hexInput.value, page.t('messages.hexCopied'))
+function onAlphaChange(value: number) {
+  const rgba = { ...currentRgba.value, a: value / 100 }
+  currentRgba.value = rgba
+  rgbaInput.value = rgbaToString(rgba).replace(/^rgba?\((.+)\)$/, '$1')
+  const hsla = rgbaToHsla(rgba)
+  hslaInput.value = `${hsla.h}, ${hsla.s}%, ${hsla.l}%, ${hsla.a}`
+  hex8Input.value = rgbaToHex(rgba, true)
+  saveRecentColor(rgbaToHex(rgba, true))
 }
 
-async function copyRgb() {
-  await copy(`rgb(${rgbInput.value})`, page.t('messages.rgbCopied'))
+function applyRecentColor(hex8: string) {
+  const parsed = hexToRgba(hex8)
+  if (parsed) updateFromRgba(parsed, 'picker')
 }
 
-async function copyHsl() {
-  await copy(`hsl(${hslInput.value})`, page.t('messages.hslCopied'))
+async function copyValue(value: string, messageKey: string) {
+  await copy(value, page.t(messageKey))
 }
+
+const alphaPercent = computed({
+  get: () => Math.round(currentRgba.value.a * 100),
+  set: (v: number) => onAlphaChange(v)
+})
 </script>
 
 <template>
@@ -152,57 +142,84 @@ async function copyHsl() {
     :description="page.description"
     container-class="color-converter-view"
   >
-    <div class="color-preview-card">
-      <div class="color-preview" :style="{ backgroundColor: colorPreview }"></div>
-      <div class="picker-area">
-        <input
-          type="color"
-          v-model="hexInput"
-          @input="updateFromHex"
-          class="color-picker"
-        />
-        <span class="picker-label">{{ page.t('labels.pickColor') }}</span>
+    <div class="color-preview-section">
+      <div class="preview-area">
+        <div class="checkerboard-bg">
+          <div class="color-swatch" :style="{ backgroundColor: colorPreviewRgba }"></div>
+        </div>
+        <label class="picker-wrapper">
+          <input type="color" :value="colorPreview" @input="onPickerChange" class="color-picker" />
+          <span class="picker-label">{{ page.t('labels.pickColor') }}</span>
+        </label>
+      </div>
+      <div class="alpha-control">
+        <span class="alpha-label">{{ page.t('labels.alpha') }}</span>
+        <NSlider v-model:value="alphaPercent" :min="0" :max="100" :step="1" style="flex: 1" />
+        <span class="alpha-value">{{ alphaPercent }}%</span>
       </div>
     </div>
 
-    <div class="color-inputs-grid">
-      <div class="color-input-card">
-        <div class="input-header">
-          <span class="input-label">{{ page.t('labels.hex') }}</span>
-          <NButton size="small" @click="copyHex">{{ t('common.copy') }}</NButton>
-        </div>
-        <NInput
-          v-model:value="hexInput"
-          :placeholder="page.t('placeholders.hex')"
-          @input="updateFromHex"
-          class="color-input"
-        />
-      </div>
+    <NGrid :cols="2" :x-gap="12" :y-gap="12" responsive="screen" item-responsive>
+      <NGridItem span="0:2 640:1">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.hex') }}</label>
+            <NInput :value="hexInput" @update:value="hexInput = $event; onHexInput()" :placeholder="page.t('placeholders.hex')" size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(hexInput, 'messages.hexCopied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem span="0:2 640:1">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.rgba') }}</label>
+            <NInput :value="rgbaInput" @update:value="rgbaInput = $event; onRgbaInput()" :placeholder="page.t('placeholders.rgba')" size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(rgbaToString(currentRgba), 'messages.rgbaCopied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem span="0:2 640:1">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.hsla') }}</label>
+            <NInput :value="hslaInput" @update:value="hslaInput = $event; onHslaInput()" :placeholder="page.t('placeholders.hsla')" size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(hslaToString(rgbaToHsla(currentRgba)), 'messages.hslaCopied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem span="0:2 640:1">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.hex8') }}</label>
+            <NInput :value="hex8Input" @update:value="hex8Input = $event; onHex8Input()" :placeholder="page.t('placeholders.hex8')" size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(hex8Input, 'messages.hex8Copied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem span="2">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.cssName') }}</label>
+            <NInput :value="cssNameInput" @update:value="cssNameInput = $event; onCssNameInput()" :placeholder="page.t('placeholders.cssName')" size="small" />
+            <span v-if="resolvedCssName" class="css-name-hint">{{ resolvedCssName }}</span>
+            <span v-else-if="cssNameInput" class="css-name-hint no-match">{{ page.t('messages.noCssName') }}</span>
+            <NButton v-if="resolvedCssName" size="tiny" quaternary @click="copyValue(resolvedCssName, 'messages.cssNameCopied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
+    </NGrid>
 
-      <div class="color-input-card">
-        <div class="input-header">
-          <span class="input-label">{{ page.t('labels.rgb') }}</span>
-          <NButton size="small" @click="copyRgb">{{ t('common.copy') }}</NButton>
-        </div>
-        <NInput
-          v-model:value="rgbInput"
-          :placeholder="page.t('placeholders.rgb')"
-          @input="updateFromRgb"
-          class="color-input"
-        />
-      </div>
-
-      <div class="color-input-card">
-        <div class="input-header">
-          <span class="input-label">{{ page.t('labels.hsl') }}</span>
-          <NButton size="small" @click="copyHsl">{{ t('common.copy') }}</NButton>
-        </div>
-        <NInput
-          v-model:value="hslInput"
-          :placeholder="page.t('placeholders.hsl')"
-          @input="updateFromHsl"
-          class="color-input"
-        />
+    <div v-if="recentColors.length > 0" class="recent-section">
+      <span class="recent-label">{{ page.t('labels.recentColors') }}</span>
+      <div class="recent-colors">
+        <button
+          v-for="(hex8, index) in recentColors"
+          :key="index"
+          class="recent-swatch checkerboard-bg-small"
+          @click="applyRecentColor(hex8)"
+        >
+          <span class="recent-swatch-inner" :style="{ backgroundColor: hex8 }"></span>
+        </button>
       </div>
     </div>
   </PageLayout>
@@ -210,88 +227,166 @@ async function copyHsl() {
 
 <style scoped>
 .color-converter-view {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-.color-preview-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.color-preview {
-  flex: 1;
-  height: 160px;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  transition: background-color 0.3s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.picker-area {
+.color-preview-section {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.preview-area {
+  display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-4);
+}
+
+.checkerboard-bg {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.color-swatch {
+  position: absolute;
+  inset: 0;
+}
+
+.picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
 }
 
 .color-picker {
-  width: 80px;
-  height: 80px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.color-picker::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.color-picker::-webkit-color-swatch {
-  border: 2px solid var(--color-border);
-  border-radius: 12px;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  position: absolute;
 }
 
 .picker-label {
-  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-footnote);
   color: var(--color-text-secondary);
 }
 
-.color-inputs-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.color-input-card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.input-header {
+.alpha-control {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  gap: var(--space-3);
 }
 
-.input-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-primary);
+.alpha-label {
+  font-size: var(--font-size-footnote);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
-.color-input {
+.alpha-value {
+  font-size: var(--font-size-footnote);
   font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  min-width: 36px;
+  text-align: right;
+}
+
+.format-card {
+  background: var(--color-bg-primary);
+}
+
+.format-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.format-label {
+  font-size: var(--font-size-footnote);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  min-width: 56px;
+}
+
+.css-name-hint {
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family-mono);
+}
+
+.css-name-hint.no-match {
+  color: var(--color-text-quaternary);
+  font-style: italic;
+}
+
+.recent-section {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.recent-label {
+  font-size: var(--font-size-footnote);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.recent-colors {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.checkerboard-bg-small {
+  position: relative;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+
+.recent-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+}
+
+.recent-swatch-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.recent-swatch:hover {
+  transform: scale(1.15);
+  transition: transform 0.15s ease;
 }
 </style>

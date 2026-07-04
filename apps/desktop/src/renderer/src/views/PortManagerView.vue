@@ -53,11 +53,8 @@ const portStats = computed(() => ({
 
 const platformHint = computed(() => {
   if (!platform.value) return ''
-  if (platform.value === 'darwin') {
-    return page.t('hints.darwin')
-  }
-  if (platform.value === 'linux') {
-    return page.t('hints.linux')
+  if (platform.value === 'darwin' || platform.value === 'linux') {
+    return page.t('hints.unixKillHint', { platform: platform.value })
   }
   return ''
 })
@@ -154,6 +151,8 @@ async function handleKillProcess(pid: number) {
     if (result?.success) {
       message.success(page.t('messages.processKilled', { pid }))
       await fetchPorts(quickScanMode.value)
+    } else if (result?.needSudo) {
+      message.warning(page.t('errors.needSudo', { pid }), { duration: 5000 })
     } else {
       message.error(result?.error || page.t('errors.killFailed'))
     }
@@ -220,11 +219,10 @@ useKeyboardShortcut((event) => {
 
     <NAlert
       v-if="platform && !isWindows()"
-      type="info"
+      type="warning"
       :bordered="false"
       style="margin-bottom: 16px; border-radius: 8px;"
     >
-      {{ page.t('hints.platformAlert', { platform }) }}
       {{ platformHint }}
     </NAlert>
 

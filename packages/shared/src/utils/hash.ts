@@ -105,3 +105,14 @@ export async function computeHash(algorithm: HashAlgorithm, text: string): Promi
   if (algorithm === 'MD5') return md5(text)
   return digestSha(algorithm, text)
 }
+
+export interface FileHashResult {
+  algorithm: HashAlgorithm
+  hash: string
+}
+
+export interface FileHashResults {
+  fileName: string
+  fileSize: number
+  hashes: FileHashResult[]
+}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Tool Kit — Small & Beautiful Local-First Developer Toolkit</title>
+  <meta name="description" content="A minimalist and elegant desktop developer toolset, inspired by Apple design philosophy. Local-first, privacy-focused, ready to use.">
+  <meta property="og:title" content="Dev Tool Kit — Small & Beautiful Local-First Developer Toolkit">
+  <meta property="og:description" content="A minimalist and elegant desktop developer toolset. Local-first, privacy-focused, ready to use.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="../" class="nav-brand">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="28" height="28" rx="7" fill="currentColor" opacity="0.1"/>
+          <path d="M8 9h12M8 14h8M8 19h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="20" cy="19" r="3" fill="currentColor" opacity="0.3"/>
+        </svg>
+        Dev Tool Kit
+      </a>
+      <div class="nav-actions">
+        <button class="nav-btn" id="themeToggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <a href="../" class="nav-lang">中文</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="hero-badge reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Open Source · Cross-Platform
+      </div>
+      <h1 class="reveal reveal-delay-1">
+        Small & Beautiful<br><span class="gradient-text">Developer Toolkit</span>
+      </h1>
+      <p class="hero-subtitle reveal reveal-delay-2">
+        A minimalist and elegant desktop developer toolset, inspired by Apple design philosophy. Everything runs locally — your data stays on your device.
+      </p>
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="https://github.com/" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </a>
+        <a href="https://github.com/" class="btn btn-secondary" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Features</span>
+        <h2 class="section-title reveal reveal-delay-1">All the dev tools you need, in one place</h2>
+        <p class="section-desc reveal reveal-delay-2">Covering system management, encoding/decoding, and data conversion — each tool does one thing well</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon system">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>System Tools</h3>
+          <p>Manage your local system — port scanning, environment variables, hosts editing, all in one place</p>
+          <div class="feature-tools">
+            <span class="tool-tag">Port Manager</span>
+            <span class="tool-tag">Env Variables</span>
+            <span class="tool-tag">Hosts Editor</span>
+            <span class="tool-tag">File Renamer</span>
+            <span class="tool-tag">Regex Tester</span>
+          </div>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon encoding">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3>Encoding & Decoding</h3>
+          <p>Common encoding format conversion and text diff, with a unified entry point for quick switching</p>
+          <div class="feature-tools">
+            <span class="tool-tag">Code Converter</span>
+            <span class="tool-tag">Text Diff</span>
+            <span class="tool-tag">Base64</span>
+            <span class="tool-tag">URL</span>
+            <span class="tool-tag">JSON</span>
+            <span class="tool-tag">YAML</span>
+            <span class="tool-tag">TOML</span>
+            <span class="tool-tag">Timestamp</span>
+            <span class="tool-tag">Base</span>
+          </div>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon data">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          </div>
+          <h3>Data Conversion</h3>
+          <p>Generators and calculators for the tools you use most during development</p>
+          <div class="feature-tools">
+            <span class="tool-tag">Color Converter</span>
+            <span class="tool-tag">Hash Generator</span>
+            <span class="tool-tag">Password Gen</span>
+            <span class="tool-tag">UUID</span>
+            <span class="tool-tag">JWT</span>
+            <span class="tool-tag">Cron</span>
+            <span class="tool-tag">Subnet Calc</span>
+            <span class="tool-tag">Mock Data</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="section" id="screenshots">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Preview</span>
+        <h2 class="section-title reveal reveal-delay-1">Clean and elegant experience</h2>
+        <p class="section-desc reveal reveal-delay-2">Following Apple design guidelines, every interface pursues intuition and aesthetics</p>
+      </div>
+      <div class="screenshots-grid">
+        <div class="screenshot-item reveal reveal-delay-1" data-src-dark="../screenshots/en/dark/port-manager-dark.png" data-src-light="../screenshots/en/light/port-manager-light.png">
+          <img src="../screenshots/en/light/port-manager-light.png" alt="Port Manager (Light)" class="screenshot-light" loading="lazy">
+          <img src="../screenshots/en/dark/port-manager-dark.png" alt="Port Manager (Dark)" class="screenshot-dark" loading="lazy">
+          <span class="screenshot-label">Port Manager</span>
+        </div>
+        <div class="screenshot-item reveal reveal-delay-2" data-src-dark="../screenshots/en/dark/code-format-converter-dark.png" data-src-light="../screenshots/en/light/code-format-converter-light.png">
+          <img src="../screenshots/en/light/code-format-converter-light.png" alt="Code Format Converter (Light)" class="screenshot-light" loading="lazy">
+          <img src="../screenshots/en/dark/code-format-converter-dark.png" alt="Code Format Converter (Dark)" class="screenshot-dark" loading="lazy">
+          <span class="screenshot-label">Code Format Converter</span>
+        </div>
+        <div class="screenshot-item reveal reveal-delay-3" data-src-dark="../screenshots/en/dark/settings-dark.png" data-src-light="../screenshots/en/light/settings-light.png">
+          <img src="../screenshots/en/light/settings-light.png" alt="Settings (Light)" class="screenshot-light" loading="lazy">
+          <img src="../screenshots/en/dark/settings-dark.png" alt="Settings (Dark)" class="screenshot-dark" loading="lazy">
+          <span class="screenshot-label">Settings</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Highlights -->
+  <section class="section" id="highlights">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label reveal">Philosophy</span>
+        <h2 class="section-title reveal reveal-delay-1">Why Dev Tool Kit</h2>
+      </div>
+      <div class="highlights-grid">
+        <div class="highlight-card reveal reveal-delay-1">
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+          </div>
+          <div>
+            <h3>Small & Beautiful</h3>
+            <p>Each tool page focuses on doing one thing well. Search and aggregated entries avoid duplication, keeping the sidebar clean.</p>
+          </div>
+        </div>
+        <div class="highlight-card reveal reveal-delay-2">
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+          </div>
+          <div>
+            <h3>Local-First</h3>
+            <p>All features run entirely locally with no network connection required. Your data always stays on your device — privacy guaranteed.</p>
+          </div>
+        </div>
+        <div class="highlight-card reveal reveal-delay-3">
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <h3>Elegant Experience</h3>
+            <p>Following Apple Human Interface Guidelines — clean interfaces, smooth animations, and intuitive operations.</p>
+          </div>
+        </div>
+        <div class="highlight-card reveal reveal-delay-4">
+          <div class="highlight-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div>
+            <h3>Language Support</h3>
+            <p>Full bilingual support (Chinese and English) with seamless in-app language switching for developers worldwide.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="section" id="quickstart">
+    <div class="container quickstart">
+      <span class="section-label reveal">Quick Start</span>
+      <h2 class="section-title reveal reveal-delay-1">Get started in seconds</h2>
+      <p class="section-desc reveal reveal-delay-2">Clone the repo, install dependencies, and launch the dev server</p>
+      <div class="code-block-wrapper reveal reveal-delay-3">
+        <code>git clone https://github.com/blueWhalei/dev-tool-kit && cd dev-tool-kit && pnpm install && pnpm dev</code>
+        <button class="code-copy" aria-label="Copy command">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">MIT License</span>
+      <div class="footer-links">
+        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <a href="../">中文</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-label="Screenshot preview">
+    <div class="modal-content">
+      <img id="modalImg" src="" alt="">
+    </div>
+  </div>
+
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

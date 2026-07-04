@@ -277,4 +277,5 @@ export interface SchemeInfo {
 export interface OperationResult {
   success: boolean
   error?: string
+  needSudo?: boolean
 }
