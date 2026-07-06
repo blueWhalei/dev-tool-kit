@@ -47,7 +47,7 @@ export async function broadcastEnvChange(): Promise<void> {
       'powershell',
       [
         '-Command',
-        'Add-Type -TypeDefinition \'using System;using System.Runtime.InteropServices;public class Win{[DllImport(\"user32.dll\",SetLastError=true,CharSet=CharSet.Auto)]public static extern IntPtr SendMessageTimeout(IntPtr h,uint m,UIntPtr w,string l,uint f,uint t,out IntPtr r);}\'; $r=[IntPtr]::Zero; [Win]::SendMessageTimeout([IntPtr]0xffff,0x1a,[UIntPtr]::Zero,"Environment",0x2,5000,[ref]$r) | Out-Null'
+        'Add-Type -TypeDefinition \'using System;using System.Runtime.InteropServices;public class Win{[DllImport("user32.dll",SetLastError=true,CharSet=CharSet.Auto)]public static extern IntPtr SendMessageTimeout(IntPtr h,uint m,UIntPtr w,string l,uint f,uint t,out IntPtr r);}\'; $r=[IntPtr]::Zero; [Win]::SendMessageTimeout([IntPtr]0xffff,0x1a,[UIntPtr]::Zero,"Environment",0x2,5000,[ref]$r) | Out-Null'
       ],
       { windowsHide: true, timeout: 10000 }
     )
@@ -127,7 +127,7 @@ export async function getWindowsPath(): Promise<PathEntry[]> {
 export async function setWindowsPath(
   paths: string[]
 ): Promise<{ success: boolean; error?: string }> {
-  if (!Array.isArray(paths) || paths.some((p) => typeof p !== 'string' || /[\x00\r\n]/.test(p))) {
+  if (!Array.isArray(paths) || paths.some((p) => typeof p !== 'string' || p.includes('\0') || p.includes('\r') || p.includes('\n'))) {
     return { success: false, error: '无效的 PATH 条目' }
   }
   try {

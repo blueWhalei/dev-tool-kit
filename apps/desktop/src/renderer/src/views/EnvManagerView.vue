@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { 
   NDataTable, NButton, NSpace, NInput, NModal, NForm, 
   NFormItem, NPopconfirm, useMessage, useDialog, NTabs, NTabPane,
-  NEmpty, NButtonGroup, NList, NListItem, NThing, NPopover, NIcon, NAlert
+  NEmpty, NButtonGroup, NList, NListItem, NThing, NAlert
 } from 'naive-ui'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -43,7 +43,6 @@ const showEditModal = ref(false)
 const editingVar = ref<EnvVariable | null>(null)
 const isNewVar = ref(false)
 
-const editingPath = ref(false)
 const pathInput = ref('')
 
 const showBackupModal = ref(false)

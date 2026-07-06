@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NDataTable, NButton, NSpace, NTag, NInput, NPopconfirm, useMessage, useDialog, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
+import { NDataTable, NButton, NTag, NInput, NPopconfirm, useMessage, useDialog, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
@@ -34,7 +34,6 @@ const search = ref('')
 const stateFilter = ref<'all' | 'LISTENING' | 'ESTABLISHED'>('all')
 
 const quickScanMode = ref<'all' | 'common'>('all')
-const quickScanLoading = ref(false)
 
 const filteredPorts = computed(() => {
   let list = ports.value
@@ -207,10 +206,6 @@ async function handleKillProcess(pid: number) {
     message.error(page.t('errors.killFailed'))
     logError('PortManager:killProcess', error)
   }
-}
-
-function handleQuickScan(port: CommonPort) {
-  search.value = port.port.toString()
 }
 
 function clearSearch() {

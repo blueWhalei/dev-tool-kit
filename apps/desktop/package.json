@@ -10,7 +10,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx,.vue"
+    "lint": "node ../../node_modules/eslint/bin/eslint.js --config ../../.eslintrc.js --ext .ts,.tsx,.vue src"
   },
   "dependencies": {
     "@dev-tool-kit/shared": "workspace:*",
@@ -24,7 +24,6 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@electron-toolkit/eslint-config": "^1.0.0",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.0",
     "@electron-toolkit/utils": "^3.0.0",

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, computed } from 'vue'
 import { NInput, NButton, NSlider, NCard, NGrid, NGridItem } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import {
   type ColorRGBA,
-  type ColorHSLA,
   hexToRgba,
   rgbaToHex,
   rgbaToHsla,
@@ -20,7 +18,6 @@ import {
   hslaToString
 } from '@dev-tool-kit/shared'
 
-const { t } = useI18n()
 const { copy } = useCopyToClipboard()
 const page = useToolI18n('colorConverter')
 

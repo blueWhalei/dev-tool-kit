@@ -14,6 +14,8 @@
 
 ## Screenshots
 
+Representative previews below (port manager, encoding converter, settings). The app includes **19 tools** in total — see [Features Overview](#features-overview) for the full list.
+
 ![Port Manager](./screenshots/en/port-manager.png)
 ![Encoding Converter](./screenshots/en/code-format-converter.png)
 ![Settings Page](./screenshots/en/settings.png)
@@ -160,6 +162,7 @@ pnpm build
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm check:locales
 ```
 
 ## Project Structure

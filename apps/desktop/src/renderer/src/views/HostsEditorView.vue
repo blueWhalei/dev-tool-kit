@@ -228,18 +228,6 @@ async function handleDelete(id: string) {
   }
 }
 
-async function handleSetGroup(id: string, group: string | undefined) {
-  try {
-    const data = await invoke('hosts:setGroup', id, group)
-    const result = validateOptional(data, isOperationResult, 'handleSetGroup')
-    if (result?.success) {
-      await fetchEntries()
-    }
-  } catch {
-    message.error(page.t('errors.setGroupFailed'))
-  }
-}
-
 async function handleSaveScheme() {
   if (!schemeInput.value.trim()) {
     message.warning(page.t('messages.schemeNameRequired'))

@@ -16,11 +16,15 @@ export interface RenameRule {
   caseType?: 'upper' | 'lower' | 'title'
 }
 
-const ILLEGAL_FILENAME_CHARS = /[<>:"|?*\x00\r\n\\/]/
+const ILLEGAL_FILENAME_CHARS = /[<>:"|?*\\/]/
+
+function containsIllegalControlChars(name: string): boolean {
+  return name.includes('\0') || name.includes('\r') || name.includes('\n')
+}
 
 function isValidFilename(name: string): boolean {
   if (!name || name === '.' || name === '..') return false
-  if (ILLEGAL_FILENAME_CHARS.test(name)) return false
+  if (ILLEGAL_FILENAME_CHARS.test(name) || containsIllegalControlChars(name)) return false
   return true
 }
 
@@ -67,13 +71,14 @@ function generateNewName(original: string, rule: RenameRule, index: number): str
         newName = nameWithoutExt.split(rule.value).join(rule.replaceWith)
       }
       break
-    case 'number':
+    case 'number': {
       const startNum = typeof rule.startNumber === 'string' ? parseInt(rule.startNumber, 10) : (rule.startNumber || 1)
       const paddingNum = typeof rule.padding === 'string' ? parseInt(rule.padding, 10) : (rule.padding || 3)
       const num = startNum + index
       const padded = String(num).padStart(paddingNum, '0')
       newName = `${padded}_${nameWithoutExt}`
       break
+    }
     case 'case':
       if (rule.caseType === 'upper') {
         newName = nameWithoutExt.toUpperCase()
@@ -83,11 +88,12 @@ function generateNewName(original: string, rule: RenameRule, index: number): str
         newName = nameWithoutExt.replace(/\b\w/g, c => c.toUpperCase())
       }
       break
-    case 'date':
+    case 'date': {
       const date = new Date()
       const dateStr = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`
       newName = `${dateStr}_${nameWithoutExt}`
       break
+    }
   }
 
   return newName + ext

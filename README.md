@@ -14,6 +14,8 @@
 
 ## 界面预览
 
+以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **19 个工具**，完整列表见下方 [功能概览](#功能概览)。
+
 ![端口管理](./screenshots/zh/port-manager.png)
 ![编码转换](./screenshots/zh/code-format-converter.png)
 ![设置页面](./screenshots/zh/settings.png)
@@ -160,6 +162,7 @@ pnpm build
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm check:locales
 ```
 
 ## 项目结构
