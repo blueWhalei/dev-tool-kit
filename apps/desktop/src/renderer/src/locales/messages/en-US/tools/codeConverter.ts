@@ -41,7 +41,9 @@ export default {
       camelCase: 'camelCase',
       snakeCase: 'snake_case',
       kebabCase: 'kebab-case',
-      titleCase: 'Title Case'
+      titleCase: 'Title Case',
+      jsonTree: 'Tree view',
+      jsonSchema: 'JSON Schema (optional)'
     },
     placeholders: {
       base64: 'Enter text to encode/decode...',
@@ -56,7 +58,8 @@ export default {
       number: 'Enter number...',
       naming: 'Enter text to convert naming, e.g. foo-bar, fooBar...',
       timestampResult: 'Conversion result...',
-      namingEmpty: 'Enter valid text to see all naming formats'
+      namingEmpty: 'Enter valid text to see all naming formats',
+      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}'
     },
     bases: {
       binary: 'Binary',
@@ -64,7 +67,10 @@ export default {
       decimal: 'Decimal',
       hexadecimal: 'Hexadecimal'
     },
-    messages: {},
+    messages: {
+      schemaValid: 'Valid',
+      schemaInvalid: 'Invalid'
+    },
     errors: {
       jsonEmpty: 'Enter JSON content',
       jsonInvalid: 'Invalid JSON',
@@ -79,6 +85,9 @@ export default {
       yamlEmpty: 'Enter YAML content',
       tomlEmpty: 'Enter TOML content',
       base64Invalid: 'Invalid Base64',
-      urlInvalid: 'Invalid URL encoding'
+      urlInvalid: 'Invalid URL encoding',
+      schemaEmpty: 'Enter JSON Schema',
+      schemaNotObject: 'JSON Schema must be an object',
+      schemaInvalid: 'Invalid JSON Schema'
     }
   }

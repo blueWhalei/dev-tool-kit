@@ -17,6 +17,10 @@ export type ToolI18nKey =
   | 'mockData'
   | 'subnetCalculator'
   | 'cronParser'
+  | 'chmodCalculator'
+  | 'httpStatusCodes'
+  | 'certificateParser'
+  | 'qrCodeGenerator'
 
 export function useToolI18n(tool: ToolI18nKey) {
   const { t, locale } = useI18n()

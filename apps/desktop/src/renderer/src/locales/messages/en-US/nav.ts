@@ -25,6 +25,10 @@ export default {
       mockData: 'Mock Data',
       subnetCalculator: 'Subnet Calculator',
       cronParser: 'Cron Parser',
+      chmodCalculator: 'Chmod Calculator',
+      httpStatusCodes: 'HTTP Status Codes',
+      certificateParser: 'Certificate Parser',
+      qrCodeGenerator: 'QR Code Generator',
       settings: 'Settings',
       about: 'About',
       notFound: 'Not Found'

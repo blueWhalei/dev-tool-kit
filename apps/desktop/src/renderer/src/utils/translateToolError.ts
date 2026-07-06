@@ -17,13 +17,32 @@ const ERROR_KEY_MAP: Record<string, string> = {
   '无效的 Base64URL 编码': 'invalidBase64Url',
   '请输入 JWT Token': 'tokenEmpty',
   '请输入 Secret 以验签': 'secretEmpty',
+  '请输入 Secret 以签名': 'signSecretEmpty',
+  '请输入 JWT Header': 'headerEmpty',
+  '请输入 JWT Payload': 'payloadEmpty',
+  'JWT Header 必须是 JSON 对象': 'headerNotObject',
+  'JWT Payload 必须是 JSON 对象': 'payloadNotObject',
+  'JWT Header 不是有效的 JSON': 'headerInvalidJson',
+  'JWT Payload 不是有效的 JSON': 'payloadInvalidJson',
   '请输入 CIDR，例如 192.168.1.0/24': 'cidrEmpty',
   'CIDR 格式无效，请使用如 192.168.1.0/24': 'cidrInvalid',
   'CIDR 格式无效，应为 IP/前缀长度，例如 192.168.1.0/24': 'cidrInvalid',
   '前缀长度必须在 0-32 之间': 'cidrPrefixInvalid',
+  '前缀长度必须在 0-128 之间': 'cidrPrefixInvalidV6',
   'IP 地址无效': 'ipInvalid',
+  'IPv6 地址无效': 'ipv6Invalid',
+  '请输入八进制权限，例如 755': 'octalEmpty',
+  '八进制权限无效，应为 3 或 4 位八进制数字': 'octalInvalid',
+  '请输入符号权限，例如 rwxr-xr-x': 'symbolicEmpty',
+  '符号权限格式无效，例如 rwxr-xr-x': 'symbolicInvalid',
+  '请输入 PEM 证书内容': 'pemEmpty',
+  '未找到有效的 PEM 证书块': 'pemNotFound',
   'Invalid Base64': 'base64Invalid',
-  'Invalid URL encoding': 'urlInvalid'
+  'Invalid URL encoding': 'urlInvalid',
+  'Unix 平台当前为只读模式，请使用导出功能': 'readOnly',
+  '请输入 JSON Schema': 'schemaEmpty',
+  'JSON Schema 必须是对象': 'schemaNotObject',
+  '无效的 JSON Schema': 'schemaInvalid'
 }
 
 export function translateToolError(
@@ -32,11 +51,9 @@ export function translateToolError(
   error: string | undefined | null
 ): string {
   if (!error) return ''
-  const key = ERROR_KEY_MAP[error]
-  if (key) {
-    const translated = t(`tools.${tool}.errors.${key}`)
-    if (translated !== `tools.${tool}.errors.${key}`) return translated
-  }
+  const key = ERROR_KEY_MAP[error] ?? error
+  const translated = t(`tools.${tool}.errors.${key}`)
+  if (translated !== `tools.${tool}.errors.${key}`) return translated
   // JSON line error pattern
   const jsonLine = error.match(/^无效的 JSON（第 (\d+) 行附近）$/)
   if (jsonLine) {

@@ -52,11 +52,11 @@
         一款追求极简与优雅的桌面开发者工具集，灵感源于 Apple 设计哲学。所有功能本地运行，你的数据始终在你手中。
       </p>
       <div class="hero-actions reveal reveal-delay-3">
-        <a href="https://github.com/" class="btn btn-primary">
+        <a href="https://github.com/blueWhalei/dev-tool-kit/releases" class="btn btn-primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           下载安装
         </a>
-        <a href="https://github.com/" class="btn btn-secondary" target="_blank" rel="noopener">
+        <a href="https://github.com/blueWhalei/dev-tool-kit" class="btn btn-secondary" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
           GitHub
         </a>
@@ -70,7 +70,7 @@
       <div class="section-header">
         <span class="section-label reveal">功能概览</span>
         <h2 class="section-title reveal reveal-delay-1">你需要的开发工具，都在这里</h2>
-        <p class="section-desc reveal reveal-delay-2">涵盖系统管理、编码解码、数据转换三大领域，每个工具专注做好一件事</p>
+        <p class="section-desc reveal reveal-delay-2">涵盖系统管理、编码解码、数据转换、密码密钥与计算器五大类，每个工具专注做好一件事</p>
       </div>
       <div class="features-grid">
         <div class="feature-card reveal reveal-delay-1">
@@ -92,17 +92,15 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           </div>
           <h3>编码解码</h3>
-          <p>常用编码格式转换与文本对比，统一入口快速切换</p>
+          <p>编码格式转换与文本对比，JSON 树形视图与 Schema 校验，统一入口快速切换</p>
           <div class="feature-tools">
             <span class="tool-tag">编码与格式转换</span>
             <span class="tool-tag">文本对比</span>
+            <span class="tool-tag">JSON 树视图</span>
+            <span class="tool-tag">Schema 校验</span>
             <span class="tool-tag">Base64</span>
-            <span class="tool-tag">URL</span>
-            <span class="tool-tag">JSON</span>
             <span class="tool-tag">YAML</span>
             <span class="tool-tag">TOML</span>
-            <span class="tool-tag">时间戳</span>
-            <span class="tool-tag">进制转换</span>
           </div>
         </div>
         <div class="feature-card reveal reveal-delay-3">
@@ -110,16 +108,38 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
           </div>
           <h3>数据转换</h3>
-          <p>生成器与计算器集合，开发调试高频使用的工具</p>
+          <p>生成器与速查工具，Mock 数据、状态码、二维码等开发调试高频场景</p>
           <div class="feature-tools">
             <span class="tool-tag">颜色转换</span>
-            <span class="tool-tag">哈希生成</span>
-            <span class="tool-tag">密码生成</span>
             <span class="tool-tag">UUID</span>
-            <span class="tool-tag">JWT</span>
-            <span class="tool-tag">Cron</span>
-            <span class="tool-tag">子网计算</span>
             <span class="tool-tag">Mock 数据</span>
+            <span class="tool-tag">HTTP 状态码</span>
+            <span class="tool-tag">二维码生成</span>
+          </div>
+        </div>
+        <div class="feature-card reveal reveal-delay-4">
+          <div class="feature-icon security">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>密码与密钥</h3>
+          <p>密码、JWT、哈希与证书解析，全部本地计算，数据不出设备</p>
+          <div class="feature-tools">
+            <span class="tool-tag">密码生成</span>
+            <span class="tool-tag">JWT 签发/验签</span>
+            <span class="tool-tag">Hash 文本/文件</span>
+            <span class="tool-tag">证书解析</span>
+          </div>
+        </div>
+        <div class="feature-card reveal reveal-delay-4">
+          <div class="feature-icon calculator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+          </div>
+          <h3>计算器</h3>
+          <p>Cron 可视化编辑、IPv4/IPv6 子网与 Chmod 权限换算</p>
+          <div class="feature-tools">
+            <span class="tool-tag">Cron 解析</span>
+            <span class="tool-tag">子网计算</span>
+            <span class="tool-tag">Chmod 计算</span>
           </div>
         </div>
       </div>
@@ -222,7 +242,7 @@
     <div class="container footer-inner">
       <span class="footer-copy">MIT License</span>
       <div class="footer-links">
-        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/blueWhalei/dev-tool-kit" target="_blank" rel="noopener">GitHub</a>
         <a href="en/">English</a>
       </div>
     </div>

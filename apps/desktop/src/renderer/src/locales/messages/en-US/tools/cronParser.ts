@@ -7,13 +7,26 @@ export default {
       format: 'Format: {fields}',
       formatWithSeconds: 'second minute hour day month weekday',
       formatWithoutSeconds: 'minute hour day month weekday',
+      visualEditor: 'Visual field editor',
       presets: 'Presets',
       description: 'Plain-language description',
       nextRuns: 'Next 5 runs',
+      timezone: 'Timezone',
+      localTimezone: '{zone} (local)',
       runIndex: '#{index}'
     },
     placeholders: {
-      expression: '* * * * * *'
+      expression: '* * * * * *',
+      step: 'Interval',
+      list: 'e.g. 1,3,5'
+    },
+    patternTypes: {
+      every: 'Every',
+      step: 'Every N',
+      value: 'At value',
+      range: 'Range',
+      list: 'List',
+      custom: 'Custom'
     },
     buttons: {
       copy: 'Copy'

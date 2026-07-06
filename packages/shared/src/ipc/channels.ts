@@ -82,6 +82,11 @@ export const IPC_INVOKE_CHANNELS = [
   // Hash Generator
   'hash-generator:selectFile',
   'hash-generator:computeFileHash',
+  // Text Diff
+  'text-diff:readFile',
+  // Certificate Parser
+  'cert-parser:readFile',
+  'cert-parser:parsePem',
 ] as const
 
 export type IpcInvokeChannel = (typeof IPC_INVOKE_CHANNELS)[number]

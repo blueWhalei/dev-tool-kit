@@ -8,7 +8,8 @@ export default {
       scanCommon: 'Common ports',
       kill: 'Kill',
       confirm: 'Confirm',
-      cancel: 'Cancel'
+      cancel: 'Cancel',
+      copyCommand: 'Copy command'
     },
     placeholders: {
       search: 'Search port / PID / process name'
@@ -40,16 +41,29 @@ export default {
     },
     hints: {
       nonWindows: 'On non-Windows platforms only listening ports are shown; process info may be incomplete',
-      unixKillHint: 'Kill process is supported on {platform}, but some system processes require sudo. If kill fails, run sudo kill <PID> in terminal.'
+      partialSupportTitle: 'Partial support',
+      unixKillHint: 'On {platform}, user-owned processes can usually be killed. System or other users\' processes may require sudo. If kill fails, use "Copy command" and run it in a terminal.'
     },
     messages: {
       killConfirm: 'Kill process {pid}?',
-      processKilled: 'Process {pid} terminated'
+      killConfirmUnix: 'Kill process {pid}?\n\nSome processes require sudo. If kill fails, copy the kill command and run it in a terminal.',
+      processKilled: 'Process {pid} terminated',
+      commandCopied: 'Command copied to clipboard'
+    },
+    dialogs: {
+      killFailedTitle: 'Could not kill process',
+      killFailedContent: '{message}\n\nRun this command in a terminal:\n{command}'
     },
     errors: {
       fetchFailed: 'Failed to fetch port list',
       killFailed: 'Failed to kill process',
-      needSudo: 'Process {pid} requires sudo. Run sudo kill {pid} in terminal'
+      needSudo: 'Process {pid} requires sudo. Run sudo kill {pid} in terminal',
+      invalid_pid: 'Invalid process ID',
+      protected_pid: 'Cannot kill a protected system process',
+      permission_denied: 'Process {pid} requires elevated permissions (sudo may be needed)',
+      process_not_found: 'Process {pid} does not exist or has already exited',
+      access_denied: 'Access denied for process {pid}; administrator rights may be required',
+      unknown: 'An unknown error occurred while killing the process'
     },
     empty: 'No ports in use',
     refresh: 'Refresh',

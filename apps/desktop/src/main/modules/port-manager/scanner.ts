@@ -2,7 +2,8 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { logger } from '../../logger'
 import { platform } from 'os'
-import type { PortInfo, ProcessInfo } from '@dev-tool-kit/shared'
+import type { PortInfo, ProcessInfo, OperationResult } from '@dev-tool-kit/shared'
+import { buildKillFailureResult } from '@dev-tool-kit/shared'
 import { parseWindowsNetstat } from './netstat-parser'
 
 const execFileAsync = promisify(execFile)
@@ -306,12 +307,12 @@ export class PortScanner {
     }
   }
 
-  async killProcess(pid: number, force = false): Promise<{ success: boolean; error?: string; needSudo?: boolean }> {
+  async killProcess(pid: number, force = false): Promise<OperationResult> {
     if (!Number.isInteger(pid) || pid <= 0) {
-      return { success: false, error: 'Invalid PID' }
+      return { success: false, errorCode: 'invalid_pid' }
     }
     if (isProtectedPid(pid)) {
-      return { success: false, error: '无法终止系统关键进程' }
+      return { success: false, errorCode: 'protected_pid' }
     }
 
     const pidStr = String(pid)
@@ -334,19 +335,21 @@ export class PortScanner {
       const errorMsg = error instanceof Error ? error.message : String(error)
       logger.error(`Failed to kill process ${pid}:`, errorMsg)
 
-      const isPermissionDenied = /EPERM|Permission denied|Operation not permitted/i.test(errorMsg)
-
       if (!force && this.platform !== 'win32') {
         logger.info('Trying SIGKILL...')
         const sigkillResult = await this.killProcess(pid, true)
         if (!sigkillResult.success) {
-          const sigkillDenied = /EPERM|Permission denied|Operation not permitted/i.test(sigkillResult.error || '')
-          return { ...sigkillResult, needSudo: sigkillDenied || isPermissionDenied }
+          return sigkillResult
         }
         return sigkillResult
       }
 
-      return { success: false, error: errorMsg, needSudo: isPermissionDenied }
+      return buildKillFailureResult({
+        errorMsg,
+        pid,
+        platform: this.platform,
+        force: force || this.platform === 'win32'
+      })
     }
   }
 

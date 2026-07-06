@@ -25,6 +25,10 @@ export default {
       mockData: 'Mock 数据',
       subnetCalculator: '子网计算',
       cronParser: 'Cron 解析',
+      chmodCalculator: 'Chmod 权限',
+      httpStatusCodes: 'HTTP 状态码',
+      certificateParser: '证书解析',
+      qrCodeGenerator: '二维码生成',
       settings: '设置',
       about: '关于',
       notFound: '未找到'

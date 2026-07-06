@@ -2,7 +2,12 @@ import { ipcMain } from 'electron'
 import { Worker } from 'worker_threads'
 import { join } from 'path'
 import { logger } from '../../logger'
-import type { RegexMatch, RegexResult } from '@dev-tool-kit/shared'
+import {
+  type RegexMatch,
+  type RegexResult,
+  validateRegexInput,
+  isValidRegexFlags
+} from '@dev-tool-kit/shared'
 
 export type { RegexMatch, RegexResult }
 
@@ -20,7 +25,13 @@ const COMMON_REGEX: CommonRegex[] = [
   { name: '日期', pattern: '^\\d{4}-\\d{2}-\\d{2}$', description: '匹配 YYYY-MM-DD' },
   { name: '中文', pattern: '[\\u4e00-\\u9fa5]+', description: '匹配中文字符' },
   { name: '用户名', pattern: '^[a-zA-Z][a-zA-Z0-9_]{2,15}$', description: '匹配用户名' },
-  { name: '密码强度', pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$', description: '强密码' }
+  { name: '密码强度', pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$', description: '强密码' },
+  { name: 'UUID', pattern: '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}', description: '匹配 UUID' },
+  { name: '十六进制颜色', pattern: '^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$', description: '匹配 HEX 颜色' },
+  { name: '整数', pattern: '^-?\\d+$', description: '匹配整数' },
+  { name: 'MAC 地址', pattern: '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}', description: '匹配 MAC 地址' },
+  { name: 'HTML 标签', pattern: '<[a-z][\\s\\S]*?>', description: '匹配 HTML 标签' },
+  { name: '信用卡号', pattern: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b', description: '匹配信用卡号格式' }
 ]
 
 const REGEX_TIMEOUT_MS = 3000
@@ -57,15 +68,27 @@ function runRegexInWorker(
   })
 }
 
+function validateRegexRequest(
+  pattern: string,
+  flags: string,
+  testString: string
+): string | null {
+  if (typeof pattern !== 'string' || typeof testString !== 'string') {
+    return '无效的输入参数'
+  }
+  if (!isValidRegexFlags(flags)) {
+    return '无效的正则标志'
+  }
+  return validateRegexInput(testString)
+}
+
 export function setupRegexTesterIPC(): void {
   logger.info('Setting up Regex Tester IPC handlers')
 
   ipcMain.handle('regex:test', async (_, pattern: string, flags: string, testString: string) => {
-    if (typeof pattern !== 'string' || typeof testString !== 'string') {
-      return { isValid: false, matches: [], error: '无效的输入参数' } as RegexResult
-    }
-    if (typeof flags !== 'string' || !/^[gimsuy]*$/.test(flags)) {
-      return { isValid: false, matches: [], error: '无效的正则标志' } as RegexResult
+    const validationError = validateRegexRequest(pattern, flags, testString)
+    if (validationError) {
+      return { isValid: false, matches: [], error: validationError } as RegexResult
     }
 
     const result = await runRegexInWorker(pattern, flags, testString, 'test')
@@ -76,18 +99,16 @@ export function setupRegexTesterIPC(): void {
   })
 
   ipcMain.handle('regex:replace', async (_, pattern: string, flags: string, testString: string, replacement: string) => {
-    if (typeof pattern !== 'string' || typeof testString !== 'string') {
-      return { success: false, error: '无效的输入参数' }
-    }
-    if (typeof flags !== 'string' || !/^[gimsuy]*$/.test(flags)) {
-      return { success: false, error: '无效的正则标志' }
+    const validationError = validateRegexRequest(pattern, flags, testString)
+    if (validationError) {
+      return { success: false, error: validationError }
     }
 
-    const result = await runRegexInWorker(pattern, flags, testString, 'replace', replacement)
+    const result = await runRegexInWorker(pattern, flags, testString, 'replace', replacement ?? '')
     if (result.error) {
       return { success: false, error: result.error }
     }
-    return { success: true, result: result.result }
+    return { success: true, result: result.result ?? '' }
   })
 
   ipcMain.handle('regex:getCommon', () => COMMON_REGEX)

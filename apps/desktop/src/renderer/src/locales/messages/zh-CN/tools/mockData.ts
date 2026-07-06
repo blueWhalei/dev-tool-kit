@@ -1,15 +1,19 @@
 export default {
     title: 'Mock 数据生成',
-    description: '按模板生成测试用 JSON/CSV 数据',
+    description: '按模板生成测试用 JSON / CSV / SQL 数据',
     labels: {
       count: '生成数量',
       fieldConfig: '字段配置',
       preview: '预览 ({count} 条)',
-      fieldName: '字段名'
+      fieldName: '字段名',
+      enumOptions: '枚举选项',
+      tableName: '表名'
     },
     placeholders: {
       preset: '选择预设模板...',
-      fieldName: '字段名'
+      fieldName: '字段名',
+      enumOptions: 'pending,paid,shipped',
+      tableName: 'mock_data'
     },
     buttons: {
       generate: '生成',
@@ -17,7 +21,8 @@ export default {
       delete: '删除',
       copyJson: '复制 JSON',
       exportJson: '导出 JSON',
-      exportCsv: '导出 CSV'
+      exportCsv: '导出 CSV',
+      exportSql: '导出 SQL'
     },
     presets: {
       user: {
@@ -28,6 +33,7 @@ export default {
           name: '姓名',
           email: '邮箱',
           phone: '手机号',
+          address: '地址',
           active: '启用',
           createdAt: '创建时间'
         }
@@ -38,8 +44,9 @@ export default {
         fields: {
           orderId: '订单号',
           customer: '客户',
+          company: '公司',
           amount: '金额',
-          paid: '已支付',
+          status: '状态',
           orderDate: '下单日期'
         }
       },
@@ -49,6 +56,7 @@ export default {
         fields: {
           id: 'ID',
           title: '标题',
+          summary: '摘要',
           author: '作者',
           published: '已发布',
           publishDate: '发布日期'
@@ -62,7 +70,13 @@ export default {
       uuid: 'UUID',
       number: '数字',
       date: '日期',
-      boolean: '布尔值'
+      boolean: '布尔值',
+      address: '地址',
+      company: '公司',
+      ip: 'IP 地址',
+      enum: '枚举',
+      increment: '自增 ID',
+      text: '短文本'
     },
     messages: {
       minFields: '至少保留一个字段',
@@ -70,9 +84,11 @@ export default {
       generateFirst: '请先生成数据',
       copiedJson: '已复制 JSON',
       exportedJson: 'JSON 已导出',
-      exportedCsv: 'CSV 已导出'
+      exportedCsv: 'CSV 已导出',
+      exportedSql: 'SQL 已导出'
     },
     hints: {
-      previewLimit: '仅展示前 20 条，完整数据请导出 JSON / CSV'
+      previewLimit: '仅展示前 20 条，完整数据请导出 JSON / CSV / SQL',
+      enumOptions: '逗号分隔，如 pending,paid,shipped'
     }
   }

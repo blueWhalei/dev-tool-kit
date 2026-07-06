@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Dev Tool Kit — offline feature phases (internal tracking)
+ * Phase 1: [1] JWT token sign | [2] File hash | [3] env macOS/Linux | [4] Cron editor | [5] Unix process kill
+ * Phase 2: JSON tree, mock data SQL, text diff files, IPv6 subnet, regex replace preview
+ * Phase 3: chmod, HTTP status ref, cert PEM parser, QR code
+ */
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
@@ -12,6 +18,10 @@ import {
   formatJwtJson,
   getJwtTimeInfo,
   verifyJwtHmac,
+  parseJwtPartJson,
+  signJwtHmac,
+  JWT_HMAC_ALGORITHMS,
+  type JwtHmacAlgorithm,
   type JwtTimeInfo
 } from '@dev-tool-kit/shared'
 
@@ -21,10 +31,12 @@ const page = useToolI18n('jwtGenerator')
 const { copy } = useCopyToClipboard()
 
 const SAMPLE_JWT =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2HT4EpkrSv6TkTACw6N4b9oJ4d8k8'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 const SAMPLE_SECRET = 'your-256-bit-secret'
+const SAMPLE_SIGN_HEADER = '{\n  "typ": "JWT"\n}'
+const SAMPLE_SIGN_PAYLOAD = '{\n  "sub": "1234567890",\n  "name": "John Doe",\n  "iat": 1516239022\n}'
 
-const activeTab = ref<'generate' | 'decode'>('generate')
+const activeTab = ref<'generate' | 'sign' | 'decode'>('generate')
 
 const secretLength = ref(256)
 const secretLengthOptions = computed(() => [
@@ -65,6 +77,68 @@ async function copySecret() {
 watch(secretLength, () => {
   if (generatedSecret.value) generateSecret()
 })
+
+const signAlgorithm = ref<JwtHmacAlgorithm>('HS256')
+const signAlgorithmOptions = computed(() =>
+  JWT_HMAC_ALGORITHMS.map(alg => ({
+    label: page.t(`algorithms.${alg.toLowerCase()}`),
+    value: alg
+  }))
+)
+const signHeaderJson = ref(SAMPLE_SIGN_HEADER)
+const signPayloadJson = ref(SAMPLE_SIGN_PAYLOAD)
+const signSecret = ref('')
+const signedToken = ref('')
+const signError = ref('')
+const signCopied = ref(false)
+
+async function signToken() {
+  signError.value = ''
+  signedToken.value = ''
+
+  const headerResult = parseJwtPartJson(signHeaderJson.value, 'Header')
+  if (!headerResult.success) {
+    signError.value = translateToolError(t, 'jwtGenerator', headerResult.error) || page.t('errors.signFailed')
+    return
+  }
+
+  const payloadResult = parseJwtPartJson(signPayloadJson.value, 'Payload')
+  if (!payloadResult.success) {
+    signError.value = translateToolError(t, 'jwtGenerator', payloadResult.error) || page.t('errors.signFailed')
+    return
+  }
+
+  const result = await signJwtHmac(
+    headerResult.result!,
+    payloadResult.result!,
+    signSecret.value,
+    signAlgorithm.value
+  )
+  if (!result.success || !result.result) {
+    signError.value = translateToolError(t, 'jwtGenerator', result.error) || page.t('errors.signFailed')
+    return
+  }
+
+  signedToken.value = result.result
+}
+
+function fillSignSample() {
+  signHeaderJson.value = SAMPLE_SIGN_HEADER
+  signPayloadJson.value = SAMPLE_SIGN_PAYLOAD
+  signSecret.value = SAMPLE_SECRET
+  signAlgorithm.value = 'HS256'
+}
+
+async function copySignedToken() {
+  if (!signedToken.value) return
+  await copy(signedToken.value, page.t('messages.copied'))
+  signCopied.value = true
+  setTimeout(() => { signCopied.value = false }, 2000)
+}
+
+function useGeneratedSecretForSign() {
+  if (generatedSecret.value) signSecret.value = generatedSecret.value
+}
 
 const jwtToken = ref('')
 const verifySecret = ref('')
@@ -169,6 +243,87 @@ const signatureStatusText = computed(() => {
             </div>
             <div class="secret-placeholder" v-else>
               {{ page.t('empty.secret') }}
+            </div>
+          </div>
+        </NCard>
+      </NTabPane>
+
+      <NTabPane name="sign" :tab="page.t('tabs.sign')">
+        <div class="tab-actions">
+          <div class="setting-control">
+            <span class="control-label">{{ page.t('labels.algorithm') }}</span>
+            <NSelect
+              v-model:value="signAlgorithm"
+              :options="signAlgorithmOptions"
+              style="width: 140px"
+            />
+          </div>
+          <div class="action-buttons">
+            <NButton quaternary @click="fillSignSample">{{ page.t('buttons.fillSignSample') }}</NButton>
+            <NButton
+              v-if="generatedSecret"
+              quaternary
+              @click="useGeneratedSecretForSign"
+            >
+              {{ page.t('buttons.useGeneratedSecret') }}
+            </NButton>
+            <NButton type="primary" @click="signToken">{{ page.t('buttons.signToken') }}</NButton>
+          </div>
+        </div>
+
+        <NAlert v-if="signError" type="error" :title="signError" class="status-alert" />
+
+        <div class="decode-panels">
+          <NCard class="result-card" :bordered="false">
+            <div class="result-label">{{ page.t('labels.header') }}</div>
+            <NInput
+              v-model:value="signHeaderJson"
+              type="textarea"
+              :rows="6"
+              :placeholder="page.t('placeholders.signHeader')"
+              class="secret-input"
+            />
+          </NCard>
+          <NCard class="result-card" :bordered="false">
+            <div class="result-label">{{ page.t('labels.payload') }}</div>
+            <NInput
+              v-model:value="signPayloadJson"
+              type="textarea"
+              :rows="6"
+              :placeholder="page.t('placeholders.signPayload')"
+              class="secret-input"
+            />
+          </NCard>
+        </div>
+
+        <NCard class="result-card" :bordered="false">
+          <div class="result-label">{{ page.t('labels.signSecret') }}</div>
+          <NInput
+            v-model:value="signSecret"
+            type="password"
+            show-password-on="click"
+            :placeholder="page.t('placeholders.signSecret')"
+            class="secret-input"
+          />
+        </NCard>
+
+        <NCard class="result-card" :bordered="false">
+          <div class="result-section">
+            <div class="result-label">{{ page.t('labels.signedToken') }}</div>
+            <div class="secret-display" v-if="signedToken">
+              <NInput
+                :value="signedToken"
+                readonly
+                type="textarea"
+                :rows="4"
+                class="secret-input"
+              />
+              <NButton @click="copySignedToken">
+                {{ signCopied ? page.t('buttons.copied') : page.t('buttons.copy') }}
+              </NButton>
+            </div>
+            <div class="secret-placeholder" v-else>
+              {{ page.t('empty.signedToken') }}
             </div>
           </div>
         </NCard>

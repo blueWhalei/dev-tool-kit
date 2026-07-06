@@ -1,4 +1,5 @@
 export * from './converter'
+export * from './json-schema'
 export * from './hash'
 export * from './jwt'
 export * from './yaml-toml'
@@ -7,6 +8,11 @@ export * from './mock-data'
 export * from './text-diff'
 export * from './hosts-diff'
 export * from './color'
+export * from './shell-env'
+export * from './process-kill'
+export * from './regex'
+export * from './chmod'
+export * from './http-status-codes'
 
 // Formatting utilities
 export function formatBytes(bytes: number, decimals = 2): string {

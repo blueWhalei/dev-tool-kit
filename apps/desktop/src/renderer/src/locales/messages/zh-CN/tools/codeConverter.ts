@@ -41,7 +41,9 @@ export default {
       camelCase: 'camelCase',
       snakeCase: 'snake_case',
       kebabCase: 'kebab-case',
-      titleCase: 'Title Case'
+      titleCase: 'Title Case',
+      jsonTree: '结构树',
+      jsonSchema: 'JSON Schema（可选）'
     },
     placeholders: {
       base64: '输入需要编码/解码的文本...',
@@ -56,7 +58,8 @@ export default {
       number: '输入数字...',
       naming: '输入需要转换命名的文本，如 foo-bar、fooBar...',
       timestampResult: '转换结果...',
-      namingEmpty: '输入有效文本后将显示全部命名格式'
+      namingEmpty: '输入有效文本后将显示全部命名格式',
+      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}'
     },
     bases: {
       binary: '二进制',
@@ -64,7 +67,10 @@ export default {
       decimal: '十进制',
       hexadecimal: '十六进制'
     },
-    messages: {},
+    messages: {
+      schemaValid: '校验通过',
+      schemaInvalid: '校验失败'
+    },
     errors: {
       jsonEmpty: '请输入 JSON 内容',
       jsonInvalid: '无效的 JSON',
@@ -79,6 +85,9 @@ export default {
       yamlEmpty: '请输入 YAML 内容',
       tomlEmpty: '请输入 TOML 内容',
       base64Invalid: '无效的 Base64',
-      urlInvalid: '无效的 URL 编码'
+      urlInvalid: '无效的 URL 编码',
+      schemaEmpty: '请输入 JSON Schema',
+      schemaNotObject: 'JSON Schema 必须是对象',
+      schemaInvalid: '无效的 JSON Schema'
     }
   }

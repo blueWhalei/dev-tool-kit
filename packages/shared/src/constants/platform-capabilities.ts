@@ -23,14 +23,14 @@ export const PLATFORM_CAPABILITIES: PlatformCapabilityRow[] = [
     win32: 'full',
     darwin: 'partial',
     linux: 'partial',
-    notes: 'Unix 下部分进程可能需要 sudo 权限'
+    notes: 'Unix 下可终止用户进程；系统/他人进程可能需 sudo，失败时可复制 kill 命令到终端执行'
   },
   {
     feature: '环境变量管理',
     win32: 'full',
-    darwin: 'none',
-    linux: 'none',
-    notes: '当前仅支持 Windows 注册表变量'
+    darwin: 'partial',
+    linux: 'partial',
+    notes: 'Unix 支持读取当前会话、Shell 配置与系统文件，导出与快照备份；写入仅 Windows 注册表'
   },
   {
     feature: 'Hosts 编辑',

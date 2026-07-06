@@ -20,10 +20,17 @@ export interface JwtVerifyResult {
   algorithm: string
 }
 
-const HMAC_ALGORITHMS: Record<string, string> = {
+export const JWT_HMAC_ALGORITHMS = ['HS256', 'HS384', 'HS512'] as const
+export type JwtHmacAlgorithm = (typeof JWT_HMAC_ALGORITHMS)[number]
+
+const HMAC_ALGORITHMS: Record<JwtHmacAlgorithm, string> = {
   HS256: 'SHA-256',
   HS384: 'SHA-384',
   HS512: 'SHA-512'
+}
+
+function isHmacAlgorithm(alg: string): alg is JwtHmacAlgorithm {
+  return alg in HMAC_ALGORITHMS
 }
 
 function fail<T = never>(error: string): ConverterResult<T> {
@@ -127,6 +134,58 @@ function base64UrlEncodeBytes(bytes: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
+function base64UrlEncodeString(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  const binary = String.fromCharCode(...bytes)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export function parseJwtPartJson(
+  json: string,
+  label: string
+): ConverterResult<Record<string, unknown>> {
+  const trimmed = json.trim()
+  if (!trimmed) return fail(`请输入 JWT ${label}`)
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return fail(`JWT ${label} 必须是 JSON 对象`)
+    }
+    return { success: true, result: parsed as Record<string, unknown> }
+  } catch {
+    return fail(`JWT ${label} 不是有效的 JSON`)
+  }
+}
+
+export async function signJwtHmac(
+  header: Record<string, unknown>,
+  payload: Record<string, unknown>,
+  secret: string,
+  algorithm: JwtHmacAlgorithm = 'HS256'
+): Promise<ConverterResult<string>> {
+  if (!secret.trim()) return fail('请输入 Secret 以签名')
+
+  if (!isHmacAlgorithm(algorithm)) {
+    return fail(`不支持的签名算法: ${algorithm}，目前仅支持 HS256/HS384/HS512`)
+  }
+
+  const signHeader = { ...header, alg: algorithm }
+  const headerPart = base64UrlEncodeString(JSON.stringify(signHeader))
+  const payloadPart = base64UrlEncodeString(JSON.stringify(payload))
+  const signingInput = `${headerPart}.${payloadPart}`
+
+  try {
+    const key = await importHmacKey(secret, HMAC_ALGORITHMS[algorithm])
+    const data = new TextEncoder().encode(signingInput)
+    const signature = await crypto.subtle.sign('HMAC', key, data)
+    const signaturePart = base64UrlEncodeBytes(signature)
+    return { success: true, result: `${signingInput}.${signaturePart}` }
+  } catch (error) {
+    return fail(`签名失败: ${String(error)}`)
+  }
+}
+
 export async function verifyJwtHmac(
   token: string,
   secret: string
@@ -140,7 +199,7 @@ export async function verifyJwtHmac(
   const [headerPart, payloadPart, signaturePart] = parts
   const alg = decoded.result.header.alg
 
-  if (typeof alg !== 'string' || !(alg in HMAC_ALGORITHMS)) {
+  if (typeof alg !== 'string' || !isHmacAlgorithm(alg)) {
     return fail(`不支持的签名算法: ${String(alg)}，目前仅支持 HS256/HS384/HS512`)
   }
 

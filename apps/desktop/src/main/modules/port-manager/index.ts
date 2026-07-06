@@ -58,16 +58,16 @@ export function setupPortManagerIPC(): void {
   })
 
   ipcMain.handle('port-manager:killProcess', async (_, pid: number, force = false) => {
-    if (!isValidPid(pid)) return { success: false, error: 'Invalid PID' }
+    if (!isValidPid(pid)) return { success: false, errorCode: 'invalid_pid' as const }
     if (isProtectedPid(pid)) {
       logger.warn(`Blocked kill attempt on protected PID ${pid}`)
-      return { success: false, error: '无法终止系统关键进程' }
+      return { success: false, errorCode: 'protected_pid' as const }
     }
     try {
       return await portScanner.killProcess(pid, force)
     } catch (error) {
       logger.error(`Failed to kill process ${pid}:`, error)
-      return { success: false, error: '操作失败，请稍后重试' }
+      return { success: false, errorCode: 'unknown' as const }
     }
   })
 

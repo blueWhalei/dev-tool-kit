@@ -34,18 +34,18 @@
 
 | Tool | Description |
 |------|------|
-| Port Manager | Local port scanning, common ports, process termination (Windows) |
-| Environment Variables | Windows user/system variables, PATH, backup & export/import |
+| Port Manager | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux) |
+| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux read-only shell & env file view |
 | Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush |
 | File Renamer | Batch rename, rule library, conflict preview, partial selection |
-| Regex Tester | Regex matching, replacement, common expression library |
+| Regex Tester | Regex matching, replace preview with flags, common expression library |
 
 ### Encoding & Decoding
 
 | Tool | Description |
 |------|------|
-| Encoding & Format Conversion | Base64, URL, JSON, YAML, TOML, timestamp, radix, naming, HTML (unified entry with Tab memory) |
-| Text Diff | Line-by-line diff, ignore whitespace/case, unified/split view |
+| Encoding & Format Conversion | Base64, URL, JSON (tree view + Schema validation), YAML, TOML, timestamp, radix, naming, HTML (unified entry with Tab memory) |
+| Text Diff | Line/word-level diff, file import, ignore whitespace/case, unified/split view |
 
 ### Data Conversion
 
@@ -53,22 +53,26 @@
 |------|------|
 | Color Converter | HEX, RGB, HSL conversion |
 | UUID Generator | Batch generate UUID/GUID |
-| Mock Data | Preset templates, field-based JSON generation, export JSON/CSV |
+| Mock Data | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT |
+| HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
+| QR Code Generator | Generate QR codes locally from text/URL with adjustable size and error correction |
 
 ### Password & Keys
 
 | Tool | Description |
 |------|------|
 | Password Generator | Custom rule random passwords |
-| JWT Tool | Secret generation, token decoding, exp/iat validation, HMAC signature verification |
-| Hash Generator | MD5, SHA-1, SHA-256, SHA-512 |
+| JWT Tool | Secret generation, token decode/sign, exp/iat validation, HMAC signature verification |
+| Hash Generator | MD5, SHA-1, SHA-256, SHA-512; text and file hashing |
+| Certificate Parser | Local PEM/X.509 parsing — subject, issuer, validity, fingerprints, and more |
 
 ### Calculators
 
 | Tool | Description |
 |------|------|
-| Cron Parser | Cron expression parsing, next 5 execution times with relative countdown |
-| Subnet Calculator | CIDR input, output network/broadcast/mask/host range |
+| Cron Parser | Visual field editor, local timezone, next 5 execution times with relative countdown |
+| Subnet Calculator | IPv4/IPv6 CIDR input, output network/broadcast/mask/host range |
+| Chmod Calculator | Octal/symbolic permission conversion with rwx bit visualization |
 
 ## Keyboard Shortcuts
 
@@ -95,8 +99,8 @@ Full keyboard shortcuts list available in the app's **About** page.
 | Feature | Windows | macOS | Linux | Notes |
 |---------|---------|-------|-------|-------|
 | Port Scanning | Full Support | Full Support | Full Support | — |
-| Kill Process | Full Support | Not Supported | Not Supported | Non-Windows please manually `kill` |
-| Environment Variables | Full Support | Not Supported | Not Supported | Currently only Windows registry |
+| Kill Process | Full Support | Partial Support | Partial Support | Unix can kill user processes; system processes may need sudo |
+| Environment Variables | Full Support | Partial Support | Partial Support | Unix read-only view; write only via Windows registry |
 | Hosts Editor | Partial Support | Partial Support | Partial Support | Write may require admin privileges |
 | DNS Flush | Full Support | Full Support | Partial Support | Linux depends on systemd-resolve / nscd |
 | File Renamer | Full Support | Full Support | Full Support | — |
@@ -112,6 +116,10 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/toml` | Encoding Conversion · TOML Tab |
 | `/json-formatter` | Encoding Conversion · JSON Tab |
 | `/timestamp` | Encoding Conversion · Timestamp Tab |
+| `/chmod-calculator` | Chmod Calculator |
+| `/http-status-codes` | HTTP Status Codes Reference |
+| `/certificate-parser` | Certificate PEM Parser |
+| `/qr-code-generator` | QR Code Generator |
 
 ## Tech Stack
 

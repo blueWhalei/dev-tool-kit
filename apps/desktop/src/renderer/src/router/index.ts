@@ -128,6 +128,12 @@ const routes: RouteRecordRaw[] = [
     meta: { titleKey: 'nav.routes.hashGenerator', icon: 'hash', category: 'security', order: 3, keywords: ['hash', '生成', 'generator', 'md5', 'sha', '加密'] }
   },
   {
+    path: '/certificate-parser',
+    name: 'CertificateParser',
+    component: () => import('../views/CertificateParserView.vue'),
+    meta: { titleKey: 'nav.routes.certificateParser', icon: 'cert', category: 'security', order: 4, keywords: ['certificate', 'cert', 'x509', 'pem', 'ssl', 'tls', '证书', '解析', 'parser'] }
+  },
+  {
     path: '/base64',
     redirect: { path: '/code-converter', query: { tab: 'base64' } }
   },
@@ -166,6 +172,24 @@ const routes: RouteRecordRaw[] = [
     name: 'CronParser',
     component: () => import('../views/CronParserView.vue'),
     meta: { titleKey: 'nav.routes.cronParser', icon: 'clock', category: 'calculator', order: 1, keywords: ['cron', '解析', 'parser', '定时', '表达式'] }
+  },
+  {
+    path: '/chmod-calculator',
+    name: 'ChmodCalculator',
+    component: () => import('../views/ChmodCalculatorView.vue'),
+    meta: { titleKey: 'nav.routes.chmodCalculator', icon: 'lock', category: 'calculator', order: 3, keywords: ['chmod', '权限', 'permission', 'octal', 'rwx', 'unix', '文件'] }
+  },
+  {
+    path: '/http-status-codes',
+    name: 'HttpStatusCodes',
+    component: () => import('../views/HttpStatusCodesView.vue'),
+    meta: { titleKey: 'nav.routes.httpStatusCodes', icon: 'http', category: 'data', order: 4, keywords: ['http', 'status', '状态码', '404', '500', 'reference', '速查', '响应'] }
+  },
+  {
+    path: '/qr-code-generator',
+    name: 'QrCodeGenerator',
+    component: () => import('../views/QrCodeGeneratorView.vue'),
+    meta: { titleKey: 'nav.routes.qrCodeGenerator', icon: 'qr', category: 'data', order: 5, keywords: ['qr', 'qrcode', '二维码', '生成', 'generator', 'barcode'] }
   },
   {
     path: '/settings',

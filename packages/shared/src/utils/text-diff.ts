@@ -12,11 +12,21 @@ export interface DiffOptions {
   ignoreCase?: boolean
 }
 
+export type DiffMode = 'line' | 'word'
+
 function normalizeLine(line: string, options: DiffOptions): string {
   let value = line
   if (options.ignoreWhitespace) {
     value = value.trim().replace(/\s+/g, ' ')
   }
+  if (options.ignoreCase) {
+    value = value.toLowerCase()
+  }
+  return value
+}
+
+function normalizeToken(token: string, options: DiffOptions): string {
+  let value = token
   if (options.ignoreCase) {
     value = value.toLowerCase()
   }
@@ -40,51 +50,87 @@ function lcsTable(a: string[], b: string[]): number[][] {
   return dp
 }
 
-export function computeLineDiff(textA: string, textB: string, options: DiffOptions = {}): DiffLine[] {
-  const linesA = textA.split('\n')
-  const linesB = textB.split('\n')
-  const normalizedA = linesA.map(line => normalizeLine(line, options))
-  const normalizedB = linesB.map(line => normalizeLine(line, options))
+function backtrackDiff(
+  itemsA: string[],
+  itemsB: string[],
+  normalizedA: string[],
+  normalizedB: string[],
+  withLineNumbers: boolean
+): DiffLine[] {
   const dp = lcsTable(normalizedA, normalizedB)
-  const result: DiffLine[] = []
-
-  let i = linesA.length
-  let j = linesB.length
-
   const stack: DiffLine[] = []
+
+  let i = itemsA.length
+  let j = itemsB.length
 
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && normalizedA[i - 1] === normalizedB[j - 1]) {
       stack.push({
         type: 'equal',
-        content: linesA[i - 1],
-        oldLineNumber: i,
-        newLineNumber: j
+        content: itemsA[i - 1],
+        ...(withLineNumbers ? { oldLineNumber: i, newLineNumber: j } : {})
       })
       i--
       j--
     } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
       stack.push({
         type: 'insert',
-        content: linesB[j - 1],
-        newLineNumber: j
+        content: itemsB[j - 1],
+        ...(withLineNumbers ? { newLineNumber: j } : {})
       })
       j--
     } else {
       stack.push({
         type: 'delete',
-        content: linesA[i - 1],
-        oldLineNumber: i
+        content: itemsA[i - 1],
+        ...(withLineNumbers ? { oldLineNumber: i } : {})
       })
       i--
     }
   }
 
+  const result: DiffLine[] = []
   while (stack.length > 0) {
     result.push(stack.pop()!)
   }
-
   return result
+}
+
+export function computeLineDiff(textA: string, textB: string, options: DiffOptions = {}): DiffLine[] {
+  const linesA = textA.split('\n')
+  const linesB = textB.split('\n')
+  const normalizedA = linesA.map(line => normalizeLine(line, options))
+  const normalizedB = linesB.map(line => normalizeLine(line, options))
+  return backtrackDiff(linesA, linesB, normalizedA, normalizedB, true)
+}
+
+const WORD_TOKEN_REGEX = /\S+|\s+/g
+
+function tokenizeWords(text: string, options: DiffOptions): string[] {
+  const tokens = text.match(WORD_TOKEN_REGEX) ?? []
+  if (!options.ignoreWhitespace) {
+    return tokens
+  }
+  return tokens.filter(token => !/^\s+$/.test(token))
+}
+
+export function computeWordDiff(textA: string, textB: string, options: DiffOptions = {}): DiffLine[] {
+  const tokensA = tokenizeWords(textA, options)
+  const tokensB = tokenizeWords(textB, options)
+  const normalizedA = tokensA.map(token => normalizeToken(token, options))
+  const normalizedB = tokensB.map(token => normalizeToken(token, options))
+  return backtrackDiff(tokensA, tokensB, normalizedA, normalizedB, false)
+}
+
+export function computeDiff(
+  textA: string,
+  textB: string,
+  mode: DiffMode,
+  options: DiffOptions = {}
+): DiffLine[] {
+  return mode === 'word'
+    ? computeWordDiff(textA, textB, options)
+    : computeLineDiff(textA, textB, options)
 }
 
 export function formatDiffResult(lines: DiffLine[]): string {

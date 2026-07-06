@@ -350,7 +350,7 @@ img {
 /* === FEATURES === */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
@@ -393,6 +393,16 @@ img {
 .feature-icon.data {
   background: rgba(255, 149, 0, 0.1);
   color: #ff9f0a;
+}
+
+.feature-icon.security {
+  background: rgba(175, 82, 222, 0.1);
+  color: #af52de;
+}
+
+.feature-icon.calculator {
+  background: rgba(90, 200, 250, 0.1);
+  color: #5ac8fa;
 }
 
 .feature-card h3 {
@@ -707,9 +717,6 @@ img {
 
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
-  .features-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .screenshots-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -729,9 +736,6 @@ img {
   }
   .section-header {
     margin-bottom: 48px;
-  }
-  .features-grid {
-    grid-template-columns: 1fr;
   }
   .screenshots-grid {
     grid-template-columns: 1fr;

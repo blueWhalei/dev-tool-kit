@@ -32,6 +32,7 @@ const { invoke } = useIpc()
 const { copy } = useCopyToClipboard()
 const activeTab = ref('user')
 const platformSupported = ref(true)
+const readOnly = ref(false)
 const platformName = ref('')
 const variables = ref<EnvVariable[]>([])
 const pathEntries = ref<PathEntry[]>([])
@@ -58,16 +59,18 @@ const systemVars = computed(() => variables.value.filter(v => v.type === 'system
 const columns = computed(() => [
   { title: page.t('columns.name'), key: 'name', width: 200, ellipsis: { tooltip: true } },
   { title: page.t('columns.value'), key: 'value', ellipsis: { tooltip: true } },
-  { title: '', key: 'actions', width: 100, render: (row: EnvVariable) => {
-    return h(NSpace, { size: 'small', noWrap: true }, {
-      default: () => [
-        h(NButton, { size: 'small', quaternary: true, onClick: () => openEditModal(row) }, { default: () => page.t('buttons.edit') }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row.name) }, {
-          trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { default: () => page.t('buttons.delete') })
-        })
-      ]
-    })
-  }}
+  ...(readOnly.value ? [] : [{
+    title: '', key: 'actions', width: 100, render: (row: EnvVariable) => {
+      return h(NSpace, { size: 'small', noWrap: true }, {
+        default: () => [
+          h(NButton, { size: 'small', quaternary: true, onClick: () => openEditModal(row) }, { default: () => page.t('buttons.edit') }),
+          h(NPopconfirm, { onPositiveClick: () => handleDelete(row.name) }, {
+            trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { default: () => page.t('buttons.delete') })
+          })
+        ]
+      })
+    }
+  }])
 ])
 
 function formatDate(timestamp: string): string {
@@ -334,10 +337,12 @@ onMounted(async () => {
     const support = await invoke('env-manager:getSupport') as {
       supported: boolean
       platform?: string
+      readOnly?: boolean
     } | undefined
     if (support) {
       platformSupported.value = support.supported
       platformName.value = support.platform ?? ''
+      readOnly.value = support.readOnly ?? false
     }
   } catch {
     platformSupported.value = false
@@ -359,10 +364,10 @@ onMounted(async () => {
   >
     <template #actions>
       <template v-if="platformSupported">
-        <NButton @click="openEditModal()">{{ page.t('buttons.create') }}</NButton>
+        <NButton v-if="!readOnly" @click="openEditModal()">{{ page.t('buttons.create') }}</NButton>
         <NButtonGroup>
           <NButton @click="handleExport">{{ page.t('buttons.export') }}</NButton>
-          <NButton @click="openImportModal">{{ page.t('buttons.import') }}</NButton>
+          <NButton v-if="!readOnly" @click="openImportModal">{{ page.t('buttons.import') }}</NButton>
           <NButton @click="showBackupModal = true">{{ page.t('buttons.backup') }}</NButton>
           <NButton @click="fetchBackups">{{ page.t('buttons.history') }}</NButton>
         </NButtonGroup>
@@ -376,6 +381,15 @@ onMounted(async () => {
       style="margin-bottom: 16px;"
     >
       {{ page.t('unsupportedAlert', { platform: platformName || page.t('unknownPlatform') }) }}
+    </NAlert>
+
+    <NAlert
+      v-else-if="readOnly"
+      type="info"
+      :title="page.t('readOnlyTitle')"
+      style="margin-bottom: 16px;"
+    >
+      {{ page.t('readOnlyAlert') }}
     </NAlert>
     
     <div v-if="platformSupported" class="content-card">
@@ -392,7 +406,7 @@ onMounted(async () => {
         
         <NTabPane name="path" :tab="page.t('tabs.path')">
           <div class="path-section">
-            <div class="path-input-row">
+            <div v-if="!readOnly" class="path-input-row">
               <NInput v-model:value="pathInput" :placeholder="page.t('placeholders.pathInput')" @keyup.enter="handleAddPath" style="flex: 1" />
               <NButton type="primary" @click="handleAddPath" :disabled="!pathInput.trim()">{{ page.t('buttons.add') }}</NButton>
             </div>
@@ -408,7 +422,7 @@ onMounted(async () => {
                   :description-style="{ color: entry.exists ? 'var(--color-success)' : 'var(--color-error)' }"
                 >
                   <template #header-extra>
-                    <NSpace>
+                    <NSpace v-if="!readOnly">
                       <NButton size="tiny" quaternary :disabled="index === 0" @click="handleMovePath(index, 'up')">↑</NButton>
                       <NButton size="tiny" quaternary :disabled="index === pathEntries.length - 1" @click="handleMovePath(index, 'down')">↓</NButton>
                       <NButton size="tiny" quaternary type="error" @click="handleRemovePath(index)">{{ page.t('buttons.remove') }}</NButton>
@@ -430,7 +444,7 @@ onMounted(async () => {
               >
                 <template #header-extra>
                   <NSpace>
-                    <NButton size="small" @click="confirmRestoreBackup(backup)">{{ page.t('buttons.restore') }}</NButton>
+                    <NButton v-if="!readOnly" size="small" @click="confirmRestoreBackup(backup)">{{ page.t('buttons.restore') }}</NButton>
                     <NButton size="small" type="error" @click="confirmDeleteBackup(backup)">{{ page.t('buttons.delete') }}</NButton>
                   </NSpace>
                 </template>

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
-import { NDataTable, NButton, NSpace, NTag, NInput, NPopconfirm, useMessage, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
+import { NDataTable, NButton, NSpace, NTag, NInput, NPopconfirm, useMessage, useDialog, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
 import { usePlatform } from '../composables/usePlatform'
+import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut } from '../composables/useKeyboardShortcut'
 import { logError } from '../utils/error-handler'
+import { buildKillCommand, PLATFORM_LABELS, type OperationResult, type PlatformId } from '@dev-tool-kit/shared'
 import {
   type PortInfo,
   type CommonPort,
@@ -18,8 +21,11 @@ import {
 } from '../utils/type-guards'
 
 const message = useMessage()
+const dialog = useDialog()
+const { t } = useI18n()
 const page = useToolI18n('portManager')
 const { invoke } = useIpc()
+const { copy } = useCopyToClipboard()
 const { platform, loadPlatform, isWindows } = usePlatform()
 const ports = ref<PortInfo[]>([])
 const commonPorts = ref<CommonPort[]>([])
@@ -52,12 +58,52 @@ const portStats = computed(() => ({
 }))
 
 const platformHint = computed(() => {
-  if (!platform.value) return ''
-  if (platform.value === 'darwin' || platform.value === 'linux') {
-    return page.t('hints.unixKillHint', { platform: platform.value })
-  }
-  return ''
+  if (!platform.value || isWindows()) return ''
+  const label = PLATFORM_LABELS[platform.value as PlatformId] ?? platform.value
+  return page.t('hints.unixKillHint', { platform: label })
 })
+
+function translateKillError(result: OperationResult, pid: number): string {
+  if (result.errorCode) {
+    const key = `errors.${result.errorCode}`
+    const translated = page.t(key, { pid })
+    if (translated !== key) return translated
+  }
+  return result.error || page.t('errors.killFailed')
+}
+
+function showKillFailure(pid: number, result: OperationResult) {
+  const killCommand =
+    result.killCommand ??
+    buildKillCommand(pid, {
+      force: true,
+      sudo: Boolean(result.needSudo),
+      platform: platform.value || 'linux'
+    })
+
+  if (result.killCommand || result.needSudo || result.errorCode === 'permission_denied' || result.errorCode === 'access_denied') {
+    dialog.warning({
+      title: page.t('dialogs.killFailedTitle'),
+      content: page.t('dialogs.killFailedContent', {
+        message: translateKillError(result, pid),
+        command: killCommand
+      }),
+      positiveText: page.t('buttons.copyCommand'),
+      negativeText: t('common.cancel'),
+      onPositiveClick: () => {
+        void copy(killCommand, page.t('messages.commandCopied'))
+      }
+    })
+    return
+  }
+
+  if (result.errorCode === 'process_not_found') {
+    message.warning(translateKillError(result, pid))
+    return
+  }
+
+  message.error(translateKillError(result, pid))
+}
 
 const columns = computed(() => [
   {
@@ -103,6 +149,7 @@ const columns = computed(() => [
     key: 'actions',
     width: 80,
     render: (row: PortInfo) => {
+      const confirmKey = isWindows() ? 'messages.killConfirm' : 'messages.killConfirmUnix'
       return h(NPopconfirm, { onPositiveClick: () => handleKillProcess(row.pid) }, {
         trigger: () => h(NButton, {
           size: 'small',
@@ -110,7 +157,7 @@ const columns = computed(() => [
           type: 'error',
           disabled: row.state !== 'LISTENING'
         }, { default: () => page.t('buttons.kill') }),
-        default: () => page.t('messages.killConfirm', { pid: row.pid })
+        default: () => page.t(confirmKey, { pid: row.pid })
       })
     }
   }
@@ -151,10 +198,10 @@ async function handleKillProcess(pid: number) {
     if (result?.success) {
       message.success(page.t('messages.processKilled', { pid }))
       await fetchPorts(quickScanMode.value)
-    } else if (result?.needSudo) {
-      message.warning(page.t('errors.needSudo', { pid }), { duration: 5000 })
+    } else if (result) {
+      showKillFailure(pid, result)
     } else {
-      message.error(result?.error || page.t('errors.killFailed'))
+      message.error(page.t('errors.killFailed'))
     }
   } catch (error) {
     message.error(page.t('errors.killFailed'))
@@ -219,7 +266,8 @@ useKeyboardShortcut((event) => {
 
     <NAlert
       v-if="platform && !isWindows()"
-      type="warning"
+      type="info"
+      :title="page.t('hints.partialSupportTitle')"
       :bordered="false"
       style="margin-bottom: 16px; border-radius: 8px;"
     >

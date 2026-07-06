@@ -13,6 +13,10 @@ import textDiff from './textDiff'
 import mockData from './mockData'
 import subnetCalculator from './subnetCalculator'
 import cronParser from './cronParser'
+import chmodCalculator from './chmodCalculator'
+import httpStatusCodes from './httpStatusCodes'
+import certificateParser from './certificateParser'
+import qrCodeGenerator from './qrCodeGenerator'
 
 export default {
   portManager,
@@ -29,5 +33,9 @@ export default {
   textDiff,
   mockData,
   subnetCalculator,
-  cronParser
+  cronParser,
+  chmodCalculator,
+  httpStatusCodes,
+  certificateParser,
+  qrCodeGenerator
 }

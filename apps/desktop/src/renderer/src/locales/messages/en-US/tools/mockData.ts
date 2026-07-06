@@ -1,15 +1,19 @@
 export default {
     title: 'Mock Data Generator',
-    description: 'Generate test JSON/CSV from templates',
+    description: 'Generate test JSON / CSV / SQL from templates',
     labels: {
       count: 'Count',
       fieldConfig: 'Field configuration',
       preview: 'Preview ({count} rows)',
-      fieldName: 'Field name'
+      fieldName: 'Field name',
+      enumOptions: 'Enum options',
+      tableName: 'Table name'
     },
     placeholders: {
       preset: 'Select preset...',
-      fieldName: 'Field name'
+      fieldName: 'Field name',
+      enumOptions: 'pending,paid,shipped',
+      tableName: 'mock_data'
     },
     buttons: {
       generate: 'Generate',
@@ -17,7 +21,8 @@ export default {
       delete: 'Delete',
       copyJson: 'Copy JSON',
       exportJson: 'Export JSON',
-      exportCsv: 'Export CSV'
+      exportCsv: 'Export CSV',
+      exportSql: 'Export SQL'
     },
     presets: {
       user: {
@@ -28,6 +33,7 @@ export default {
           name: 'Name',
           email: 'Email',
           phone: 'Phone',
+          address: 'Address',
           active: 'Active',
           createdAt: 'Created at'
         }
@@ -38,8 +44,9 @@ export default {
         fields: {
           orderId: 'Order ID',
           customer: 'Customer',
+          company: 'Company',
           amount: 'Amount',
-          paid: 'Paid',
+          status: 'Status',
           orderDate: 'Order date'
         }
       },
@@ -49,6 +56,7 @@ export default {
         fields: {
           id: 'ID',
           title: 'Title',
+          summary: 'Summary',
           author: 'Author',
           published: 'Published',
           publishDate: 'Publish date'
@@ -62,7 +70,13 @@ export default {
       uuid: 'UUID',
       number: 'Number',
       date: 'Date',
-      boolean: 'Boolean'
+      boolean: 'Boolean',
+      address: 'Address',
+      company: 'Company',
+      ip: 'IP address',
+      enum: 'Enum',
+      increment: 'Auto ID',
+      text: 'Short text'
     },
     messages: {
       minFields: 'Keep at least one field',
@@ -70,9 +84,11 @@ export default {
       generateFirst: 'Generate data first',
       copiedJson: 'JSON copied',
       exportedJson: 'JSON exported',
-      exportedCsv: 'CSV exported'
+      exportedCsv: 'CSV exported',
+      exportedSql: 'SQL exported'
     },
     hints: {
-      previewLimit: 'Showing first 20 rows — export JSON/CSV for full data'
+      previewLimit: 'Showing first 20 rows — export JSON/CSV/SQL for full data',
+      enumOptions: 'Comma-separated, e.g. pending,paid,shipped'
     }
   }

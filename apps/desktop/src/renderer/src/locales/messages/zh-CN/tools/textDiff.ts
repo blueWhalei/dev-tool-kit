@@ -6,7 +6,10 @@ export default {
       copyResult: '复制结果',
       copy: '复制',
       unifiedView: '统一视图',
-      splitView: '并排视图'
+      splitView: '并排视图',
+      loadFile: '打开文件',
+      lineMode: '行级',
+      wordMode: '词级'
     },
     labels: {
       textA: '原文本 A',
@@ -14,16 +17,24 @@ export default {
       result: '对比结果',
       ignoreWhitespace: '忽略空白',
       ignoreCase: '忽略大小写',
+      diffMode: '对比粒度',
       equal: '相同 {count}',
       insert: '新增 {count}',
-      delete: '删除 {count}'
+      delete: '删除 {count}',
+      loadedFile: '已加载：{name}'
     },
     placeholders: {
       textA: '粘贴或输入原文本...',
       textB: '粘贴或输入新文本...'
     },
+    dialogs: {
+      openTextFile: '选择文本文件',
+      textFiles: '文本文件',
+      allFiles: '所有文件'
+    },
     messages: {
       copied: '已复制对比结果',
-      noResult: '暂无对比结果'
+      noResult: '暂无对比结果',
+      loadFileFailed: '无法读取文件'
     }
   }

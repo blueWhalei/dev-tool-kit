@@ -1,9 +1,11 @@
 export default {
     title: '环境变量管理',
-    description: '查看与编辑用户/系统环境变量，支持备份与导入',
+    description: '查看与编辑用户/系统环境变量，支持备份与导入（macOS/Linux 为只读查看）',
     unsupported: '当前平台不支持',
-    unsupportedDesc: '环境变量管理仅在 Windows 上可用',
-    unsupportedAlert: '环境变量管理仅支持 Windows 系统。当前平台：{platform}',
+    unsupportedDesc: '环境变量管理在当前平台不可用',
+    unsupportedAlert: '当前平台暂不支持环境变量管理。平台：{platform}',
+    readOnlyTitle: '只读模式',
+    readOnlyAlert: 'macOS/Linux 下可查看当前会话、Shell 配置文件与系统环境变量，并支持导出 .env 与快照备份；修改注册表式写入仅 Windows 可用。',
     unknownPlatform: '未知',
     buttons: {
       create: '新建',
@@ -21,7 +23,7 @@ export default {
       createBackup: '创建备份'
     },
     tabs: {
-      user: '用户变量',
+      user: '用户 / 会话',
       system: '系统变量',
       path: 'PATH',
       backup: '备份记录'
@@ -53,8 +55,8 @@ export default {
       importTitle: '导入环境变量'
     },
     hints: {
-      backupInfo: '备份将保存当前所有用户环境变量，最多保留 10 个备份。',
-      importInfo: '粘贴 .env 格式内容（每行 KEY=VALUE），将写入用户环境变量。'
+      backupInfo: '备份将保存当前用户/会话环境变量快照，最多保留 10 个备份。',
+      importInfo: '粘贴 .env 格式内容（每行 KEY=VALUE），将写入用户环境变量（仅 Windows）。'
     },
     dialogs: {
       restoreTitle: '恢复备份',
@@ -91,7 +93,8 @@ export default {
       backupFailed: '备份失败',
       restoreFailed: '恢复失败',
       exportFailed: '导出失败',
-      importFailed: '导入失败'
+      importFailed: '导入失败',
+      readOnly: '当前平台为只读模式，请使用导出功能'
     },
     empty: {
       userVars: '暂无用户变量',

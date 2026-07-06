@@ -274,8 +274,20 @@ export interface SchemeInfo {
   count: number
 }
 
+export type KillProcessErrorCode =
+  | 'invalid_pid'
+  | 'protected_pid'
+  | 'permission_denied'
+  | 'process_not_found'
+  | 'access_denied'
+  | 'unknown'
+
 export interface OperationResult {
   success: boolean
   error?: string
   needSudo?: boolean
+  errorCode?: KillProcessErrorCode
+  killCommand?: string
 }
+
+export * from './certificate'

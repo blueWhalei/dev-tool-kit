@@ -3,10 +3,11 @@ import { ref, onMounted, watch, computed, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
-import { NInput, NButton, NSpace, NTabs, NTabPane, NGrid, NGridItem, NCard, useMessage } from 'naive-ui'
+import { NInput, NButton, NSpace, NTabs, NTabPane, NGrid, NGridItem, NCard, NTag, NAlert, useMessage } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import ToolDualPanel from '../components/ToolDualPanel.vue'
+import JsonTreeView from '../components/JsonTreeView.vue'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
 import { translateToolError } from '../utils/translateToolError'
@@ -17,6 +18,10 @@ import {
   urlDecode,
   jsonFormat,
   jsonMinify,
+  parseJsonValue,
+  validateAgainstSchema,
+  formatSchemaErrorLine,
+  type SchemaValidationError,
   parseTimestampInput,
   numberBaseConvert,
   convertAllCaseFormats,
@@ -78,6 +83,11 @@ const urlInput = ref('')
 const urlOutput = ref('')
 const jsonInput = ref('')
 const jsonOutput = ref('')
+const jsonSchemaInput = ref('')
+const jsonParsedValue = ref<unknown | null>(null)
+const schemaValidationErrors = ref<SchemaValidationError[] | null>(null)
+const schemaValidationValid = ref<boolean | null>(null)
+const schemaValidationError = ref('')
 const timestampInput = ref(String(Math.floor(Date.now() / 1000)))
 const timestampResult = ref<TimestampInfo | null>(null)
 const numberInput = ref('255')
@@ -143,6 +153,45 @@ function handleJsonFormat() {
 function handleJsonMinify() {
   setOutput(jsonMinify(jsonInput.value), jsonOutput)
 }
+
+function updateJsonParsedValue() {
+  const result = parseJsonValue(jsonInput.value)
+  if (result.success) {
+    jsonParsedValue.value = result.result ?? null
+  } else {
+    jsonParsedValue.value = null
+  }
+}
+
+function runSchemaValidation() {
+  schemaValidationErrors.value = null
+  schemaValidationValid.value = null
+  schemaValidationError.value = ''
+
+  if (!jsonSchemaInput.value.trim()) return
+
+  const dataResult = parseJsonValue(jsonInput.value)
+  if (!dataResult.success) {
+    schemaValidationError.value = translateError(dataResult.error)
+    return
+  }
+
+  const result = validateAgainstSchema(dataResult.result, jsonSchemaInput.value)
+  if (!result.success) {
+    schemaValidationError.value = translateError(result.error)
+    return
+  }
+
+  schemaValidationValid.value = result.valid ?? false
+  schemaValidationErrors.value = result.errors ?? null
+}
+
+const schemaErrorLines = computed(() =>
+  (schemaValidationErrors.value ?? []).map(formatSchemaErrorLine)
+)
+
+watchDebounced(jsonInput, updateJsonParsedValue, { debounce: 300, immediate: true })
+watchDebounced([jsonInput, jsonSchemaInput], runSchemaValidation, { debounce: 400 })
 
 function handleTimestampConvert() {
   const result = parseTimestampInput(timestampInput.value)
@@ -286,10 +335,49 @@ useKeyboardShortcut((event) => {
           :input-placeholder="page.t('placeholders.json')"
           :output-placeholder="page.t('placeholders.timestampResult')"
         />
-        <div class="action-bar">
+        <div class="action-bar json-action-bar">
           <NButton type="primary" @click="handleJsonFormat">{{ page.t('actions.format') }}</NButton>
           <NButton @click="handleJsonMinify">{{ page.t('actions.minify') }}</NButton>
         </div>
+
+        <NCard v-if="jsonParsedValue !== null" class="editor-card json-tree-card" :bordered="false">
+          <template #header>
+            <span class="card-title">{{ page.t('labels.jsonTree') }}</span>
+          </template>
+          <JsonTreeView :value="jsonParsedValue" />
+        </NCard>
+
+        <NCard class="editor-card json-schema-card" :bordered="false">
+          <template #header>
+            <div class="card-header-flex">
+              <span class="card-title">{{ page.t('labels.jsonSchema') }}</span>
+              <NTag v-if="schemaValidationValid === true" type="success" size="small">
+                {{ page.t('messages.schemaValid') }}
+              </NTag>
+              <NTag v-else-if="schemaValidationValid === false" type="error" size="small">
+                {{ page.t('messages.schemaInvalid') }}
+              </NTag>
+            </div>
+          </template>
+          <NInput
+            v-model:value="jsonSchemaInput"
+            type="textarea"
+            :rows="4"
+            :placeholder="page.t('placeholders.jsonSchema')"
+            class="code-input"
+          />
+          <NAlert
+            v-if="schemaValidationError"
+            type="warning"
+            :show-icon="false"
+            class="schema-alert"
+          >
+            {{ schemaValidationError }}
+          </NAlert>
+          <ul v-else-if="schemaErrorLines.length" class="schema-errors">
+            <li v-for="(line, index) in schemaErrorLines" :key="index">{{ line }}</li>
+          </ul>
+        </NCard>
       </NTabPane>
 
       <NTabPane name="timestamp" :tab="page.t('tabs.timestamp')">
@@ -603,5 +691,44 @@ useKeyboardShortcut((event) => {
   font-size: 16px;
   color: var(--color-text-primary);
   word-break: break-all;
+}
+
+.json-action-bar {
+  margin-bottom: 0;
+}
+
+.json-tree-card,
+.json-schema-card {
+  margin-top: 16px;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.schema-alert {
+  margin-top: 12px;
+}
+
+.schema-errors {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  list-style: none;
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.schema-errors li {
+  padding: 2px 0;
+  word-break: break-all;
+}
+
+.schema-errors li + li {
+  margin-top: 4px;
 }
 </style>

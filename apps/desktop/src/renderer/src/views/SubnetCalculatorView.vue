@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NInput, NButton, NCard, NGrid, NGridItem, useMessage } from 'naive-ui'
+import { NInput, NButton, NCard, NGrid, NGridItem, NTag, useMessage } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -19,17 +19,34 @@ const result = ref<SubnetInfo | null>(null)
 const resultRows = computed(() => {
   if (!result.value) return []
   const r = result.value
-  return [
+  const rows: { label: string; value: string }[] = [
     { label: page.t('labels.cidr'), value: r.cidr },
-    { label: page.t('labels.network'), value: r.network },
-    { label: page.t('labels.broadcast'), value: r.broadcast },
-    { label: page.t('labels.subnetMask'), value: r.subnetMask },
-    { label: page.t('labels.wildcardMask'), value: r.wildcardMask },
+    { label: page.t('labels.network'), value: r.network }
+  ]
+
+  if (r.version === 'ipv4') {
+    rows.push(
+      { label: page.t('labels.broadcast'), value: r.broadcast ?? '' },
+      { label: page.t('labels.subnetMask'), value: r.subnetMask ?? '' },
+      { label: page.t('labels.wildcardMask'), value: r.wildcardMask ?? '' }
+    )
+  }
+
+  rows.push(
     { label: page.t('labels.firstHost'), value: r.firstHost },
     { label: page.t('labels.lastHost'), value: r.lastHost },
     { label: page.t('labels.totalHosts'), value: String(r.totalHosts) },
     { label: page.t('labels.usableHosts'), value: String(r.usableHosts) }
-  ]
+  )
+
+  return rows
+})
+
+const versionLabel = computed(() => {
+  if (!result.value) return ''
+  return result.value.version === 'ipv4'
+    ? page.t('labels.versionIpv4')
+    : page.t('labels.versionIpv6')
 })
 
 function calculate() {
@@ -45,8 +62,8 @@ function calculate() {
 
 async function copyResult() {
   if (!result.value) return
-  const text = resultRows.value.map(r => `${r.label}: ${r.value}`).join('\n')
-  await copy(text, page.t('messages.copied'))
+  const lines = [`${page.t('labels.version')}: ${versionLabel.value}`, ...resultRows.value.map(r => `${r.label}: ${r.value}`)]
+  await copy(lines.join('\n'), page.t('messages.copied'))
 }
 
 calculate()
@@ -72,6 +89,10 @@ calculate()
     </NCard>
 
     <NCard v-if="result" class="result-card" :bordered="false">
+      <div class="result-header">
+        <span class="result-header-label">{{ page.t('labels.version') }}</span>
+        <NTag size="small" :type="result.version === 'ipv4' ? 'info' : 'success'">{{ versionLabel }}</NTag>
+      </div>
       <NGrid :cols="2" :x-gap="16" :y-gap="12">
         <NGridItem v-for="row in resultRows" :key="row.label">
           <div class="result-row">
@@ -105,6 +126,18 @@ calculate()
 .cidr-input {
   flex: 1;
   font-family: var(--font-family-mono);
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.result-header-label {
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-secondary);
 }
 
 .result-row {

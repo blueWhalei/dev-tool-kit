@@ -7,13 +7,26 @@ export default {
       format: '格式: {fields}',
       formatWithSeconds: '秒 分钟 小时 日期 月份 星期',
       formatWithoutSeconds: '分钟 小时 日期 月份 星期',
+      visualEditor: '可视化字段编辑',
       presets: '常用模板',
       description: '自然语言说明',
       nextRuns: '接下来 5 次执行',
+      timezone: '时区',
+      localTimezone: '{zone}（本地）',
       runIndex: '#{index}'
     },
     placeholders: {
-      expression: '* * * * * *'
+      expression: '* * * * * *',
+      step: '间隔',
+      list: '如 1,3,5'
+    },
+    patternTypes: {
+      every: '每',
+      step: '每 N',
+      value: '指定值',
+      range: '范围',
+      list: '列表',
+      custom: '自定义'
     },
     buttons: {
       copy: '复制'

@@ -17,10 +17,12 @@ import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import {
   generateMockRecords,
   MOCK_PRESETS,
+  MOCK_FIELD_TYPES,
   recordsToCsv,
+  recordsToSqlInsert,
+  sanitizeSqlTableName,
   downloadTextFile,
-  type MockField,
-  type MockFieldType
+  type MockField
 } from '@dev-tool-kit/shared'
 
 const message = useMessage()
@@ -31,6 +33,7 @@ const count = ref(10)
 const activePreset = ref<string | null>('user')
 const fields = ref<MockField[]>([...MOCK_PRESETS.user.fields])
 const records = ref<Record<string, unknown>[]>([])
+const sqlTableName = ref('mock_data')
 
 function getColumnTitle(key: string): string {
   if (activePreset.value) {
@@ -45,6 +48,10 @@ function onFieldNameChange() {
   activePreset.value = null
 }
 
+function onFieldTypeChange() {
+  activePreset.value = null
+}
+
 const presetOptions = computed(() =>
   Object.keys(MOCK_PRESETS).map(value => ({
     label: page.t(`presets.${value}.label`),
@@ -53,7 +60,7 @@ const presetOptions = computed(() =>
 )
 
 const fieldTypeOptions = computed(() =>
-  (['name', 'email', 'phone', 'uuid', 'number', 'date', 'boolean'] as MockFieldType[]).map(value => ({
+  MOCK_FIELD_TYPES.map(value => ({
     label: page.t(`fieldTypes.${value}`),
     value
   }))
@@ -131,6 +138,17 @@ function exportCsv() {
   message.success(page.t('messages.exportedCsv'))
 }
 
+function exportSql() {
+  if (!records.value.length) {
+    message.warning(page.t('messages.generateFirst'))
+    return
+  }
+  const table = sanitizeSqlTableName(sqlTableName.value)
+  const sql = recordsToSqlInsert(records.value, table)
+  downloadTextFile(`mock-data-${records.value.length}.sql`, sql, 'text/plain;charset=utf-8')
+  message.success(page.t('messages.exportedSql'))
+}
+
 generate()
 </script>
 
@@ -157,6 +175,7 @@ generate()
         <NButton @click="copyJson" :disabled="!records.length">{{ page.t('buttons.copyJson') }}</NButton>
         <NButton @click="exportJson" :disabled="!records.length">{{ page.t('buttons.exportJson') }}</NButton>
         <NButton @click="exportCsv" :disabled="!records.length">{{ page.t('buttons.exportCsv') }}</NButton>
+        <NButton @click="exportSql" :disabled="!records.length">{{ page.t('buttons.exportSql') }}</NButton>
       </NButtonGroup>
     </template>
 
@@ -179,9 +198,26 @@ generate()
             v-model:value="field.type"
             :options="fieldTypeOptions"
             class="field-type"
+            @update:value="onFieldTypeChange"
+          />
+          <NInput
+            v-if="field.type === 'enum'"
+            v-model:value="field.options"
+            :placeholder="page.t('placeholders.enumOptions')"
+            class="field-options"
+            @update:value="onFieldNameChange"
           />
           <NButton quaternary type="error" @click="removeField(index)">{{ page.t('buttons.delete') }}</NButton>
         </div>
+        <p v-if="fields.some(f => f.type === 'enum')" class="enum-hint">{{ page.t('hints.enumOptions') }}</p>
+      </div>
+      <div class="sql-export-config">
+        <span class="control-label">{{ page.t('labels.tableName') }}</span>
+        <NInput
+          v-model:value="sqlTableName"
+          :placeholder="page.t('placeholders.tableName')"
+          class="table-name-input"
+        />
       </div>
     </NCard>
 
@@ -193,6 +229,7 @@ generate()
             <NButton @click="copyJson">{{ page.t('buttons.copyJson') }}</NButton>
             <NButton @click="exportJson">{{ page.t('buttons.exportJson') }}</NButton>
             <NButton @click="exportCsv">{{ page.t('buttons.exportCsv') }}</NButton>
+            <NButton @click="exportSql">{{ page.t('buttons.exportSql') }}</NButton>
           </NButtonGroup>
         </div>
       </template>
@@ -257,15 +294,41 @@ generate()
   display: flex;
   gap: var(--space-3);
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .field-name {
   flex: 1;
-  max-width: 240px;
+  max-width: 200px;
 }
 
 .field-type {
   width: 140px;
+}
+
+.field-options {
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.enum-hint {
+  margin: 0;
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-tertiary);
+}
+
+.sql-export-config {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.table-name-input {
+  max-width: 200px;
 }
 
 .preview-hint {

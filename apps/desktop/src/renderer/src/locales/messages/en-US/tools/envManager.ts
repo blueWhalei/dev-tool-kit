@@ -1,9 +1,11 @@
 export default {
     title: 'Environment Variables',
-    description: 'View and edit user/system variables with backup and import',
+    description: 'View and edit user/system variables with backup and import (read-only on macOS/Linux)',
     unsupported: 'Not supported on this platform',
-    unsupportedDesc: 'Environment variable management is only available on Windows',
-    unsupportedAlert: 'Environment variables are only supported on Windows. Current platform: {platform}',
+    unsupportedDesc: 'Environment variable management is unavailable on this platform',
+    unsupportedAlert: 'Environment variables are not supported on this platform: {platform}',
+    readOnlyTitle: 'Read-only mode',
+    readOnlyAlert: 'On macOS/Linux you can view the current session, shell config files, and system env vars, and export .env or snapshot backups. Registry-style writes are Windows-only.',
     unknownPlatform: 'Unknown',
     buttons: {
       create: 'New',
@@ -21,7 +23,7 @@ export default {
       createBackup: 'Create backup'
     },
     tabs: {
-      user: 'User variables',
+      user: 'User / session',
       system: 'System variables',
       path: 'PATH',
       backup: 'Backups'
@@ -53,8 +55,8 @@ export default {
       importTitle: 'Import environment variables'
     },
     hints: {
-      backupInfo: 'Backups save all current user environment variables. Up to 10 backups are kept.',
-      importInfo: 'Paste .env content (KEY=VALUE per line). Values are written to user environment variables.'
+      backupInfo: 'Backups save a snapshot of user/session environment variables. Up to 10 backups are kept.',
+      importInfo: 'Paste .env content (KEY=VALUE per line). Values are written to user environment variables (Windows only).'
     },
     dialogs: {
       restoreTitle: 'Restore backup',
@@ -91,7 +93,8 @@ export default {
       backupFailed: 'Backup failed',
       restoreFailed: 'Restore failed',
       exportFailed: 'Export failed',
-      importFailed: 'Import failed'
+      importFailed: 'Import failed',
+      readOnly: 'Read-only on this platform; use export instead'
     },
     empty: {
       userVars: 'No user variables',
