@@ -5,7 +5,8 @@
  * Phase 2: JSON tree, mock data SQL, text diff files, IPv6 subnet, regex replace preview
  * Phase 3: chmod, HTTP status ref, cert PEM parser, QR code
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
 import { NSelect, NInput, NButton, NCard, NTabs, NTabPane, NTag, NAlert } from 'naive-ui'
@@ -27,6 +28,7 @@ import {
 
 
 const { t } = useI18n()
+const route = useRoute()
 const page = useToolI18n('jwtGenerator')
 const { copy } = useCopyToClipboard()
 
@@ -37,6 +39,15 @@ const SAMPLE_SIGN_HEADER = '{\n  "typ": "JWT"\n}'
 const SAMPLE_SIGN_PAYLOAD = '{\n  "sub": "1234567890",\n  "name": "John Doe",\n  "iat": 1516239022\n}'
 
 const activeTab = ref<'generate' | 'sign' | 'decode'>('generate')
+
+const VALID_TABS = ['generate', 'sign', 'decode'] as const
+
+function resolveJwtTab(tab: unknown): typeof VALID_TABS[number] | null {
+  if (typeof tab === 'string' && (VALID_TABS as readonly string[]).includes(tab)) {
+    return tab as typeof VALID_TABS[number]
+  }
+  return null
+}
 
 const secretLength = ref(256)
 const secretLengthOptions = computed(() => [
@@ -91,6 +102,30 @@ const signSecret = ref('')
 const signedToken = ref('')
 const signError = ref('')
 const signCopied = ref(false)
+
+function applyRouteQuery() {
+  const queryTab = resolveJwtTab(route.query.tab)
+  if (queryTab) activeTab.value = queryTab
+  const secret = route.query.secret
+  if (typeof secret === 'string' && secret.trim()) {
+    signSecret.value = secret
+    activeTab.value = 'sign'
+  }
+}
+
+onMounted(applyRouteQuery)
+
+watch(() => route.query.tab, (tab) => {
+  const resolved = resolveJwtTab(tab)
+  if (resolved) activeTab.value = resolved
+})
+
+watch(() => route.query.secret, (secret) => {
+  if (typeof secret === 'string' && secret.trim()) {
+    signSecret.value = secret
+    activeTab.value = 'sign'
+  }
+})
 
 async function signToken() {
   signError.value = ''

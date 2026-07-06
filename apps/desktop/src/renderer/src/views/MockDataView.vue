@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   NButton,
   NInputNumber,
@@ -26,6 +27,7 @@ import {
 } from '@dev-tool-kit/shared'
 
 const message = useMessage()
+const route = useRoute()
 const page = useToolI18n('mockData')
 const { copy } = useCopyToClipboard()
 
@@ -148,6 +150,24 @@ function exportSql() {
   downloadTextFile(`mock-data-${records.value.length}.sql`, sql, 'text/plain;charset=utf-8')
   message.success(page.t('messages.exportedSql'))
 }
+
+onMounted(() => {
+  if (route.query.addField === 'uuid') {
+    activePreset.value = null
+    fields.value = [
+      { name: 'id', type: 'uuid' },
+      ...fields.value.filter(field => field.name !== 'id')
+    ]
+    const queryCount = route.query.count
+    if (typeof queryCount === 'string') {
+      const parsed = Number.parseInt(queryCount, 10)
+      if (Number.isFinite(parsed) && parsed >= 1 && parsed <= 100) {
+        count.value = parsed
+      }
+    }
+    message.info(page.t('messages.uuidFieldReady'))
+  }
+})
 
 generate()
 </script>

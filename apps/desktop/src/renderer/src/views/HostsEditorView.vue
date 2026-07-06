@@ -7,6 +7,7 @@ import {
   NAlert, NTabs, NTabPane, NList, NListItem, NThing, NTag, NSelect
 } from 'naive-ui'
 import { useIpc } from '../composables/useIpc'
+import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { usePlatform } from '../composables/usePlatform'
 import { logError } from '../utils/error-handler'
 import { translateToolError } from '../utils/translateToolError'
@@ -35,7 +36,10 @@ const { t } = useI18n()
 const page = useToolI18n('hostsEditor')
 const dialog = useDialog()
 const { invoke } = useIpc()
+const { copy } = useCopyToClipboard()
 const { platform, loadPlatform } = usePlatform()
+const hostsWritable = ref(true)
+const hostsFilePath = ref('')
 const entries = ref<HostsEntry[]>([])
 const groups = ref<HostsGroup[]>([])
 const schemes = ref<SchemeInfo[]>([])
@@ -116,6 +120,39 @@ function translateError(error: string | undefined, fallbackKey: string): string 
   return translateToolError(t, 'hostsEditor', error) || page.t(fallbackKey)
 }
 
+interface HostsOperationResponse {
+  success: boolean
+  error?: string
+  sudoCommand?: string
+  backupPath?: string
+}
+
+function handleHostsOperationResult(
+  result: HostsOperationResponse | null | undefined,
+  successKey: string,
+  fallbackErrorKey: string
+): boolean {
+  if (result?.success) {
+    message.success(page.t(successKey))
+    return true
+  }
+  if (result?.error === 'HOSTS_PERMISSION_DENIED' && result.sudoCommand) {
+    dialog.warning({
+      title: page.t('dialogs.permissionTitle'),
+      content: () => h('div', { class: 'permission-dialog' }, [
+        h('p', page.t('dialogs.permissionContent')),
+        h('pre', { class: 'sudo-command' }, result.sudoCommand)
+      ]),
+      positiveText: page.t('buttons.copyCommand'),
+      negativeText: t('common.cancel'),
+      onPositiveClick: () => copy(result.sudoCommand!, page.t('messages.commandCopied'))
+    })
+    return false
+  }
+  message.error(translateError(result?.error, fallbackErrorKey))
+  return false
+}
+
 function diffTypeLabel(type: HostsEntryChange['type']): string {
   if (type === 'added') return page.t('diff.added')
   if (type === 'removed') return page.t('diff.removed')
@@ -176,13 +213,10 @@ async function handleSave() {
     } else {
       data = await invoke('hosts:update', editingEntry.value.id, payload)
     }
-    const result = validateOptional(data, isOperationResult, 'handleSave')
-    if (result?.success) {
-      message.success(isNewEntry.value ? page.t('messages.added') : page.t('messages.saved'))
+    const result = validateOptional(data, isOperationResult, 'handleSave') as HostsOperationResponse | null
+    if (handleHostsOperationResult(result, isNewEntry.value ? 'messages.added' : 'messages.saved', 'errors.operationFailed')) {
       showEditModal.value = false
       await fetchEntries()
-    } else {
-      message.error(translateError(result?.error, 'errors.operationFailed'))
     }
   } catch {
     message.error(page.t('errors.operationFailed'))
@@ -205,9 +239,8 @@ function confirmToggle(entry: HostsEntry) {
 async function handleToggle(id: string) {
   try {
     const data = await invoke('hosts:toggle', id)
-    const result = validateOptional(data, isOperationResult, 'handleToggle')
-    if (result?.success) {
-      message.success(page.t('messages.statusUpdated'))
+    const result = validateOptional(data, isOperationResult, 'handleToggle') as HostsOperationResponse | null
+    if (handleHostsOperationResult(result, 'messages.statusUpdated', 'errors.updateFailed')) {
       await fetchEntries()
     }
   } catch {
@@ -218,9 +251,8 @@ async function handleToggle(id: string) {
 async function handleDelete(id: string) {
   try {
     const data = await invoke('hosts:delete', id)
-    const result = validateOptional(data, isOperationResult, 'handleDelete')
-    if (result?.success) {
-      message.success(page.t('messages.deleted'))
+    const result = validateOptional(data, isOperationResult, 'handleDelete') as HostsOperationResponse | null
+    if (handleHostsOperationResult(result, 'messages.deleted', 'errors.deleteFailed')) {
       await fetchEntries()
     }
   } catch {
@@ -345,12 +377,9 @@ function confirmFlushDNS() {
 async function handleLoadScheme(id: string) {
   try {
     const data = await invoke('hosts:loadScheme', id)
-    const result = validateOptional(data, isOperationResult, 'handleLoadScheme')
-    if (result?.success) {
-      message.success(page.t('messages.schemeLoaded'))
+    const result = validateOptional(data, isOperationResult, 'handleLoadScheme') as HostsOperationResponse | null
+    if (handleHostsOperationResult(result, 'messages.schemeLoaded', 'errors.loadFailed')) {
       await fetchEntries()
-    } else {
-      message.error(translateError(result?.error, 'errors.loadFailed'))
     }
   } catch {
     message.error(page.t('errors.loadFailed'))
@@ -386,6 +415,13 @@ async function handleFlushDNS() {
 
 onMounted(async () => {
   await loadPlatform()
+  try {
+    const access = await invoke('hosts:checkWriteAccess') as { writable?: boolean; path?: string }
+    hostsWritable.value = access?.writable ?? true
+    hostsFilePath.value = access?.path ?? ''
+  } catch {
+    hostsWritable.value = true
+  }
   await Promise.all([fetchEntries(), fetchGroups(), fetchSchemes()])
 })
 </script>
@@ -418,6 +454,10 @@ onMounted(async () => {
         <NButton type="primary" @click="openEditModal()">{{ page.t('buttons.addEntry') }}</NButton>
       </div>
     </template>
+
+    <NAlert v-if="!hostsWritable" type="warning" :bordered="false" class="info-alert">
+      {{ page.t('hints.noWriteAccess', { path: hostsFilePath }) }}
+    </NAlert>
 
     <NAlert type="info" :bordered="false" class="info-alert">
       {{ adminHint }}
@@ -681,5 +721,16 @@ onMounted(async () => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
+}
+
+.sudo-command {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-footnote);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>

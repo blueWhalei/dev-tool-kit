@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { parseShellEnvContent, splitUnixPath, joinUnixPath } from './shell-env'
+import {
+  parseShellEnvContent,
+  splitUnixPath,
+  joinUnixPath,
+  updateShellEnvAssignment,
+  removeShellEnvAssignment,
+  buildShellEnvDiff,
+  formatShellExport
+} from './shell-env'
 
 describe('parseShellEnvContent', () => {
   it('parses export and plain assignments', () => {
@@ -39,5 +47,34 @@ describe('splitUnixPath', () => {
 describe('joinUnixPath', () => {
   it('joins non-empty paths', () => {
     expect(joinUnixPath(['/a', '', '/b'])).toBe('/a:/b')
+  })
+})
+
+describe('updateShellEnvAssignment', () => {
+  it('appends export line to empty content', () => {
+    const result = updateShellEnvAssignment('', 'NODE_ENV', 'dev')
+    expect(result).toContain(formatShellExport('NODE_ENV', 'dev'))
+  })
+
+  it('replaces existing assignment', () => {
+    const before = 'export NODE_ENV=old\nexport API=1\n'
+    const after = updateShellEnvAssignment(before, 'NODE_ENV', 'new')
+    expect(after).toContain(formatShellExport('NODE_ENV', 'new'))
+    expect(after).not.toContain('NODE_ENV=old')
+  })
+})
+
+describe('removeShellEnvAssignment', () => {
+  it('removes matching lines', () => {
+    const content = 'export KEEP=1\nexport REMOVE=2\n'
+    expect(removeShellEnvAssignment(content, 'REMOVE')).toBe('export KEEP=1\n')
+  })
+})
+
+describe('buildShellEnvDiff', () => {
+  it('marks changed lines', () => {
+    const diff = buildShellEnvDiff('a\nb', 'a\nc')
+    expect(diff.some(line => line.type === 'remove' && line.line === 'b')).toBe(true)
+    expect(diff.some(line => line.type === 'add' && line.line === 'c')).toBe(true)
   })
 })

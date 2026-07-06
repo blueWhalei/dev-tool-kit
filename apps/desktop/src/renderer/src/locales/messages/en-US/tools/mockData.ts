@@ -85,7 +85,8 @@ export default {
       copiedJson: 'JSON copied',
       exportedJson: 'JSON exported',
       exportedCsv: 'CSV exported',
-      exportedSql: 'SQL exported'
+      exportedSql: 'SQL exported',
+      uuidFieldReady: 'Added id (uuid) field — generate mock data when ready'
     },
     hints: {
       previewLimit: 'Showing first 20 rows — export JSON/CSV/SQL for full data',

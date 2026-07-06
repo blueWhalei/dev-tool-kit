@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { 
   NDataTable, NButton, NSpace, NInput, NModal, NForm, 
   NFormItem, NPopconfirm, useMessage, useDialog, NTabs, NTabPane,
-  NEmpty, NButtonGroup, NList, NListItem, NThing, NAlert
+  NEmpty, NButtonGroup, NList, NListItem, NThing, NAlert, NTag
 } from 'naive-ui'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -33,6 +33,7 @@ const { copy } = useCopyToClipboard()
 const activeTab = ref('user')
 const platformSupported = ref(true)
 const readOnly = ref(false)
+const writeMode = ref<'registry' | 'shell' | 'none'>('none')
 const platformName = ref('')
 const variables = ref<EnvVariable[]>([])
 const pathEntries = ref<PathEntry[]>([])
@@ -51,6 +52,13 @@ const backupName = ref('')
 const showImportModal = ref(false)
 const importContent = ref('')
 const importLoading = ref(false)
+
+const showDiffModal = ref(false)
+const diffConfigFile = ref('')
+const diffLines = ref<Array<{ type: 'add' | 'remove' | 'unchanged'; line: string }>>([])
+const pendingShellAction = ref<(() => Promise<void>) | null>(null)
+
+const shellWriteMode = computed(() => writeMode.value === 'shell')
 
 const userVars = computed(() => variables.value.filter(v => v.type === 'user'))
 const systemVars = computed(() => variables.value.filter(v => v.type === 'system'))
@@ -121,11 +129,70 @@ function openEditModal(varEnv?: EnvVariable) {
   showEditModal.value = true
 }
 
+function diffTypeLabel(type: 'add' | 'remove' | 'unchanged'): string {
+  if (type === 'add') return page.t('diff.added')
+  if (type === 'remove') return page.t('diff.removed')
+  return page.t('diff.unchanged')
+}
+
+function diffTagType(type: 'add' | 'remove' | 'unchanged'): 'success' | 'error' | 'default' {
+  if (type === 'add') return 'success'
+  if (type === 'remove') return 'error'
+  return 'default'
+}
+
+async function previewShellChange(
+  previewChannel: 'env-manager:previewSet' | 'env-manager:previewDelete' | 'env-manager:previewPath',
+  ...args: unknown[]
+): Promise<boolean> {
+  const data = await invoke(previewChannel, ...args) as {
+    success: boolean
+    preview?: {
+      configFile: string
+      diff: Array<{ type: 'add' | 'remove' | 'unchanged'; line: string }>
+    }
+    error?: string
+  }
+  if (!data?.success || !data.preview) {
+    message.error(translateError(data?.error, 'errors.saveFailed'))
+    return false
+  }
+  diffConfigFile.value = data.preview.configFile
+  diffLines.value = data.preview.diff.filter(line => line.type !== 'unchanged')
+  showDiffModal.value = true
+  return true
+}
+
 async function handleSave() {
   if (!editingVar.value?.name) {
     message.warning(page.t('messages.nameRequired'))
     return
   }
+  if (shellWriteMode.value) {
+    const ok = await previewShellChange(
+      'env-manager:previewSet',
+      editingVar.value.name,
+      editingVar.value.value
+    )
+    if (!ok) return
+    pendingShellAction.value = async () => {
+      const data = await invoke('env-manager:set', editingVar.value!.name, editingVar.value!.value)
+      const result = validateOptional(data, isOperationResult, 'handleSave')
+      if (result?.success) {
+        message.success(isNewVar.value ? page.t('messages.created') : page.t('messages.saved'))
+        showEditModal.value = false
+        await fetchVariables()
+      } else {
+        message.error(translateError(result?.error, 'errors.saveFailed'))
+      }
+    }
+    return
+  }
+  await executeSave()
+}
+
+async function executeSave() {
+  if (!editingVar.value?.name) return
   try {
     const data = await invoke('env-manager:set', editingVar.value.name, editingVar.value.value)
     const result = validateOptional(data, isOperationResult, 'handleSave')
@@ -141,7 +208,32 @@ async function handleSave() {
   }
 }
 
+async function confirmShellDiff() {
+  showDiffModal.value = false
+  const action = pendingShellAction.value
+  pendingShellAction.value = null
+  if (action) await action()
+}
+
 async function handleDelete(name: string) {
+  if (shellWriteMode.value) {
+    const ok = await previewShellChange('env-manager:previewDelete', name)
+    if (!ok) return
+    pendingShellAction.value = async () => {
+      const result = await invoke('env-manager:delete', name) as { success: boolean; error?: string }
+      if (result?.success) {
+        message.success(page.t('messages.deleted'))
+        await fetchVariables()
+      } else {
+        message.error(translateError(result?.error, 'errors.deleteFailed'))
+      }
+    }
+    return
+  }
+  await executeDelete(name)
+}
+
+async function executeDelete(name: string) {
   try {
     const result = await invoke('env-manager:delete', name) as { success: boolean; error?: string }
     if (result?.success) {
@@ -161,10 +253,22 @@ async function handleAddPath() {
     return
   }
   const newPaths = [...pathEntries.value.map(p => p.path), pathInput.value.trim()]
+  if (shellWriteMode.value) {
+    const ok = await previewShellChange('env-manager:previewPath', newPaths)
+    if (!ok) return
+    pendingShellAction.value = async () => {
+      await applyPathChange(newPaths, page.t('messages.pathAdded'))
+    }
+    return
+  }
+  await applyPathChange(newPaths, page.t('messages.pathAdded'))
+}
+
+async function applyPathChange(newPaths: string[], successMessage: string) {
   try {
     const result = await invoke('env-manager:setPath', newPaths) as { success: boolean; error?: string }
     if (result?.success) {
-      message.success(page.t('messages.pathAdded'))
+      message.success(successMessage)
       pathInput.value = ''
       await fetchPath()
     } else {
@@ -177,18 +281,15 @@ async function handleAddPath() {
 
 async function handleRemovePath(index: number) {
   const newPaths = pathEntries.value.filter((_, i) => i !== index).map(p => p.path)
-  try {
-    const data = await invoke('env-manager:setPath', newPaths)
-    const result = validateOptional(data, isOperationResult, 'handleRemovePath')
-    if (result?.success) {
-      message.success(page.t('messages.pathRemoved'))
-      await fetchPath()
-    } else {
-      message.error(translateError(result?.error, 'errors.removeFailed'))
+  if (shellWriteMode.value) {
+    const ok = await previewShellChange('env-manager:previewPath', newPaths)
+    if (!ok) return
+    pendingShellAction.value = async () => {
+      await applyPathChange(newPaths, page.t('messages.pathRemoved'))
     }
-  } catch {
-    message.error(page.t('errors.removeFailed'))
+    return
   }
+  await applyPathChange(newPaths, page.t('messages.pathRemoved'))
 }
 
 async function handleMovePath(index: number, direction: 'up' | 'down') {
@@ -199,6 +300,21 @@ async function handleMovePath(index: number, direction: 'up' | 'down') {
   const temp = newPaths[index]
   newPaths[index] = newPaths[targetIndex]
   newPaths[targetIndex] = temp
+
+  if (shellWriteMode.value) {
+    const ok = await previewShellChange('env-manager:previewPath', newPaths)
+    if (!ok) return
+    pendingShellAction.value = async () => {
+      try {
+        const data = await invoke('env-manager:setPath', newPaths)
+        const result = validateOptional(data, isOperationResult, 'handleMovePath')
+        if (result?.success) await fetchPath()
+      } catch {
+        message.error(page.t('errors.moveFailed'))
+      }
+    }
+    return
+  }
 
   try {
     const data = await invoke('env-manager:setPath', newPaths)
@@ -337,11 +453,13 @@ onMounted(async () => {
       supported: boolean
       platform?: string
       readOnly?: boolean
+      writeMode?: 'registry' | 'shell' | 'none'
     } | undefined
     if (support) {
       platformSupported.value = support.supported
       platformName.value = support.platform ?? ''
       readOnly.value = support.readOnly ?? false
+      writeMode.value = support.writeMode ?? (support.readOnly ? 'none' : 'registry')
     }
   } catch {
     platformSupported.value = false
@@ -366,7 +484,7 @@ onMounted(async () => {
         <NButton v-if="!readOnly" @click="openEditModal()">{{ page.t('buttons.create') }}</NButton>
         <NButtonGroup>
           <NButton @click="handleExport">{{ page.t('buttons.export') }}</NButton>
-          <NButton v-if="!readOnly" @click="openImportModal">{{ page.t('buttons.import') }}</NButton>
+          <NButton v-if="writeMode === 'registry'" @click="openImportModal">{{ page.t('buttons.import') }}</NButton>
           <NButton @click="showBackupModal = true">{{ page.t('buttons.backup') }}</NButton>
           <NButton @click="fetchBackups">{{ page.t('buttons.history') }}</NButton>
         </NButtonGroup>
@@ -380,6 +498,15 @@ onMounted(async () => {
       style="margin-bottom: 16px;"
     >
       {{ page.t('unsupportedAlert', { platform: platformName || page.t('unknownPlatform') }) }}
+    </NAlert>
+
+    <NAlert
+      v-else-if="shellWriteMode"
+      type="info"
+      :title="page.t('shellWriteTitle')"
+      style="margin-bottom: 16px;"
+    >
+      {{ page.t('shellWriteAlert') }}
     </NAlert>
 
     <NAlert
@@ -507,6 +634,32 @@ onMounted(async () => {
         </NSpace>
       </template>
     </NModal>
+
+    <NModal
+      v-model:show="showDiffModal"
+      preset="card"
+      :title="page.t('modals.diffTitle')"
+      style="width: 640px"
+    >
+      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px;">
+        {{ page.t('hints.diffInfo', { file: diffConfigFile }) }}
+      </NAlert>
+      <NList v-if="diffLines.length" class="shell-diff-list">
+        <NListItem v-for="(line, index) in diffLines" :key="`${line.type}-${index}`">
+          <NSpace align="center" :size="8">
+            <NTag size="small" :type="diffTagType(line.type)">{{ diffTypeLabel(line.type) }}</NTag>
+            <code class="diff-line">{{ line.line }}</code>
+          </NSpace>
+        </NListItem>
+      </NList>
+      <NEmpty v-else :description="page.t('diff.noChanges')" />
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="showDiffModal = false">{{ page.t('buttons.cancel') }}</NButton>
+          <NButton type="primary" @click="confirmShellDiff">{{ page.t('buttons.confirmWrite') }}</NButton>
+        </NSpace>
+      </template>
+    </NModal>
   </PageLayout>
 </template>
 
@@ -522,4 +675,6 @@ onMounted(async () => {
 .path-input-row { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); }
 .path-list { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
 .path-index { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-tertiary); font-size: var(--font-size-caption1); color: var(--color-text-secondary); margin-right: var(--space-3); }
+.shell-diff-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.diff-line { font-family: var(--font-family-mono); font-size: var(--font-size-footnote); word-break: break-all; }
 </style>

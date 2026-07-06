@@ -13,7 +13,8 @@ export default {
       importSchemes: '导入方案',
       load: '加载',
       confirmLoad: '确认加载',
-      confirm: '确定'
+      confirm: '确定',
+      copyCommand: '复制命令'
     },
     tabs: {
       entries: '条目列表',
@@ -53,9 +54,12 @@ export default {
     },
     hints: {
       adminRequired: '修改 hosts 文件可能需要管理员权限{platformSuffix}。',
-      platformSuffix: '（当前平台：{platform}）'
+      platformSuffix: '（当前平台：{platform}）',
+      noWriteAccess: '当前无法直接写入 {path}。保存失败时将提供 sudo/管理员命令，可先手动复制备份文件。'
     },
     dialogs: {
+      permissionTitle: '需要管理员权限',
+      permissionContent: '写入 hosts 失败。已自动创建备份，可在终端执行以下命令恢复：',
       disableTitle: '禁用条目',
       enableTitle: '启用条目',
       toggleContent: '确定{action} {hostname} 吗？',
@@ -88,7 +92,8 @@ export default {
       schemeLoaded: '方案已加载',
       schemeExported: '方案已导出',
       schemeImported: '方案已导入',
-      dnsFlushed: 'DNS 缓存已刷新'
+      dnsFlushed: 'DNS 缓存已刷新',
+      commandCopied: '命令已复制'
     },
     errors: {
       fetchFailed: '获取 hosts 文件失败',
@@ -103,7 +108,8 @@ export default {
       exportFailed: '导出失败',
       importFailed: '导入失败',
       readFileFailed: '无法读取方案文件',
-      flushDnsFailed: '刷新 DNS 失败'
+      flushDnsFailed: '刷新 DNS 失败',
+      permissionDenied: '没有写入 hosts 文件的权限'
     },
     empty: {
       entries: '暂无 hosts 条目',

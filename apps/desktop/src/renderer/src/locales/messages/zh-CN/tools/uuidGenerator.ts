@@ -20,7 +20,8 @@ export default {
   buttons: {
     generate: '生成',
     copy: '复制',
-    copyAll: '复制全部'
+    copyAll: '复制全部',
+    openInMockData: '用于 Mock 数据'
   },
   messages: {
     copiedAll: '已复制全部'

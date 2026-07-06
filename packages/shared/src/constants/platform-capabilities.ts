@@ -30,14 +30,14 @@ export const PLATFORM_CAPABILITIES: PlatformCapabilityRow[] = [
     win32: 'full',
     darwin: 'partial',
     linux: 'partial',
-    notes: 'Unix 支持读取当前会话、Shell 配置与系统文件，导出与快照备份；写入仅 Windows 注册表'
+    notes: 'Unix 支持读取与写入 Shell 配置文件（~/.zshrc、~/.bashrc 等），写入前自动备份并预览 diff；Windows 写入注册表'
   },
   {
     feature: 'Hosts 编辑',
     win32: 'partial',
     darwin: 'partial',
     linux: 'partial',
-    notes: '写入 /etc/hosts 可能需要管理员权限'
+    notes: '写入 /etc/hosts 可能需要管理员权限；失败时提供 sudo 复制命令'
   },
   {
     feature: 'DNS 刷新',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NButton, NInputNumber, NCard, NList, NListItem, NThing, NSelect } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
@@ -7,6 +8,7 @@ import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 
 const { t } = useI18n()
+const router = useRouter()
 const { copy } = useCopyToClipboard()
 const page = useToolI18n('uuidGenerator')
 
@@ -151,6 +153,16 @@ async function copyAll() {
   await copy(generatedUuids.value.join('\n'), page.t('messages.copiedAll'))
 }
 
+function openInMockData() {
+  if (generatedUuids.value.length === 0) {
+    return
+  }
+  void router.push({
+    name: 'MockData',
+    query: { addField: 'uuid', count: String(generatedUuids.value.length) }
+  })
+}
+
 async function copyOne(uuid: string) {
   await copy(uuid)
 }
@@ -186,6 +198,7 @@ generate()
       </div>
       <NButton type="primary" @click="generate">{{ page.t('buttons.generate') }}</NButton>
       <NButton @click="copyAll" :disabled="generatedUuids.length === 0">{{ page.t('buttons.copyAll') }}</NButton>
+      <NButton v-if="generatedUuids.length > 0" quaternary @click="openInMockData">{{ page.t('buttons.openInMockData') }}</NButton>
     </template>
 
     <NCard class="result-card" :bordered="false" v-if="generatedUuids.length > 0">

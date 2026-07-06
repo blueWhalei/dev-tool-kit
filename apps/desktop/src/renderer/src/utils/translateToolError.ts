@@ -40,6 +40,8 @@ const ERROR_KEY_MAP: Record<string, string> = {
   'Invalid Base64': 'base64Invalid',
   'Invalid URL encoding': 'urlInvalid',
   'Unix 平台当前为只读模式，请使用导出功能': 'readOnly',
+  'HOSTS_PERMISSION_DENIED': 'permissionDenied',
+  '写入 Shell 配置文件失败': 'shellWriteFailed',
   '请输入 JSON Schema': 'schemaEmpty',
   'JSON Schema 必须是对象': 'schemaNotObject',
   '无效的 JSON Schema': 'schemaInvalid'

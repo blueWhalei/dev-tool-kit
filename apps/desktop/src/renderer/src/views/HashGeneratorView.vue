@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
 import { NButton, NSelect, NButtonGroup, NCard, NList, NListItem, NThing, NSpin, useMessage } from 'naive-ui'
@@ -11,6 +12,7 @@ import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { computeHash, type HashAlgorithm, type FileHashResults, formatBytes } from '@dev-tool-kit/shared'
 
 const message = useMessage()
+const router = useRouter()
 const page = useToolI18n('hashGenerator')
 const { t } = useI18n()
 const { invoke } = useIpc()
@@ -77,6 +79,17 @@ async function copyHash(hash: string) {
   await copy(hash)
 }
 
+function useHashInJwt() {
+  if (!hashOutput.value) {
+    message.warning(page.t('messages.noHash'))
+    return
+  }
+  void router.push({
+    name: 'JWTGenerator',
+    query: { tab: 'sign', secret: hashOutput.value }
+  })
+}
+
 watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
 </script>
 
@@ -98,6 +111,15 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
         style="width: 160px"
       />
       <NButton v-if="hashMode === 'text'" size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
+      <NButton
+        v-if="hashMode === 'text' && hashOutput"
+        size="small"
+        type="primary"
+        quaternary
+        @click="useHashInJwt"
+      >
+        {{ page.t('buttons.useInJwt') }}
+      </NButton>
       <NButton v-if="hashMode === 'file'" type="primary" size="small" @click="selectAndHashFile" :loading="fileHashLoading">{{ page.t('fileArea.selectFile') }}</NButton>
     </template>
 

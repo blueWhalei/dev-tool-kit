@@ -119,7 +119,7 @@ const routes: RouteRecordRaw[] = [
     path: '/jwt-generator',
     name: 'JWTGenerator',
     component: () => import('../views/JWTGeneratorView.vue'),
-    meta: { titleKey: 'nav.routes.jwtGenerator', icon: 'token', category: 'security', order: 2, keywords: ['jwt', 'secret', 'token', '密钥', '解码', 'decode', '验签'] }
+    meta: { titleKey: 'nav.routes.jwtGenerator', icon: 'token', category: 'security', order: 2, keywords: ['jwt', 'secret', 'token', '密钥', '解码', 'decode', '验签'], deepLinkTab: 'sign', tabKeywords: [{ tab: 'sign', keywords: ['sign', '签发', 'secret'] }, { tab: 'decode', keywords: ['decode', '解码'] }] }
   },
   {
     path: '/hash-generator',

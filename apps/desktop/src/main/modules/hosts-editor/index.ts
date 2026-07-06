@@ -2,7 +2,7 @@ import { ipcMain, app } from 'electron'
 import { randomUUID } from 'crypto'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { readFile, writeFile, mkdir, copyFile, readdir, unlink } from 'fs/promises'
+import { readFile, writeFile, mkdir, copyFile, readdir, unlink, access, constants } from 'fs/promises'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { logger } from '../../logger'
@@ -24,6 +24,19 @@ const HOSTS_PATH = process.platform === 'win32'
   : '/etc/hosts'
 
 const MAX_HOSTS_BACKUPS = 20
+const HOSTS_PERMISSION_ERROR = 'HOSTS_PERMISSION_DENIED'
+
+export interface HostsWriteAccess {
+  writable: boolean
+  path: string
+}
+
+export interface HostsOperationResult {
+  success: boolean
+  error?: string
+  sudoCommand?: string
+  backupPath?: string
+}
 
 const DEFAULT_GROUPS: HostsGroup[] = [
   { id: 'dev', name: '开发环境', color: '#007AFF', order: 0 },
@@ -53,8 +66,61 @@ async function getBackupDir(): Promise<string> {
   return backupDir
 }
 
-async function backupHostsFile(): Promise<void> {
-  if (!existsSync(HOSTS_PATH)) return
+async function getLatestBackupPath(): Promise<string | undefined> {
+  try {
+    const backupDir = await getBackupDir()
+    const files = (await readdir(backupDir))
+      .filter(f => f.startsWith('hosts-') && f.endsWith('.bak'))
+      .sort()
+    const latest = files.at(-1)
+    return latest ? join(backupDir, latest) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function buildHostsSudoCommand(backupPath?: string): string {
+  if (process.platform === 'win32') {
+    if (backupPath) {
+      return `Copy-Item -Force "${backupPath}" "${HOSTS_PATH}"`
+    }
+    return `notepad "${HOSTS_PATH}"`
+  }
+  if (backupPath) {
+    return `sudo cp "${backupPath}" "${HOSTS_PATH}"`
+  }
+  return `sudo sh -c 'cat > "${HOSTS_PATH}"' < your-edited-hosts.txt`
+}
+
+export async function checkHostsWriteAccess(): Promise<HostsWriteAccess> {
+  try {
+    await access(HOSTS_PATH, constants.W_OK)
+    return { writable: true, path: HOSTS_PATH }
+  } catch {
+    return { writable: false, path: HOSTS_PATH }
+  }
+}
+
+function isPermissionError(error: unknown): boolean {
+  return Boolean(
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error.code === 'EACCES' || error.code === 'EPERM')
+  )
+}
+
+function permissionDeniedResult(backupPath?: string): HostsOperationResult {
+  return {
+    success: false,
+    error: HOSTS_PERMISSION_ERROR,
+    sudoCommand: buildHostsSudoCommand(backupPath),
+    backupPath
+  }
+}
+
+async function backupHostsFile(): Promise<string | undefined> {
+  if (!existsSync(HOSTS_PATH)) return undefined
 
   const backupDir = await getBackupDir()
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -77,6 +143,7 @@ async function backupHostsFile(): Promise<void> {
   }
 
   logger.info('Hosts file backed up to:', backupPath)
+  return backupPath
 }
 
 // Write queue to prevent concurrent read-modify-write race conditions
@@ -103,15 +170,40 @@ async function readHostsEntries(): Promise<HostsEntry[]> {
   return parsed.entries
 }
 
-async function writeHostsEntries(entries: HostsEntry[]): Promise<void> {
-  await backupHostsFile()
-  const parsed = await readHostsFile()
-  const content = composeHostsFile(parsed, entries)
-  await writeFile(HOSTS_PATH, content, 'utf-8')
+async function writeHostsEntries(entries: HostsEntry[]): Promise<HostsOperationResult> {
+  let backupPath: string | undefined
+  try {
+    backupPath = await backupHostsFile()
+    const parsed = await readHostsFile()
+    const content = composeHostsFile(parsed, entries)
+    await writeFile(HOSTS_PATH, content, 'utf-8')
+    return { success: true, backupPath }
+  } catch (error) {
+    if (isPermissionError(error)) {
+      return permissionDeniedResult(backupPath)
+    }
+    throw error
+  }
+}
+
+async function writeEntriesAndFlush(entries: HostsEntry[]): Promise<HostsOperationResult> {
+  const writeResult = await writeHostsEntries(entries)
+  if (!writeResult.success) return writeResult
+  await flushDNS()
+  return writeResult
 }
 
 export function setupHostsEditorIPC(): void {
   logger.info('Setting up Hosts Editor IPC handlers')
+
+  ipcMain.handle('hosts:checkWriteAccess', async () => {
+    try {
+      return await checkHostsWriteAccess()
+    } catch (error) {
+      logger.error('Failed to check hosts write access:', error)
+      return { writable: false, path: HOSTS_PATH }
+    }
+  })
 
   ipcMain.handle('hosts:getAll', async () => {
     try {
@@ -127,16 +219,17 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的 IP 地址或主机名' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const entries = await readHostsEntries()
         if (entries.some(e => e.hostname === entry.hostname)) {
           result = { success: false, error: '主机名已存在' }
           return
         }
-        await writeHostsEntries([...entries, { ...entry, id: stableEntryId(entry.ip, entry.hostname) }])
-        await flushDNS()
-        result = { success: true }
+        const writeResult = await writeEntriesAndFlush([...entries, { ...entry, id: stableEntryId(entry.ip, entry.hostname) }])
+        result = writeResult.success
+          ? { success: true, backupPath: writeResult.backupPath }
+          : writeResult
       })
       return result
     } catch (error) {
@@ -156,7 +249,7 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的主机名' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const entries = await readHostsEntries()
         const index = entries.findIndex(e => e.id === id)
@@ -167,9 +260,7 @@ export function setupHostsEditorIPC(): void {
         const updated = { ...entries[index], ...updates }
         updated.id = stableEntryId(updated.ip, updated.hostname)
         entries[index] = updated
-        await writeHostsEntries(entries)
-        await flushDNS()
-        result = { success: true }
+        result = await writeEntriesAndFlush(entries)
       })
       return result
     } catch (error) {
@@ -183,7 +274,7 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的条目 ID' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const entries = await readHostsEntries()
         const index = entries.findIndex(e => e.id === id)
@@ -191,9 +282,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        await writeHostsEntries(entries.filter((_, i) => i !== index))
-        await flushDNS()
-        result = { success: true }
+        result = await writeEntriesAndFlush(entries.filter((_, i) => i !== index))
       })
       return result
     } catch (error) {
@@ -207,7 +296,7 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的条目 ID' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const entries = await readHostsEntries()
         const index = entries.findIndex(e => e.id === id)
@@ -215,9 +304,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        await writeHostsEntries(entries.map((e, i) => i === index ? { ...e, enabled: !e.enabled } : e))
-        await flushDNS()
-        result = { success: true }
+        result = await writeEntriesAndFlush(entries.map((e, i) => i === index ? { ...e, enabled: !e.enabled } : e))
       })
       return result
     } catch (error) {
@@ -233,7 +320,7 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的条目 ID' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const entries = await readHostsEntries()
         const index = entries.findIndex(e => e.id === id)
@@ -241,9 +328,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        await writeHostsEntries(entries.map((e, i) => i === index ? { ...e, group } : e))
-        await flushDNS()
-        result = { success: true }
+        result = await writeEntriesAndFlush(entries.map((e, i) => i === index ? { ...e, group } : e))
       })
       return result
     } catch (error) {
@@ -290,7 +375,7 @@ export function setupHostsEditorIPC(): void {
       return { success: false, error: '无效的方案 ID' }
     }
     try {
-      let result: { success: boolean; error?: string } = { success: false, error: '操作失败' }
+      let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
         const schemes = await getSchemes()
         const scheme = schemes.find(s => s.id === id)
@@ -298,12 +383,10 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到方案' }
           return
         }
-        await writeHostsEntries(scheme.entries.map(e => ({
+        result = await writeEntriesAndFlush(scheme.entries.map(e => ({
           ...e,
           id: stableEntryId(e.ip, e.hostname)
         })))
-        await flushDNS()
-        result = { success: true }
       })
       return result
     } catch (error) {

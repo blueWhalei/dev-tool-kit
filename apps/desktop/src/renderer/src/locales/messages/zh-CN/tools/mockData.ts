@@ -85,7 +85,8 @@ export default {
       copiedJson: '已复制 JSON',
       exportedJson: 'JSON 已导出',
       exportedCsv: 'CSV 已导出',
-      exportedSql: 'SQL 已导出'
+      exportedSql: 'SQL 已导出',
+      uuidFieldReady: '已添加 id (uuid) 字段，可直接生成 Mock 数据'
     },
     hints: {
       previewLimit: '仅展示前 20 条，完整数据请导出 JSON / CSV / SQL',

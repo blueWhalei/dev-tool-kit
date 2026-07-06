@@ -21,12 +21,12 @@ export function setupEnvManagerIPC(): void {
 
   ipcMain.handle('env-manager:getSupport', () => {
     if (IS_WINDOWS) {
-      return { supported: true, platform: process.platform, readOnly: false }
+      return { supported: true, platform: process.platform, readOnly: false, writeMode: 'registry' }
     }
     if (IS_UNIX) {
       return unix.getUnixSupportInfo()
     }
-    return { supported: false, platform: process.platform, readOnly: true }
+    return { supported: false, platform: process.platform, readOnly: true, writeMode: 'none' }
   })
 
   ipcMain.handle('env-manager:getAll', async () => {
@@ -53,13 +53,13 @@ export function setupEnvManagerIPC(): void {
 
   ipcMain.handle('env-manager:set', async (_, name: string, value: string) => {
     if (IS_WINDOWS) return windows.setWindowsEnv(name, value)
-    if (IS_UNIX) return unix.unixReadonlyResult()
+    if (IS_UNIX) return unix.setUnixEnv(name, value)
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
   ipcMain.handle('env-manager:delete', async (_, name: string) => {
     if (IS_WINDOWS) return windows.deleteWindowsEnv(name)
-    if (IS_UNIX) return unix.unixReadonlyResult()
+    if (IS_UNIX) return unix.deleteUnixEnv(name)
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
@@ -76,8 +76,23 @@ export function setupEnvManagerIPC(): void {
 
   ipcMain.handle('env-manager:setPath', async (_, paths: string[]) => {
     if (IS_WINDOWS) return windows.setWindowsPath(paths)
-    if (IS_UNIX) return unix.unixReadonlyResult()
+    if (IS_UNIX) return unix.setUnixPath(paths)
     return { success: false, error: '当前平台不支持环境变量管理' }
+  })
+
+  ipcMain.handle('env-manager:previewSet', async (_, name: string, value: string) => {
+    if (IS_UNIX) return unix.previewUnixEnvSet(name, value)
+    return { success: false, error: '当前平台不支持预览' }
+  })
+
+  ipcMain.handle('env-manager:previewDelete', async (_, name: string) => {
+    if (IS_UNIX) return unix.previewUnixEnvDelete(name)
+    return { success: false, error: '当前平台不支持预览' }
+  })
+
+  ipcMain.handle('env-manager:previewPath', async (_, paths: string[]) => {
+    if (IS_UNIX) return unix.previewUnixPath(paths)
+    return { success: false, error: '当前平台不支持预览' }
   })
 
   ipcMain.handle('env-manager:createBackup', async (_, name: string) => {
@@ -143,7 +158,7 @@ export function setupEnvManagerIPC(): void {
         return { success: true }
       }
       if (IS_UNIX) {
-        return unix.unixReadonlyResult()
+        return unix.restoreUnixBackup(backup.variables)
       }
       return { success: false, error: '当前平台不支持环境变量管理' }
     } catch (error) {

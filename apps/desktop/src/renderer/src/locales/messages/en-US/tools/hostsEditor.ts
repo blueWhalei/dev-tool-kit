@@ -13,7 +13,8 @@ export default {
       importSchemes: 'Import schemes',
       load: 'Load',
       confirmLoad: 'Confirm load',
-      confirm: 'Confirm'
+      confirm: 'Confirm',
+      copyCommand: 'Copy command'
     },
     tabs: {
       entries: 'Entries',
@@ -53,9 +54,12 @@ export default {
     },
     hints: {
       adminRequired: 'Editing hosts may require administrator privileges{platformSuffix}.',
-      platformSuffix: ' (platform: {platform})'
+      platformSuffix: ' (platform: {platform})',
+      noWriteAccess: 'Cannot write to {path} directly. If save fails, a sudo/admin command with the backup path will be shown.'
     },
     dialogs: {
+      permissionTitle: 'Administrator privileges required',
+      permissionContent: 'Failed to write hosts. A backup was created — run this command in a terminal:',
       disableTitle: 'Disable entry',
       enableTitle: 'Enable entry',
       toggleContent: '{action} {hostname}?',
@@ -88,7 +92,8 @@ export default {
       schemeLoaded: 'Scheme loaded',
       schemeExported: 'Schemes exported',
       schemeImported: 'Schemes imported',
-      dnsFlushed: 'DNS cache flushed'
+      dnsFlushed: 'DNS cache flushed',
+      commandCopied: 'Command copied'
     },
     errors: {
       fetchFailed: 'Failed to read hosts file',
@@ -103,7 +108,8 @@ export default {
       exportFailed: 'Export failed',
       importFailed: 'Import failed',
       readFileFailed: 'Unable to read scheme file',
-      flushDnsFailed: 'Failed to flush DNS'
+      flushDnsFailed: 'Failed to flush DNS',
+      permissionDenied: 'No permission to write the hosts file'
     },
     empty: {
       entries: 'No hosts entries',

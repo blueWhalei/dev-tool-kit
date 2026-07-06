@@ -10,6 +10,9 @@ export default {
     inputPlaceholder: 'Enter text...',
     outputPlaceholder: 'Hash result...',
     hashFailed: 'Hash computation failed',
+    buttons: {
+      useInJwt: 'Use in JWT sign'
+    },
     fileArea: {
       selectFile: 'Select file',
       fileName: 'File name',
@@ -18,6 +21,7 @@ export default {
     messages: {
       fileHashComplete: 'File hash computation complete',
       fileHashFailed: 'File hash computation failed',
-      noFileSelected: 'Please select a file first'
+      noFileSelected: 'Please select a file first',
+      noHash: 'Compute a hash first'
     }
   }

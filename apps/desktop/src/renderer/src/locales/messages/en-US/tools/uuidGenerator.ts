@@ -20,7 +20,8 @@ export default {
   buttons: {
     generate: 'Generate',
     copy: 'Copy',
-    copyAll: 'Copy all'
+    copyAll: 'Copy all',
+    openInMockData: 'Use in Mock Data'
   },
   messages: {
     copiedAll: 'All copied'

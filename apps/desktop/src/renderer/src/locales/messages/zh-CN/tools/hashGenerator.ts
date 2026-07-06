@@ -10,6 +10,9 @@ export default {
     inputPlaceholder: '输入文本...',
     outputPlaceholder: '哈希结果...',
     hashFailed: 'Hash 计算失败',
+    buttons: {
+      useInJwt: '用于 JWT 签名'
+    },
     fileArea: {
       selectFile: '选择文件',
       fileName: '文件名',
@@ -18,6 +21,7 @@ export default {
     messages: {
       fileHashComplete: '文件 Hash 计算完成',
       fileHashFailed: '文件 Hash 计算失败',
-      noFileSelected: '请先选择文件'
+      noFileSelected: '请先选择文件',
+      noHash: '请先计算 Hash'
     }
   }
