@@ -34,6 +34,10 @@ import {
   tomlToJson,
   jsonToToml,
   tomlFormat,
+  xmlFormat,
+  xmlMinify,
+  sqlFormat,
+  sqlMinify,
   CODE_CONVERTER_TAB_STORAGE_KEY,
   type TimestampInfo,
   type CaseFormats
@@ -45,7 +49,7 @@ const page = useToolI18n('codeConverter')
 const { copy } = useCopyToClipboard()
 const route = useRoute()
 
-const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml'] as const
+const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql'] as const
 type TabName = (typeof VALID_TABS)[number]
 
 const activeTab = ref<TabName>('base64')
@@ -102,6 +106,10 @@ const yamlInput = ref('')
 const yamlOutput = ref('')
 const tomlInput = ref('')
 const tomlOutput = ref('')
+const xmlInput = ref('')
+const xmlOutput = ref('')
+const sqlInput = ref('')
+const sqlOutput = ref('')
 
 const caseFormatRows = computed(() => {
   if (!caseFormats.value) return []
@@ -263,6 +271,22 @@ function handleTomlFormat() {
   setOutput(tomlFormat(tomlInput.value), tomlOutput)
 }
 
+function handleXmlFormat() {
+  setOutput(xmlFormat(xmlInput.value), xmlOutput)
+}
+
+function handleXmlMinify() {
+  setOutput(xmlMinify(xmlInput.value), xmlOutput)
+}
+
+function handleSqlFormat() {
+  setOutput(sqlFormat(sqlInput.value), sqlOutput)
+}
+
+function handleSqlMinify() {
+  setOutput(sqlMinify(sqlInput.value), sqlOutput)
+}
+
 async function copyToClipboard(text: string) {
   await copy(text)
 }
@@ -278,6 +302,8 @@ function runActiveTabPrimaryAction() {
     case 'html': handleHtmlEncode(); break
     case 'yaml': handleYamlToJson(); break
     case 'toml': handleTomlToJson(); break
+    case 'xml': handleXmlFormat(); break
+    case 'sql': handleSqlFormat(); break
   }
 }
 
@@ -530,6 +556,36 @@ useKeyboardShortcut((event) => {
           <NButton type="primary" @click="handleTomlToJson">{{ page.t('actions.tomlToJson') }}</NButton>
           <NButton @click="handleJsonToToml">{{ page.t('actions.jsonToToml') }}</NButton>
           <NButton @click="handleTomlFormat">{{ page.t('actions.format') }}</NButton>
+        </div>
+      </NTabPane>
+
+      <NTabPane name="xml" :tab="page.t('tabs.xml')">
+        <ToolDualPanel
+          v-model:input="xmlInput"
+          v-model:output="xmlOutput"
+          :input-label="page.t('labels.input')"
+          :output-label="page.t('labels.output')"
+          :input-placeholder="page.t('placeholders.xml')"
+          :output-placeholder="page.t('placeholders.xmlOutput')"
+        />
+        <div class="action-bar">
+          <NButton type="primary" @click="handleXmlFormat">{{ page.t('actions.format') }}</NButton>
+          <NButton @click="handleXmlMinify">{{ page.t('actions.minify') }}</NButton>
+        </div>
+      </NTabPane>
+
+      <NTabPane name="sql" :tab="page.t('tabs.sql')">
+        <ToolDualPanel
+          v-model:input="sqlInput"
+          v-model:output="sqlOutput"
+          :input-label="page.t('labels.input')"
+          :output-label="page.t('labels.output')"
+          :input-placeholder="page.t('placeholders.sql')"
+          :output-placeholder="page.t('placeholders.sqlOutput')"
+        />
+        <div class="action-bar">
+          <NButton type="primary" @click="handleSqlFormat">{{ page.t('actions.format') }}</NButton>
+          <NButton @click="handleSqlMinify">{{ page.t('actions.minify') }}</NButton>
         </div>
       </NTabPane>
     </NTabs>

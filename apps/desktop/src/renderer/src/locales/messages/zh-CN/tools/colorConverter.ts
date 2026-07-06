@@ -9,6 +9,10 @@ export default {
     hsla: 'HSLA',
     hex8: 'HEX8',
     cssName: 'CSS 颜色名',
+    hsv: 'HSV',
+    contrast: 'WCAG 对比度',
+    contrastBg: '背景色',
+    contrastRatio: '对比度 {ratio}:1',
     alpha: '透明度',
     pickColor: '选择颜色',
     recentColors: '最近使用'
@@ -27,6 +31,7 @@ export default {
     hexCopied: 'HEX 已复制',
     rgbaCopied: 'RGBA 已复制',
     hslaCopied: 'HSLA 已复制',
+    hsvCopied: 'HSV 已复制',
     hex8Copied: 'HEX8 已复制',
     cssNameCopied: 'CSS 颜色名已复制',
     noCssName: '无对应 CSS 颜色名'

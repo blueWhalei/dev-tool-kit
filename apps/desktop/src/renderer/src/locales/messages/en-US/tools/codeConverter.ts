@@ -10,7 +10,9 @@ export default {
       timestamp: 'Timestamp',
       radix: 'Radix',
       naming: 'Naming',
-      html: 'HTML'
+      html: 'HTML',
+      xml: 'XML',
+      sql: 'SQL'
     },
     actions: {
       encode: 'Encode',
@@ -54,6 +56,10 @@ export default {
       yamlOutput: 'JSON result...',
       toml: 'title = "example"\ncount = 42',
       tomlOutput: 'JSON result...',
+      xml: '<root><item>text</item></root>',
+      xmlOutput: 'Formatted result...',
+      sql: 'select id, name from users where id = 1',
+      sqlOutput: 'Formatted result...',
       timestamp: 'Unix seconds/ms, or date like 2024-01-01, 2024-01-01T08:00:00Z...',
       number: 'Enter number...',
       naming: 'Enter text to convert naming, e.g. foo-bar, fooBar...',

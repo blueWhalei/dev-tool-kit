@@ -1,3 +1,19 @@
+export interface ColorHSVA {
+  h: number
+  s: number
+  v: number
+  a: number
+}
+
+export interface WcagContrastResult {
+  ratio: number
+  ratioFormatted: string
+  aaNormal: boolean
+  aaLarge: boolean
+  aaaNormal: boolean
+  aaaLarge: boolean
+}
+
 export interface ColorRGBA {
   r: number
   g: number
@@ -201,4 +217,96 @@ export function hslaToString(hsla: ColorHSLA): string {
     return `hsla(${hsla.h}, ${hsla.s}%, ${hsla.l}%, ${hsla.a.toFixed(2)})`
   }
   return `hsl(${hsla.h}, ${hsla.s}%, ${hsla.l}%)`
+}
+
+export function rgbaToHsva(rgba: ColorRGBA): ColorHSVA {
+  const r = rgba.r / 255
+  const g = rgba.g / 255
+  const b = rgba.b / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const d = max - min
+  let h = 0
+  const v = max
+  const s = max === 0 ? 0 : d / max
+
+  if (d !== 0) {
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+      case g: h = ((b - r) / d + 2) / 6; break
+      case b: h = ((r - g) / d + 4) / 6; break
+    }
+  }
+
+  return { h: Math.round(h * 360), s: Math.round(s * 100), v: Math.round(v * 100), a: rgba.a }
+}
+
+export function hsvaToRgba(hsva: ColorHSVA): ColorRGBA {
+  const h = hsva.h / 360
+  const s = hsva.s / 100
+  const v = hsva.v / 100
+
+  const i = Math.floor(h * 6)
+  const f = h * 6 - i
+  const p = v * (1 - s)
+  const q = v * (1 - f * s)
+  const t = v * (1 - (1 - f) * s)
+
+  let r = 0
+  let g = 0
+  let b = 0
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break
+    case 1: r = q; g = v; b = p; break
+    case 2: r = p; g = v; b = t; break
+    case 3: r = p; g = q; b = v; break
+    case 4: r = t; g = p; b = v; break
+    case 5: r = v; g = p; b = q; break
+  }
+
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+    a: hsva.a
+  }
+}
+
+export function hsvaToString(hsva: ColorHSVA): string {
+  if (hsva.a < 1) {
+    return `hsva(${hsva.h}, ${hsva.s}%, ${hsva.v}%, ${hsva.a.toFixed(2)})`
+  }
+  return `hsv(${hsva.h}, ${hsva.s}%, ${hsva.v}%)`
+}
+
+function linearizeChannel(channel: number): number {
+  const c = channel / 255
+  return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+}
+
+export function relativeLuminance(rgba: ColorRGBA): number {
+  const r = linearizeChannel(rgba.r)
+  const g = linearizeChannel(rgba.g)
+  const b = linearizeChannel(rgba.b)
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+export function wcagContrastRatio(foreground: ColorRGBA, background: ColorRGBA): number {
+  const l1 = relativeLuminance(foreground)
+  const l2 = relativeLuminance(background)
+  const lighter = Math.max(l1, l2)
+  const darker = Math.min(l1, l2)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+export function evaluateWcagContrast(foreground: ColorRGBA, background: ColorRGBA): WcagContrastResult {
+  const ratio = wcagContrastRatio(foreground, background)
+  return {
+    ratio,
+    ratioFormatted: ratio.toFixed(2),
+    aaNormal: ratio >= 4.5,
+    aaLarge: ratio >= 3,
+    aaaNormal: ratio >= 7,
+    aaaLarge: ratio >= 4.5
+  }
 }

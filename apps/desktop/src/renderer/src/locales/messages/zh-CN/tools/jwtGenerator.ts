@@ -14,6 +14,7 @@ export default {
       header: 'Header',
       payload: 'Payload',
       hmacVerify: 'HMAC 验签（可选）',
+      rsaVerify: 'RSA 公钥验签（可选，RS256/384/512）',
       issuedAt: '签发: {date}',
       expiresAt: '过期: {date}',
       remainingDays: '剩余 {days} 天',
@@ -25,6 +26,7 @@ export default {
     placeholders: {
       jwtToken: '粘贴 JWT Token，输入后自动解码...',
       verifySecret: '输入 Secret 验证签名...',
+      verifyPublicKey: '粘贴 RSA 公钥 PEM（-----BEGIN PUBLIC KEY-----）...',
       signHeader: 'JWT Header JSON',
       signPayload: 'JWT Payload JSON',
       signSecret: '输入用于签名的 Secret...'

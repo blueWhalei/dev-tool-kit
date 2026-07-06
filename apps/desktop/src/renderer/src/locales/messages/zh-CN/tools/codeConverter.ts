@@ -10,7 +10,9 @@ export default {
       timestamp: '时间戳',
       radix: '进制转换',
       naming: '命名转换',
-      html: 'HTML'
+      html: 'HTML',
+      xml: 'XML',
+      sql: 'SQL'
     },
     actions: {
       encode: '编码',
@@ -54,6 +56,10 @@ export default {
       yamlOutput: 'JSON 结果...',
       toml: 'title = "example"\ncount = 42',
       tomlOutput: 'JSON 结果...',
+      xml: '<root><item>text</item></root>',
+      xmlOutput: '格式化结果...',
+      sql: 'select id, name from users where id = 1',
+      sqlOutput: '格式化结果...',
       timestamp: 'Unix 秒/毫秒，或日期如 2024-01-01、2024-01-01T08:00:00Z...',
       number: '输入数字...',
       naming: '输入需要转换命名的文本，如 foo-bar、fooBar...',

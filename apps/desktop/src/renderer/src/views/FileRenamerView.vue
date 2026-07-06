@@ -29,9 +29,10 @@ const page = useToolI18n('fileRenamer')
 const { t, locale } = useI18n()
 
 interface RenameRule {
-  type: 'prefix' | 'suffix' | 'replace' | 'number' | 'case' | 'date'
+  type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
   value?: string
   replaceWith?: string
+  pattern?: string
   startNumber?: number
   padding?: number
   caseType?: 'upper' | 'lower' | 'title'
@@ -41,15 +42,17 @@ const folderPath = ref('')
 const files = ref<FileEntry[]>([])
 const selectedFiles = ref<string[]>([])
 const loading = ref(false)
-const rule = ref<RenameRule>({ type: 'number', startNumber: 1, padding: 3 })
+const rules = ref<RenameRule[]>([{ type: 'number', startNumber: 1, padding: 3 }])
 const previews = ref<RenamePreview[]>([])
 const executing = ref(false)
+const undoing = ref(false)
 const results = ref<RenameResult[]>([])
 const showResultModal = ref(false)
 const sourceType = ref<'folder' | 'files' | ''>('')
 const savedRules = ref<SavedRenameRule[]>([])
 const ruleNameInput = ref('')
 const showSaveRuleModal = ref(false)
+const lastUndoOps = ref<{ oldPath: string; newPath: string }[]>([])
 
 let isFetchingPreview = false
 let pendingFetch = false
@@ -61,6 +64,7 @@ const ruleTypes = computed(() => {
     'prefix',
     'suffix',
     'replace',
+    'regex',
     'case',
     'date'
   ] as const).map(value => ({
@@ -91,6 +95,17 @@ const allSelected = computed({
 const conflictCount = computed(() => previews.value.filter(item => item.conflict).length)
 const hasConflicts = computed(() => conflictCount.value > 0)
 const canExecute = computed(() => previews.value.length > 0 && !hasConflicts.value)
+
+const canUndo = computed(() => lastUndoOps.value.length > 0)
+
+function addRule() {
+  rules.value.push({ type: 'prefix', value: '' })
+}
+
+function removeRule(index: number) {
+  if (rules.value.length <= 1) return
+  rules.value.splice(index, 1)
+}
 
 async function loadSavedRules() {
   try {
@@ -158,7 +173,7 @@ async function fetchPreview() {
     if (selectedFiles.value.length > 0 && files.value.length > 0) {
       const selectedFileEntries = files.value.filter(file => selectedFiles.value.includes(file.path))
       try {
-        const data = await invoke('file-renamer:preview', selectedFileEntries, rule.value)
+        const data = await invoke('file-renamer:preview', selectedFileEntries, rules.value)
         previews.value = validateArray(data, isRenamePreviewArray, 'fetchPreview')
       } catch {
         previews.value = []
@@ -191,7 +206,7 @@ async function saveCurrentRule() {
     return
   }
   try {
-    const data = await invoke('file-renamer:saveRule', ruleNameInput.value.trim(), rule.value)
+    const data = await invoke('file-renamer:saveRule', ruleNameInput.value.trim(), rules.value[0])
     const result = validateOptional(data, isOperationResult, 'saveCurrentRule')
     if (result?.success) {
       message.success(page.t('messages.ruleSaved'))
@@ -210,7 +225,7 @@ function applySavedRule(name: string | null) {
   if (!name) return
   const saved = savedRules.value.find(item => item.name === name)
   if (!saved) return
-  rule.value = { ...saved.rule }
+  rules.value = [{ ...saved.rule }]
 }
 
 async function deleteSavedRule(name: string) {
@@ -232,7 +247,7 @@ watch(selectedFiles, async () => {
   await fetchPreview()
 }, { deep: true })
 
-watch(rule, async () => {
+watch(rules, async () => {
   await fetchPreview()
 }, { deep: true })
 
@@ -242,6 +257,9 @@ async function executeRename() {
   try {
     const data = await invoke('file-renamer:execute', previews.value)
     results.value = validateArray(data, isRenameResultArray, 'executeRename')
+    lastUndoOps.value = results.value
+      .filter(item => item.success && item.oldPath && item.newPath)
+      .map(item => ({ oldPath: item.oldPath!, newPath: item.newPath! }))
     showResultModal.value = true
     if (folderPath.value) {
       await loadFiles()
@@ -253,6 +271,24 @@ async function executeRename() {
     showError(error, page.t('messages.executeFailed'))
   } finally {
     executing.value = false
+  }
+}
+
+async function undoRename() {
+  if (!canUndo.value) return
+  undoing.value = true
+  try {
+    const data = await invoke('file-renamer:undo', lastUndoOps.value)
+    results.value = validateArray(data, isRenameResultArray, 'undoRename')
+    lastUndoOps.value = []
+    showResultModal.value = true
+    if (folderPath.value) {
+      await loadFiles()
+    }
+  } catch (error) {
+    showError(error, page.t('messages.undoFailed'))
+  } finally {
+    undoing.value = false
   }
 }
 
@@ -341,37 +377,57 @@ onMounted(() => {
                 </NSpace>
               </NFormItem>
 
-              <NFormItem :label="page.t('ruleType')">
-                <NSelect v-model:value="rule.type" :options="ruleTypes" />
-              </NFormItem>
+              <NFormItem :label="page.t('ruleChain')">
+                <NSpace vertical style="width: 100%">
+                  <div v-for="(rule, index) in rules" :key="index" class="rule-chain-item">
+                    <div class="rule-chain-head">
+                      <NTag size="small" type="info">{{ page.t('ruleStep', { step: index + 1 }) }}</NTag>
+                      <NButton v-if="rules.length > 1" size="tiny" quaternary type="error" @click="removeRule(index)">{{ t('common.delete') }}</NButton>
+                    </div>
+                    <NFormItem :label="page.t('ruleType')">
+                      <NSelect v-model:value="rule.type" :options="ruleTypes" />
+                    </NFormItem>
 
-              <NFormItem v-if="rule.type === 'prefix'" :label="page.t('prefix')">
-                <NInput v-model:value="rule.value" :placeholder="page.t('prefix')" />
-              </NFormItem>
+                    <NFormItem v-if="rule.type === 'prefix'" :label="page.t('prefix')">
+                      <NInput v-model:value="rule.value" :placeholder="page.t('prefix')" />
+                    </NFormItem>
 
-              <NFormItem v-if="rule.type === 'suffix'" :label="page.t('suffix')">
-                <NInput v-model:value="rule.value" :placeholder="page.t('suffix')" />
-              </NFormItem>
+                    <NFormItem v-if="rule.type === 'suffix'" :label="page.t('suffix')">
+                      <NInput v-model:value="rule.value" :placeholder="page.t('suffix')" />
+                    </NFormItem>
 
-              <template v-if="rule.type === 'replace'">
-                <NFormItem :label="page.t('findText')">
-                  <NInput v-model:value="rule.value" :placeholder="page.t('findText')" />
-                </NFormItem>
-                <NFormItem :label="page.t('replaceWith')">
-                  <NInput v-model:value="rule.replaceWith" :placeholder="page.t('replaceWith')" />
-                </NFormItem>
-              </template>
+                    <template v-if="rule.type === 'replace'">
+                      <NFormItem :label="page.t('findText')">
+                        <NInput v-model:value="rule.value" :placeholder="page.t('findText')" />
+                      </NFormItem>
+                      <NFormItem :label="page.t('replaceWith')">
+                        <NInput v-model:value="rule.replaceWith" :placeholder="page.t('replaceWith')" />
+                      </NFormItem>
+                    </template>
 
-              <NFormItem v-if="rule.type === 'number'" :label="page.t('startNumber')">
-                <NInput v-model:value="rule.startNumber" type="number" :min="1" />
-              </NFormItem>
+                    <template v-if="rule.type === 'regex'">
+                      <NFormItem :label="page.t('regexPattern')">
+                        <NInput v-model:value="rule.pattern" :placeholder="page.t('regexPattern')" />
+                      </NFormItem>
+                      <NFormItem :label="page.t('replaceWith')">
+                        <NInput v-model:value="rule.replaceWith" :placeholder="page.t('replaceWith')" />
+                      </NFormItem>
+                    </template>
 
-              <NFormItem v-if="rule.type === 'number'" :label="page.t('padding')">
-                <NInput v-model:value="rule.padding" type="number" :min="1" :max="10" />
-              </NFormItem>
+                    <NFormItem v-if="rule.type === 'number'" :label="page.t('startNumber')">
+                      <NInput v-model:value="rule.startNumber" type="number" :min="1" />
+                    </NFormItem>
 
-              <NFormItem v-if="rule.type === 'case'" :label="page.t('caseType')">
-                <NSelect v-model:value="rule.caseType" :options="caseOptions" />
+                    <NFormItem v-if="rule.type === 'number'" :label="page.t('padding')">
+                      <NInput v-model:value="rule.padding" type="number" :min="1" :max="10" />
+                    </NFormItem>
+
+                    <NFormItem v-if="rule.type === 'case'" :label="page.t('caseType')">
+                      <NSelect v-model:value="rule.caseType" :options="caseOptions" />
+                    </NFormItem>
+                  </div>
+                  <NButton size="small" dashed block @click="addRule">{{ page.t('addRule') }}</NButton>
+                </NSpace>
               </NFormItem>
             </NForm>
           </section>
@@ -383,6 +439,13 @@ onMounted(() => {
             <NSpace align="center" :size="12">
               <span v-if="previews.length > 0" class="preview-count">{{ previews.length }}</span>
               <NTag v-if="hasConflicts" type="warning" size="small">{{ page.t('conflictWarning', { count: conflictCount }) }}</NTag>
+              <NButton
+                v-if="canUndo"
+                :loading="undoing"
+                @click="undoRename"
+              >
+                {{ page.t('undo') }}
+              </NButton>
               <NButton
                 type="primary"
                 :loading="executing"
@@ -552,6 +615,20 @@ onMounted(() => {
   font-size: var(--font-size-subhead);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+}
+
+.rule-chain-item {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+}
+
+.rule-chain-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
 }
 
 .files-list {

@@ -13,6 +13,7 @@ export * from './process-kill'
 export * from './regex'
 export * from './chmod'
 export * from './http-status-codes'
+export * from './xml-sql'
 
 // Formatting utilities
 export function formatBytes(bytes: number, decimals = 2): string {

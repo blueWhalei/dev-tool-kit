@@ -23,14 +23,27 @@ export interface JwtVerifyResult {
 export const JWT_HMAC_ALGORITHMS = ['HS256', 'HS384', 'HS512'] as const
 export type JwtHmacAlgorithm = (typeof JWT_HMAC_ALGORITHMS)[number]
 
+export const JWT_RSA_ALGORITHMS = ['RS256', 'RS384', 'RS512'] as const
+export type JwtRsaAlgorithm = (typeof JWT_RSA_ALGORITHMS)[number]
+
 const HMAC_ALGORITHMS: Record<JwtHmacAlgorithm, string> = {
   HS256: 'SHA-256',
   HS384: 'SHA-384',
   HS512: 'SHA-512'
 }
 
+const RSA_ALGORITHMS: Record<JwtRsaAlgorithm, string> = {
+  RS256: 'SHA-256',
+  RS384: 'SHA-384',
+  RS512: 'SHA-512'
+}
+
 function isHmacAlgorithm(alg: string): alg is JwtHmacAlgorithm {
   return alg in HMAC_ALGORITHMS
+}
+
+function isRsaAlgorithm(alg: string): alg is JwtRsaAlgorithm {
+  return alg in RSA_ALGORITHMS
 }
 
 function fail<T = never>(error: string): ConverterResult<T> {
@@ -216,5 +229,70 @@ export async function verifyJwtHmac(
     }
   } catch (error) {
     return fail(`验签失败: ${String(error)}`)
+  }
+}
+
+function pemToBinary(pem: string): ConverterResult<Uint8Array> {
+  const trimmed = pem.trim()
+  if (!trimmed.includes('-----BEGIN')) return fail('无效的 PEM 公钥格式')
+
+  const base64 = trimmed
+    .replace(/-----BEGIN[^-]+-----/g, '')
+    .replace(/-----END[^-]+-----/g, '')
+    .replace(/\s/g, '')
+
+  try {
+    const binary = atob(base64)
+    return { success: true, result: Uint8Array.from(binary, char => char.charCodeAt(0)) }
+  } catch {
+    return fail('无法解析 PEM Base64 内容')
+  }
+}
+
+export async function verifyJwtRsa(
+  token: string,
+  publicKeyPem: string
+): Promise<ConverterResult<JwtVerifyResult>> {
+  if (!publicKeyPem.trim()) return fail('请输入 RSA 公钥 PEM 以验签')
+
+  const decoded = decodeJwt(token)
+  if (!decoded.success || !decoded.result) return fail(decoded.error!)
+
+  const parts = token.trim().split('.')
+  const [headerPart, payloadPart, signaturePart] = parts
+  const alg = decoded.result.header.alg
+
+  if (typeof alg !== 'string' || !isRsaAlgorithm(alg)) {
+    return fail(`不支持的 RSA 算法: ${String(alg)}，目前仅支持 RS256/RS384/RS512`)
+  }
+
+  const pemBinary = pemToBinary(publicKeyPem)
+  if (!pemBinary.success || !pemBinary.result) return fail(pemBinary.error!)
+
+  try {
+    const spki = new Uint8Array(pemBinary.result)
+    const key = await crypto.subtle.importKey(
+      'spki',
+      spki,
+      { name: 'RSASSA-PKCS1-v1_5', hash: RSA_ALGORITHMS[alg] },
+      false,
+      ['verify']
+    )
+
+    let sigBase64 = signaturePart.replace(/-/g, '+').replace(/_/g, '/')
+    const pad = sigBase64.length % 4
+    if (pad) sigBase64 += '='.repeat(4 - pad)
+    const sigBinary = atob(sigBase64)
+    const signature = Uint8Array.from(sigBinary, char => char.charCodeAt(0))
+    const data = new TextEncoder().encode(`${headerPart}.${payloadPart}`)
+
+    const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, signature, data)
+
+    return {
+      success: true,
+      result: { valid, algorithm: alg }
+    }
+  } catch (error) {
+    return fail(`RSA 验签失败: ${String(error)}`)
   }
 }

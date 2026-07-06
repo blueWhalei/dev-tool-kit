@@ -19,6 +19,7 @@ import {
   formatJwtJson,
   getJwtTimeInfo,
   verifyJwtHmac,
+  verifyJwtRsa,
   parseJwtPartJson,
   signJwtHmac,
   JWT_HMAC_ALGORITHMS,
@@ -177,6 +178,7 @@ function useGeneratedSecretForSign() {
 
 const jwtToken = ref('')
 const verifySecret = ref('')
+const verifyPublicKey = ref('')
 const headerJson = ref('')
 const payloadJson = ref('')
 const timeInfo = ref<JwtTimeInfo | null>(null)
@@ -204,7 +206,22 @@ function decodeToken() {
 }
 
 async function verifySignature() {
-  if (!jwtToken.value.trim() || !verifySecret.value) {
+  if (!jwtToken.value.trim()) {
+    verifyResult.value = null
+    return
+  }
+
+  if (verifyPublicKey.value.trim()) {
+    const result = await verifyJwtRsa(jwtToken.value, verifyPublicKey.value)
+    if (!result.success) {
+      verifyResult.value = null
+      return
+    }
+    verifyResult.value = result.result ?? null
+    return
+  }
+
+  if (!verifySecret.value) {
     verifyResult.value = null
     return
   }
@@ -223,6 +240,7 @@ function fillSampleToken() {
 
 watchDebounced(jwtToken, decodeToken, { debounce: 400 })
 watchDebounced(verifySecret, verifySignature, { debounce: 400 })
+watchDebounced(verifyPublicKey, verifySignature, { debounce: 400 })
 
 async function copyDecoded(part: 'header' | 'payload') {
   const text = part === 'header' ? headerJson.value : payloadJson.value
@@ -437,6 +455,14 @@ const signatureStatusText = computed(() => {
               />
               <NButton type="primary" @click="verifySignature">{{ page.t('buttons.verify') }}</NButton>
             </div>
+            <div class="result-label rsa-label">{{ page.t('labels.rsaVerify') }}</div>
+            <NInput
+              v-model:value="verifyPublicKey"
+              type="textarea"
+              :rows="4"
+              :placeholder="page.t('placeholders.verifyPublicKey')"
+              class="verify-input"
+            />
             <div v-if="verifyResult" class="verify-result">
               <NTag :type="verifyResult.valid ? 'success' : 'error'">
                 {{ signatureStatusText }}

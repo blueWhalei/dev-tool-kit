@@ -10,6 +10,9 @@ import {
   rgbaToHex,
   rgbaToHsla,
   hslaToRgba,
+  rgbaToHsva,
+  hsvaToString,
+  evaluateWcagContrast,
   cssNameToRgba,
   rgbaToCssName,
   parseRgbString,
@@ -31,6 +34,15 @@ const hslaInput = ref('217, 91%, 60%, 1')
 const hex8Input = ref('#2563ebff')
 const cssNameInput = ref('')
 const resolvedCssName = ref<string | null>(null)
+const contrastBgInput = ref('#ffffff')
+
+const hsvaDisplay = computed(() => hsvaToString(rgbaToHsva(currentRgba.value)))
+
+const contrastResult = computed(() => {
+  const bg = hexToRgba(contrastBgInput.value) || cssNameToRgba(contrastBgInput.value)
+  if (!bg) return null
+  return evaluateWcagContrast(currentRgba.value, bg)
+})
 
 const recentColors = ref<string[]>(loadRecentColors())
 
@@ -193,6 +205,15 @@ const alphaPercent = computed({
           </div>
         </NCard>
       </NGridItem>
+      <NGridItem span="0:2 640:1">
+        <NCard class="format-card" :bordered="false">
+          <div class="format-row">
+            <label class="format-label">{{ page.t('labels.hsv') }}</label>
+            <NInput :value="hsvaDisplay" readonly size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(hsvaDisplay, 'messages.hsvCopied')">{{ page.t('buttons.copy') }}</NButton>
+          </div>
+        </NCard>
+      </NGridItem>
       <NGridItem span="2">
         <NCard class="format-card" :bordered="false">
           <div class="format-row">
@@ -205,6 +226,19 @@ const alphaPercent = computed({
         </NCard>
       </NGridItem>
     </NGrid>
+
+    <NCard class="contrast-card" :bordered="false">
+      <div class="contrast-header">{{ page.t('labels.contrast') }}</div>
+      <div class="format-row">
+        <label class="format-label">{{ page.t('labels.contrastBg') }}</label>
+        <NInput v-model:value="contrastBgInput" :placeholder="page.t('placeholders.hex')" size="small" />
+      </div>
+      <div v-if="contrastResult" class="contrast-stats">
+        <span>{{ page.t('labels.contrastRatio', { ratio: contrastResult.ratioFormatted }) }}</span>
+        <span :class="contrastResult.aaNormal ? 'pass' : 'fail'">AA</span>
+        <span :class="contrastResult.aaaNormal ? 'pass' : 'fail'">AAA</span>
+      </div>
+    </NCard>
 
     <div v-if="recentColors.length > 0" class="recent-section">
       <span class="recent-label">{{ page.t('labels.recentColors') }}</span>
@@ -385,5 +419,30 @@ const alphaPercent = computed({
 .recent-swatch:hover {
   transform: scale(1.15);
   transition: transform 0.15s ease;
+}
+
+.contrast-card {
+  margin-top: 16px;
+}
+
+.contrast-header {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.contrast-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.contrast-stats .pass {
+  color: #34c759;
+}
+
+.contrast-stats .fail {
+  color: var(--color-text-secondary);
 }
 </style>

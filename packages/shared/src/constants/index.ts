@@ -60,7 +60,9 @@ export const CODE_CONVERTER_TAB_KEYWORDS: { tab: string; keywords: string[] }[] 
   { tab: 'case', keywords: ['命名', 'camel', 'snake', 'kebab', 'case', '驼峰'] },
   { tab: 'html', keywords: ['html', '实体', '编解码'] },
   { tab: 'yaml', keywords: ['yaml', 'yml'] },
-  { tab: 'toml', keywords: ['toml'] }
+  { tab: 'toml', keywords: ['toml'] },
+  { tab: 'xml', keywords: ['xml', '格式化'] },
+  { tab: 'sql', keywords: ['sql', '格式化', 'query'] }
 ]
 
 /** localStorage key for code converter active tab */

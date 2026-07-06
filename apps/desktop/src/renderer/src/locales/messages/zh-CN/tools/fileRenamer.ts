@@ -38,9 +38,15 @@ export default {
       prefix: '添加前缀',
       suffix: '添加后缀',
       replace: '文本替换',
+      regex: '正则替换',
       case: '大小写转换',
       date: '添加日期'
     },
+    ruleChain: '规则链（按顺序应用）',
+    ruleStep: '步骤 {step}',
+    addRule: '添加规则',
+    regexPattern: '正则表达式',
+    undo: '撤销上次重命名',
     caseTypes: {
       upper: '大写 (UPPERCASE)',
       lower: '小写 (lowercase)',
@@ -55,6 +61,7 @@ export default {
       selectFolderFailed: '选择文件夹失败',
       selectFilesFailed: '选择文件失败',
       loadFilesFailed: '加载文件列表失败',
-      executeFailed: '执行重命名失败'
+      executeFailed: '执行重命名失败',
+      undoFailed: '撤销失败'
     }
   }

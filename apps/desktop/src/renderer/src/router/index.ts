@@ -150,6 +150,14 @@ const routes: RouteRecordRaw[] = [
     redirect: { path: '/code-converter', query: { tab: 'toml' } }
   },
   {
+    path: '/xml',
+    redirect: { path: '/code-converter', query: { tab: 'xml' } }
+  },
+  {
+    path: '/sql',
+    redirect: { path: '/code-converter', query: { tab: 'sql' } }
+  },
+  {
     path: '/text-diff',
     name: 'TextDiff',
     component: () => import('../views/TextDiffView.vue'),

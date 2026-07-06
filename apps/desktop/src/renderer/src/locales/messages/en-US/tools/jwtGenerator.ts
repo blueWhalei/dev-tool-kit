@@ -14,6 +14,7 @@ export default {
       header: 'Header',
       payload: 'Payload',
       hmacVerify: 'HMAC verify (optional)',
+      rsaVerify: 'RSA public key verify (optional, RS256/384/512)',
       issuedAt: 'Issued: {date}',
       expiresAt: 'Expires: {date}',
       remainingDays: '{days} days left',
@@ -25,6 +26,7 @@ export default {
     placeholders: {
       jwtToken: 'Paste JWT token — decodes automatically...',
       verifySecret: 'Enter secret to verify signature...',
+      verifyPublicKey: 'Paste RSA public key PEM (-----BEGIN PUBLIC KEY-----)...',
       signHeader: 'JWT header JSON',
       signPayload: 'JWT payload JSON',
       signSecret: 'Enter secret for signing...'

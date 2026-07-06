@@ -38,9 +38,15 @@ export default {
       prefix: 'Add prefix',
       suffix: 'Add suffix',
       replace: 'Text replace',
+      regex: 'Regex replace',
       case: 'Change case',
       date: 'Add date'
     },
+    ruleChain: 'Rule chain (applied in order)',
+    ruleStep: 'Step {step}',
+    addRule: 'Add rule',
+    regexPattern: 'Regex pattern',
+    undo: 'Undo last rename',
     caseTypes: {
       upper: 'UPPERCASE',
       lower: 'lowercase',
@@ -55,6 +61,7 @@ export default {
       selectFolderFailed: 'Failed to select folder',
       selectFilesFailed: 'Failed to select files',
       loadFilesFailed: 'Failed to load file list',
-      executeFailed: 'Failed to execute rename'
+      executeFailed: 'Failed to execute rename',
+      undoFailed: 'Undo failed'
     }
   }

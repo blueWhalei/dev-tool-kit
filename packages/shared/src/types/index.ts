@@ -231,9 +231,10 @@ export interface RenamePreview {
 export interface SavedRenameRule {
   name: string
   rule: {
-    type: 'prefix' | 'suffix' | 'replace' | 'number' | 'case' | 'date'
+    type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
     value?: string
     replaceWith?: string
+    pattern?: string
     startNumber?: number
     padding?: number
     caseType?: 'upper' | 'lower' | 'title'
@@ -245,6 +246,8 @@ export interface RenameResult {
   original: string
   renamed: string
   error?: string
+  oldPath?: string
+  newPath?: string
 }
 
 // Regex Tester

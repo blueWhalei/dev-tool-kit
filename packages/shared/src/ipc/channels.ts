@@ -72,6 +72,7 @@ export const IPC_INVOKE_CHANNELS = [
   'file-renamer:listFiles',
   'file-renamer:preview',
   'file-renamer:execute',
+  'file-renamer:undo',
   'file-renamer:saveRule',
   'file-renamer:listRules',
   'file-renamer:deleteRule',

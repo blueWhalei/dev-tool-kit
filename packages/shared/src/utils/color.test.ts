@@ -4,6 +4,9 @@ import {
   rgbaToHex,
   rgbaToHsla,
   hslaToRgba,
+  rgbaToHsva,
+  hsvaToRgba,
+  evaluateWcagContrast,
   cssNameToRgba,
   rgbaToCssName,
   parseRgbString,
@@ -167,5 +170,23 @@ describe('hslaToString', () => {
 
   it('outputs hsla() when alpha<1', () => {
     expect(hslaToString({ h: 0, s: 100, l: 50, a: 0.5 })).toBe('hsla(0, 100%, 50%, 0.50)')
+  })
+})
+
+describe('HSV and WCAG', () => {
+  it('converts rgba to hsva and back', () => {
+    const rgba = { r: 255, g: 0, b: 0, a: 1 }
+    const hsva = rgbaToHsva(rgba)
+    expect(hsva.h).toBe(0)
+    const back = hsvaToRgba(hsva)
+    expect(back.r).toBe(255)
+  })
+
+  it('evaluates black on white contrast', () => {
+    const fg = { r: 0, g: 0, b: 0, a: 1 }
+    const bg = { r: 255, g: 255, b: 255, a: 1 }
+    const result = evaluateWcagContrast(fg, bg)
+    expect(result.aaNormal).toBe(true)
+    expect(result.ratio).toBeGreaterThan(20)
   })
 })

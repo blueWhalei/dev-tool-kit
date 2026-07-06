@@ -8,13 +8,16 @@ import type { FileEntry, RenamePreview, RenameResult, SavedRenameRule } from '@d
 export type { FileEntry, RenamePreview, RenameResult }
 
 export interface RenameRule {
-  type: 'prefix' | 'suffix' | 'replace' | 'number' | 'case' | 'date'
+  type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
   value?: string
   replaceWith?: string
+  pattern?: string
   startNumber?: number
   padding?: number
   caseType?: 'upper' | 'lower' | 'title'
 }
+
+export type RenameRuleInput = RenameRule | RenameRule[]
 
 const ILLEGAL_FILENAME_CHARS = /[<>:"|?*\\/]/
 
@@ -53,7 +56,7 @@ function isAllowedFolder(folderPath: string): boolean {
   return false
 }
 
-function generateNewName(original: string, rule: RenameRule, index: number): string {
+function applyRuleToName(original: string, rule: RenameRule, index: number): string {
   const ext = extname(original)
   const nameWithoutExt = basename(original, ext)
 
@@ -71,6 +74,17 @@ function generateNewName(original: string, rule: RenameRule, index: number): str
         newName = nameWithoutExt.split(rule.value).join(rule.replaceWith)
       }
       break
+    case 'regex': {
+      if (rule.pattern) {
+        try {
+          const re = new RegExp(rule.pattern, 'g')
+          newName = nameWithoutExt.replace(re, rule.replaceWith ?? '')
+        } catch {
+          // keep name on invalid regex
+        }
+      }
+      break
+    }
     case 'number': {
       const startNum = typeof rule.startNumber === 'string' ? parseInt(rule.startNumber, 10) : (rule.startNumber || 1)
       const paddingNum = typeof rule.padding === 'string' ? parseInt(rule.padding, 10) : (rule.padding || 3)
@@ -97,6 +111,15 @@ function generateNewName(original: string, rule: RenameRule, index: number): str
   }
 
   return newName + ext
+}
+
+function generateNewName(original: string, rules: RenameRuleInput, index: number): string {
+  const ruleList = Array.isArray(rules) ? rules : [rules]
+  let current = original
+  for (const rule of ruleList) {
+    current = applyRuleToName(current, rule, index)
+  }
+  return current
 }
 
 async function getRulesPath(): Promise<string> {
@@ -244,11 +267,11 @@ export function setupFileRenamerIPC(): void {
   })
 
   // Preview rename
-  ipcMain.handle('file-renamer:preview', async (_, files: FileEntry[], rule: RenameRule) => {
+  ipcMain.handle('file-renamer:preview', async (_, files: FileEntry[], rules: RenameRuleInput) => {
     if (!Array.isArray(files)) return []
     const previews = files.map((file, index) => ({
       original: file.name,
-      preview: generateNewName(file.name, rule, index),
+      preview: generateNewName(file.name, rules, index),
       path: file.path
     })) as RenamePreview[]
     return detectPreviewConflicts(previews)
@@ -308,7 +331,9 @@ export function setupFileRenamerIPC(): void {
         results.push({
           success: true,
           original: preview.original,
-          renamed: preview.preview
+          renamed: preview.preview,
+          oldPath: preview.path,
+          newPath
         })
       } catch (error) {
         results.push({
@@ -316,6 +341,43 @@ export function setupFileRenamerIPC(): void {
           original: preview.original,
           renamed: preview.preview,
           error: '重命名失败'
+        })
+      }
+    }
+
+    return results
+  })
+
+  ipcMain.handle('file-renamer:undo', async (_, ops: { oldPath: string; newPath: string }[]) => {
+    if (!Array.isArray(ops)) return []
+    const results: RenameResult[] = []
+
+    for (const op of ops) {
+      if (!op?.oldPath || !op?.newPath) continue
+      try {
+        if (!existsSync(op.newPath)) {
+          results.push({
+            success: false,
+            original: basename(op.newPath),
+            renamed: basename(op.oldPath),
+            error: '文件不存在，无法撤销'
+          })
+          continue
+        }
+        await rename(op.newPath, op.oldPath)
+        results.push({
+          success: true,
+          original: basename(op.newPath),
+          renamed: basename(op.oldPath),
+          oldPath: op.newPath,
+          newPath: op.oldPath
+        })
+      } catch {
+        results.push({
+          success: false,
+          original: basename(op.newPath),
+          renamed: basename(op.oldPath),
+          error: '撤销失败'
         })
       }
     }
