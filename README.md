@@ -37,23 +37,23 @@
 | 工具 | 说明 |
 |------|------|
 | 端口管理 | 本地端口扫描、常用端口、进程终止（Windows 完整支持；macOS/Linux 可终止用户进程） |
-| 环境变量 | Windows 用户/系统变量读写、PATH、备份与导入导出；macOS/Linux 只读查看 Shell 与环境文件 |
-| Hosts 编辑 | hosts 可视化管理、分组、方案 diff、导入导出、DNS 刷新 |
-| 文件重命名 | 批量重命名、规则库、冲突预览、部分勾选 |
+| 环境变量 | Windows 用户/系统变量读写、PATH、备份与导入导出；macOS/Linux 读取并写入 Shell 配置（备份 + diff 预览） |
+| Hosts 编辑 | hosts 可视化管理、分组、方案 diff、导入导出、DNS 刷新；权限不足时提示 sudo 命令 |
+| 文件重命名 | 批量重命名、规则链、正则替换、撤销、规则库、冲突预览 |
 | 正则测试 | 正则匹配、替换预览（支持 flags）、常用表达式库 |
 
 ### 编码解码
 
 | 工具 | 说明 |
 |------|------|
-| 编码与格式转换 | Base64、URL、JSON（树形视图 + Schema 校验）、YAML、TOML、时间戳、进制、命名、HTML（统一入口，Tab 记忆） |
+| 编码与格式转换 | Base64、URL、JSON（树形 + Schema）、YAML、TOML、XML、SQL、时间戳、进制、命名、HTML（统一入口，Tab 记忆） |
 | 文本对比 | 逐行/逐词 Diff，文件导入，忽略空白/大小写，统一/并排视图 |
 
 ### 数据转换
 
 | 工具 | 说明 |
 |------|------|
-| 颜色转换 | HEX、RGB、HSL 互转 |
+| 颜色转换 | HEX、RGB、HSL、HSV 互转，WCAG 对比度检测 |
 | UUID 生成 | 批量生成 UUID/GUID |
 | Mock 数据 | 预设模板、丰富字段类型、按字段生成 JSON、导出 JSON/CSV/SQL INSERT |
 | HTTP 状态码 | 62 个常用状态码速查、搜索与分类 |
@@ -64,7 +64,7 @@
 | 工具 | 说明 |
 |------|------|
 | 密码生成 | 自定义规则随机密码 |
-| JWT 工具 | Secret 生成、Token 解码/签发、exp/iat 校验、HMAC 验签 |
+| JWT 工具 | Secret 生成、Token 解码/签发、HMAC 与 RSA 公钥验签 |
 | Hash 生成 | MD5、SHA-1、SHA-256、SHA-512；文本与文件哈希 |
 | 证书解析 | PEM/X.509 证书本地解析，查看主题、颁发者、有效期、指纹等 |
 
@@ -102,8 +102,8 @@
 |------|---------|-------|-------|------|
 | 端口扫描 | 完整支持 | 完整支持 | 完整支持 | — |
 | 终止占用进程 | 完整支持 | 部分支持 | 部分支持 | Unix 下可终止用户进程；系统进程可能需 sudo |
-| 环境变量管理 | 完整支持 | 部分支持 | 部分支持 | Unix 只读查看；写入仅 Windows 注册表 |
-| Hosts 编辑 | 部分支持 | 部分支持 | 部分支持 | 写入可能需管理员权限 |
+| 环境变量管理 | 完整支持 | 部分支持 | 部分支持 | Unix 可写入 Shell 配置（自动备份）；Windows 写入注册表 |
+| Hosts 编辑 | 部分支持 | 部分支持 | 部分支持 | 写入可能需管理员权限；失败可复制 sudo 命令 |
 | DNS 刷新 | 完整支持 | 完整支持 | 部分支持 | Linux 依赖 systemd-resolve / nscd |
 | 文件重命名 | 完整支持 | 完整支持 | 完整支持 | — |
 | 编码 / Hash / JWT 等 | 本地可用 | 本地可用 | 本地可用 | 渲染进程本地计算，全平台一致 |
@@ -118,6 +118,8 @@
 | `/toml` | 编码转换 · TOML Tab |
 | `/json-formatter` | 编码转换 · JSON Tab |
 | `/timestamp` | 编码转换 · 时间戳 Tab |
+| `/xml` | 编码转换 · XML Tab |
+| `/sql` | 编码转换 · SQL Tab |
 | `/chmod-calculator` | Chmod 计算器 |
 | `/http-status-codes` | HTTP 状态码速查 |
 | `/certificate-parser` | 证书 PEM 解析 |
@@ -135,7 +137,7 @@
 
 ### 环境要求
 
-- Node.js >= 18.0.0
+- Node.js >= 18.0.0（CI 使用 Node 20+）
 - pnpm >= 9.0.0
 
 ### 安装依赖

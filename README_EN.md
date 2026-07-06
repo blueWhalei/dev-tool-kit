@@ -37,23 +37,23 @@ Representative previews below (port manager, encoding converter, settings). The 
 | Tool | Description |
 |------|------|
 | Port Manager | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux) |
-| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux read-only shell & env file view |
-| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush |
-| File Renamer | Batch rename, rule library, conflict preview, partial selection |
+| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux read & write shell config (backup + diff preview) |
+| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush; sudo command hint on permission failure |
+| File Renamer | Batch rename, rule chains, regex replace, undo, rule library, conflict preview |
 | Regex Tester | Regex matching, replace preview with flags, common expression library |
 
 ### Encoding & Decoding
 
 | Tool | Description |
 |------|------|
-| Encoding & Format Conversion | Base64, URL, JSON (tree view + Schema validation), YAML, TOML, timestamp, radix, naming, HTML (unified entry with Tab memory) |
+| Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML (unified entry with Tab memory) |
 | Text Diff | Line/word-level diff, file import, ignore whitespace/case, unified/split view |
 
 ### Data Conversion
 
 | Tool | Description |
 |------|------|
-| Color Converter | HEX, RGB, HSL conversion |
+| Color Converter | HEX, RGB, HSL, HSV conversion with WCAG contrast check |
 | UUID Generator | Batch generate UUID/GUID |
 | Mock Data | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT |
 | HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
@@ -64,7 +64,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 | Tool | Description |
 |------|------|
 | Password Generator | Custom rule random passwords |
-| JWT Tool | Secret generation, token decode/sign, exp/iat validation, HMAC signature verification |
+| JWT Tool | Secret generation, token decode/sign, HMAC & RSA public-key verification |
 | Hash Generator | MD5, SHA-1, SHA-256, SHA-512; text and file hashing |
 | Certificate Parser | Local PEM/X.509 parsing — subject, issuer, validity, fingerprints, and more |
 
@@ -102,8 +102,8 @@ Full keyboard shortcuts list available in the app's **About** page.
 |---------|---------|-------|-------|-------|
 | Port Scanning | Full Support | Full Support | Full Support | — |
 | Kill Process | Full Support | Partial Support | Partial Support | Unix can kill user processes; system processes may need sudo |
-| Environment Variables | Full Support | Partial Support | Partial Support | Unix read-only view; write only via Windows registry |
-| Hosts Editor | Partial Support | Partial Support | Partial Support | Write may require admin privileges |
+| Environment Variables | Full Support | Partial Support | Partial Support | Unix shell config write with backup; Windows registry write |
+| Hosts Editor | Partial Support | Partial Support | Partial Support | Write may require admin; sudo command copy on failure |
 | DNS Flush | Full Support | Full Support | Partial Support | Linux depends on systemd-resolve / nscd |
 | File Renamer | Full Support | Full Support | Full Support | — |
 | Encoding / Hash / JWT etc. | Local Available | Local Available | Local Available | Renderer process local computation, consistent across platforms |
@@ -118,6 +118,8 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/toml` | Encoding Conversion · TOML Tab |
 | `/json-formatter` | Encoding Conversion · JSON Tab |
 | `/timestamp` | Encoding Conversion · Timestamp Tab |
+| `/xml` | Encoding Conversion · XML Tab |
+| `/sql` | Encoding Conversion · SQL Tab |
 | `/chmod-calculator` | Chmod Calculator |
 | `/http-status-codes` | HTTP Status Codes Reference |
 | `/certificate-parser` | Certificate PEM Parser |
@@ -135,7 +137,7 @@ Full keyboard shortcuts list available in the app's **About** page.
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
+- Node.js >= 18.0.0 (CI uses Node 20+)
 - pnpm >= 9.0.0
 
 ### Install Dependencies
