@@ -132,7 +132,19 @@ describe('buildConnectionString', () => {
       queryParams: { charset: 'utf8mb4' }
     })
     expect(built.success).toBe(true)
-    expect(built.result).toBe('mysql://root:secret@localhost:3306/mydb?charset=utf8mb4')
+    expect(built.result).toBe('mysql://root:secret@localhost/mydb?charset=utf8mb4')
+  })
+
+  it('includes non-default MySQL port', () => {
+    const built = buildConnectionString({
+      protocol: 'mysql',
+      host: 'localhost',
+      port: 3307,
+      user: 'root',
+      password: 'secret',
+      database: 'mydb'
+    })
+    expect(built.result).toBe('mysql://root:secret@localhost:3307/mydb')
   })
 
   it('omits default PostgreSQL port', () => {
@@ -155,7 +167,7 @@ describe('buildConnectionString', () => {
       password: 'password',
       database: '2'
     })
-    expect(built.result).toBe('redis://:password@127.0.0.1:6379/2')
+    expect(built.result).toBe('redis://:password@127.0.0.1/2')
   })
 
   it('round-trips with parseConnectionString', () => {
