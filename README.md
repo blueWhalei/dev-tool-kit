@@ -14,7 +14,7 @@
 
 ## 界面预览
 
-以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **19 个工具**，完整列表见下方 [功能概览](#功能概览)。
+以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **22 个工具**，完整列表见下方 [功能概览](#功能概览)。
 
 ![端口管理](./screenshots/zh/port-manager.png)
 ![编码转换](./screenshots/zh/code-format-converter.png)
@@ -57,6 +57,7 @@
 | UUID 生成 | 批量生成 UUID/GUID |
 | Mock 数据 | 预设模板、丰富字段类型、按字段生成 JSON、导出 JSON/CSV/SQL INSERT |
 | HTTP 状态码 | 62 个常用状态码速查、搜索与分类 |
+| 开发速查 | MIME 类型、Git 命令模板、HTTP 方法离线速查（Tab 深链） |
 | 二维码生成 | 文本/URL 本地生成二维码，可调尺寸与纠错级别 |
 | 连接字符串解析 | MySQL、PostgreSQL、Redis、MongoDB URI 解析，字段表与 JSON 导出 |
 
@@ -64,24 +65,25 @@
 
 | 工具 | 说明 |
 |------|------|
-| 密码生成 | 自定义规则随机密码 |
+| 密码生成 | 随机字符密码与离线词组口令（Diceware） |
 | JWT 工具 | Secret 生成、Token 解码/签发、HMAC 与 RSA 公钥验签 |
 | Hash 生成 | MD5、SHA-1、SHA-256、SHA-512；文本与文件哈希 |
 | 证书解析 | PEM/X.509 证书本地解析，查看主题、颁发者、有效期、指纹等 |
+| 密钥对生成 | RSA 2048/4096、EC P-256/P-384 本地生成，PEM 导出，可跳转 JWT 验签 |
 
 ### 计算器
 
 | 工具 | 说明 |
 |------|------|
 | Cron 解析 | 可视化字段编辑、本地时区、接下来 5 次执行时间与相对倒计时 |
-| 子网计算 | IPv4/IPv6 CIDR，输出网络/广播/掩码/主机范围 |
+| 子网计算 | IPv4/IPv6 CIDR，VLSM 子网拆分，输出网络/广播/掩码/主机范围 |
 | Chmod 计算 | 八进制/符号权限互转，rwx 位可视化 |
 
 ## 快捷操作
 
 ### 全局
 
-- `Ctrl+K` — 打开/关闭全局搜索（支持深链到编码转换子 Tab，如 yaml、toml、json）
+- `Ctrl+K` — 打开/关闭全局搜索（支持深链到编码转换、开发速查等子 Tab）
 - 搜索浮层：`↑` / `↓` 移动，`Enter` 打开，`Esc` 关闭
 
 ### 页面内
@@ -125,6 +127,8 @@
 | `/chmod-calculator` | Chmod 计算器 |
 | `/http-status-codes` | HTTP 状态码速查 |
 | `/connection-string-parser` | 数据库连接字符串解析 |
+| `/dev-reference` | 开发速查（`?tab=mime` / `git` / `http-methods`） |
+| `/key-pair-generator` | RSA/EC 密钥对生成 |
 | `/certificate-parser` | 证书 PEM 解析 |
 | `/qr-code-generator` | 二维码生成 |
 

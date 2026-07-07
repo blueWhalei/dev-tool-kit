@@ -1,8 +1,14 @@
 export default {
     title: 'Password Generator',
-    description: 'Generate secure random passwords with custom charset',
+    description: 'Generate secure random passwords or offline passphrase (Diceware)',
+    modes: {
+      random: 'Random characters',
+      passphrase: 'Passphrase'
+    },
     labels: {
       length: 'Password length',
+      wordCount: 'Word count',
+      separator: 'Separator',
       charTypes: 'Character types',
       customChars: 'Custom characters',
       charCount: '{count}/16',

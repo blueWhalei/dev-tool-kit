@@ -1,8 +1,14 @@
 export default {
     title: '密码生成器',
-    description: '生成安全随机密码，可自定义长度与字符集',
+    description: '生成安全随机密码或离线词组口令（Diceware）',
+    modes: {
+      random: '随机字符',
+      passphrase: '词组口令'
+    },
     labels: {
       length: '密码长度',
+      wordCount: '词数',
+      separator: '分隔符',
       charTypes: '字符类型',
       customChars: '自定义字符',
       charCount: '{count}/16',

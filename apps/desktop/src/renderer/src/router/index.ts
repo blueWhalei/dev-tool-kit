@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { ROUTE_CATEGORIES, CODE_CONVERTER_TAB_KEYWORDS, type RouteCategoryConfig } from '@dev-tool-kit/shared/constants'
+import { ROUTE_CATEGORIES, CODE_CONVERTER_TAB_KEYWORDS, DEV_REFERENCE_TAB_KEYWORDS, type RouteCategoryConfig } from '@dev-tool-kit/shared/constants'
 
 export interface TabKeywordMapping {
   tab: string
@@ -134,6 +134,18 @@ const routes: RouteRecordRaw[] = [
     meta: { titleKey: 'nav.routes.certificateParser', icon: 'cert', category: 'security', order: 4, keywords: ['certificate', 'cert', 'x509', 'pem', 'ssl', 'tls', '证书', '解析', 'parser'] }
   },
   {
+    path: '/key-pair-generator',
+    name: 'KeyPairGenerator',
+    component: () => import('../views/KeyPairGeneratorView.vue'),
+    meta: {
+      titleKey: 'nav.routes.keyPairGenerator',
+      icon: 'key',
+      category: 'security',
+      order: 5,
+      keywords: ['key', 'rsa', 'ec', '密钥', '公钥', '私钥', 'pem', 'keypair', 'generate']
+    }
+  },
+  {
     path: '/base64',
     redirect: { path: '/code-converter', query: { tab: 'base64' } }
   },
@@ -183,6 +195,20 @@ const routes: RouteRecordRaw[] = [
       category: 'data',
       order: 6,
       keywords: ['connection', '连接', '字符串', 'mysql', 'postgresql', 'redis', 'mongodb', 'uri', 'dsn', 'parser']
+    }
+  },
+  {
+    path: '/dev-reference',
+    name: 'DevReference',
+    component: () => import('../views/DevReferenceView.vue'),
+    meta: {
+      titleKey: 'nav.routes.devReference',
+      icon: 'http',
+      category: 'data',
+      order: 7,
+      keywords: ['reference', '速查', 'git', 'mime', 'http', 'method', '开发', 'dev'],
+      deepLinkTab: 'mime',
+      tabKeywords: DEV_REFERENCE_TAB_KEYWORDS
     }
   },
   {

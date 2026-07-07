@@ -17,6 +17,8 @@ import chmodCalculator from './chmodCalculator'
 import httpStatusCodes from './httpStatusCodes'
 import certificateParser from './certificateParser'
 import connectionStringParser from './connectionStringParser'
+import keyPairGenerator from './keyPairGenerator'
+import devReference from './devReference'
 import qrCodeGenerator from './qrCodeGenerator'
 
 export default {
@@ -39,5 +41,7 @@ export default {
   httpStatusCodes,
   certificateParser,
   connectionStringParser,
+  keyPairGenerator,
+  devReference,
   qrCodeGenerator
 }

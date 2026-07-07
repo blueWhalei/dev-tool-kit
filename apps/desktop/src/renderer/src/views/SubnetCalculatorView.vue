@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NInput, NButton, NCard, NGrid, NGridItem, NTag, useMessage } from 'naive-ui'
+import { NInput, NButton, NCard, NGrid, NGridItem, NTag, NDataTable, useMessage, type DataTableColumns } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { translateToolError } from '../utils/translateToolError'
-import { parseCidr, type SubnetInfo } from '@dev-tool-kit/shared'
+import { parseCidr, splitVlsm, type SubnetInfo, type VlsmSubnet } from '@dev-tool-kit/shared'
 
 const message = useMessage()
 const { t } = useI18n()
@@ -14,7 +14,9 @@ const page = useToolI18n('subnetCalculator')
 const { copy } = useCopyToClipboard()
 
 const cidrInput = ref('192.168.1.0/24')
+const hostCountsInput = ref('50, 20, 10')
 const result = ref<SubnetInfo | null>(null)
+const vlsmResult = ref<VlsmSubnet[] | null>(null)
 
 const resultRows = computed(() => {
   if (!result.value) return []
@@ -49,6 +51,13 @@ const versionLabel = computed(() => {
     : page.t('labels.versionIpv6')
 })
 
+const vlsmColumns = computed((): DataTableColumns<VlsmSubnet> => [
+  { title: page.t('labels.cidr'), key: 'cidr', minWidth: 140 },
+  { title: page.t('labels.network'), key: 'network', minWidth: 120 },
+  { title: page.t('labels.broadcast'), key: 'broadcast', minWidth: 120 },
+  { title: page.t('labels.usableHosts'), key: 'usableHosts', width: 100 }
+])
+
 function calculate() {
   const parsed = parseCidr(cidrInput.value)
   if (!parsed.success) {
@@ -58,6 +67,22 @@ function calculate() {
     return
   }
   result.value = parsed.result ?? null
+}
+
+function splitVlsmSubnets() {
+  const counts = hostCountsInput.value
+    .split(/[,，\s]+/)
+    .map(s => parseInt(s.trim(), 10))
+    .filter(n => Number.isInteger(n) && n > 0)
+
+  const parsed = splitVlsm(cidrInput.value, counts)
+  if (!parsed.success) {
+    vlsmResult.value = null
+    const errorMsg = translateToolError(t, 'subnetCalculator', parsed.error) || page.t('errors.calculateFailed')
+    message.warning(errorMsg)
+    return
+  }
+  vlsmResult.value = parsed.result ?? null
 }
 
 async function copyResult() {
@@ -102,6 +127,29 @@ calculate()
         </NGridItem>
       </NGrid>
     </NCard>
+
+    <NCard class="input-card" :bordered="false">
+      <div class="section-title">{{ page.t('labels.vlsm') }}</div>
+      <div class="input-row">
+        <NInput
+          v-model:value="hostCountsInput"
+          :placeholder="page.t('placeholders.hostCounts')"
+          class="cidr-input"
+          @keyup.enter="splitVlsmSubnets"
+        />
+        <NButton type="primary" @click="splitVlsmSubnets">{{ page.t('buttons.splitVlsm') }}</NButton>
+      </div>
+    </NCard>
+
+    <NCard v-if="vlsmResult?.length" class="result-card" :bordered="false">
+      <div class="section-title">{{ page.t('labels.vlsmResult') }}</div>
+      <NDataTable
+        :columns="vlsmColumns"
+        :data="vlsmResult"
+        :bordered="false"
+        size="small"
+      />
+    </NCard>
   </PageLayout>
 </template>
 
@@ -117,15 +165,21 @@ calculate()
   margin-bottom: var(--space-4);
 }
 
+.section-title {
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-primary);
+}
+
 .input-row {
   display: flex;
   gap: var(--space-3);
-  align-items: center;
+  flex-wrap: wrap;
 }
 
 .cidr-input {
   flex: 1;
-  font-family: var(--font-family-mono);
+  min-width: 200px;
 }
 
 .result-header {
@@ -144,9 +198,6 @@ calculate()
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-3);
-  background: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
 }
 
 .result-label {
@@ -158,6 +209,5 @@ calculate()
   font-family: var(--font-family-mono);
   font-size: var(--font-size-body);
   color: var(--color-text-primary);
-  word-break: break-all;
 }
 </style>

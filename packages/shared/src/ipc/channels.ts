@@ -90,6 +90,8 @@ export const IPC_INVOKE_CHANNELS = [
   // Certificate Parser
   'cert-parser:readFile',
   'cert-parser:parsePem',
+  // Key Pair Generator
+  'key-pair-generator:generate',
 ] as const
 
 export type IpcInvokeChannel = (typeof IPC_INVOKE_CHANNELS)[number]

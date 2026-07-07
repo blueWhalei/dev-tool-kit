@@ -20,6 +20,9 @@ export type ToolI18nKey =
   | 'chmodCalculator'
   | 'httpStatusCodes'
   | 'certificateParser'
+  | 'connectionStringParser'
+  | 'keyPairGenerator'
+  | 'devReference'
   | 'qrCodeGenerator'
 
 export function useToolI18n(tool: ToolI18nKey) {

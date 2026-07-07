@@ -29,6 +29,8 @@ export default {
       httpStatusCodes: 'HTTP Status Codes',
       certificateParser: 'Certificate Parser',
       connectionStringParser: 'Connection String Parser',
+      keyPairGenerator: 'Key Pair Generator',
+      devReference: 'Developer Reference',
       qrCodeGenerator: 'QR Code Generator',
       settings: 'Settings',
       about: 'About',

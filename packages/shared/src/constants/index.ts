@@ -69,6 +69,16 @@ export const CODE_CONVERTER_TAB_KEYWORDS: { tab: string; keywords: string[] }[] 
 /** localStorage key for code converter active tab */
 export const CODE_CONVERTER_TAB_STORAGE_KEY = 'dev-toolkit-code-converter-tab'
 
+/** Dev reference sub-tab keywords for global search deep links */
+export const DEV_REFERENCE_TAB_KEYWORDS: { tab: string; keywords: string[] }[] = [
+  { tab: 'mime', keywords: ['mime', 'content-type', '类型', '扩展名'] },
+  { tab: 'git', keywords: ['git', 'stash', 'cherry-pick', 'rebase', 'reset', '命令'] },
+  { tab: 'http-methods', keywords: ['http', 'method', 'get', 'post', 'put', 'delete', '方法'] }
+]
+
+/** localStorage key for dev reference active tab */
+export const DEV_REFERENCE_TAB_STORAGE_KEY = 'dev-toolkit-dev-reference-tab'
+
 /** localStorage key for pinned sidebar tools */
 export const PINNED_TOOLS_STORAGE_KEY = 'dev-toolkit-pinned-tools'
 

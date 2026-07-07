@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCidr, parseIpv6Address, compressIpv6, bigintToIpv6 } from './subnet'
+import { parseCidr, parseIpv6Address, compressIpv6, bigintToIpv6, splitVlsm } from './subnet'
 
 describe('parseCidr IPv4', () => {
   it('calculates /24 subnet', () => {
@@ -116,5 +116,26 @@ describe('parseCidr IPv6', () => {
     expect(parseCidr('2001:db8::/129').success).toBe(false)
     expect(parseCidr('not-v6::1/64').success).toBe(false)
     expect(parseCidr('2001:db8::1/abc').success).toBe(false)
+  })
+})
+
+describe('splitVlsm', () => {
+  it('splits 192.168.1.0/24 into subnets by host count', () => {
+    const result = splitVlsm('192.168.1.0/24', [50, 20, 10])
+    expect(result.success).toBe(true)
+    if (!result.success || !result.result) return
+    expect(result.result).toHaveLength(3)
+    expect(result.result[0].usableHosts).toBeGreaterThanOrEqual(50)
+    expect(result.result[0].cidr).toBe('192.168.1.0/26')
+  })
+
+  it('rejects when subnets exceed parent range', () => {
+    const result = splitVlsm('192.168.1.0/30', [100, 100])
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects IPv6', () => {
+    const result = splitVlsm('2001:db8::/64', [10])
+    expect(result.success).toBe(false)
   })
 })

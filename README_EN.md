@@ -14,7 +14,7 @@
 
 ## Screenshots
 
-Representative previews below (port manager, encoding converter, settings). The app includes **20 tools** in total — see [Features Overview](#features-overview) for the full list.
+Representative previews below (port manager, encoding converter, settings). The app includes **22 tools** in total — see [Features Overview](#features-overview) for the full list.
 
 ![Port Manager](./screenshots/en/port-manager.png)
 ![Encoding Converter](./screenshots/en/code-format-converter.png)
@@ -57,6 +57,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 | UUID Generator | Batch generate UUID/GUID |
 | Mock Data | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT |
 | HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
+| Developer Reference | Offline MIME types, Git command templates, HTTP methods (tab deep links) |
 | QR Code Generator | Generate QR codes locally from text/URL with adjustable size and error correction |
 | Connection String Parser | Parse MySQL, PostgreSQL, Redis, MongoDB URIs into fields and JSON |
 
@@ -64,24 +65,25 @@ Representative previews below (port manager, encoding converter, settings). The 
 
 | Tool | Description |
 |------|------|
-| Password Generator | Custom rule random passwords |
+| Password Generator | Random character passwords and offline passphrase (Diceware) |
 | JWT Tool | Secret generation, token decode/sign, HMAC & RSA public-key verification |
 | Hash Generator | MD5, SHA-1, SHA-256, SHA-512; text and file hashing |
 | Certificate Parser | Local PEM/X.509 parsing — subject, issuer, validity, fingerprints, and more |
+| Key Pair Generator | Local RSA 2048/4096 & EC P-256/P-384 key pairs, PEM export, link to JWT verify |
 
 ### Calculators
 
 | Tool | Description |
 |------|------|
 | Cron Parser | Visual field editor, local timezone, next 5 execution times with relative countdown |
-| Subnet Calculator | IPv4/IPv6 CIDR input, output network/broadcast/mask/host range |
+| Subnet Calculator | IPv4/IPv6 CIDR with VLSM splitting, network/broadcast/mask/host range |
 | Chmod Calculator | Octal/symbolic permission conversion with rwx bit visualization |
 
 ## Keyboard Shortcuts
 
 ### Global
 
-- `Ctrl+K` — Open/close global search (supports deep links to encoding conversion sub-tabs like yaml, toml, json)
+- `Ctrl+K` — Open/close global search (supports deep links to encoding conversion, developer reference tabs, etc.)
 - Search overlay: `↑` / `↓` navigate, `Enter` open, `Esc` close
 
 ### In-Page
@@ -125,6 +127,8 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/chmod-calculator` | Chmod Calculator |
 | `/http-status-codes` | HTTP Status Codes Reference |
 | `/connection-string-parser` | Database Connection String Parser |
+| `/dev-reference` | Developer Reference (`?tab=mime` / `git` / `http-methods`) |
+| `/key-pair-generator` | RSA/EC Key Pair Generator |
 | `/certificate-parser` | Certificate PEM Parser |
 | `/qr-code-generator` | QR Code Generator |
 

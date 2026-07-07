@@ -29,6 +29,8 @@ export default {
       httpStatusCodes: 'HTTP 状态码',
       certificateParser: '证书解析',
       connectionStringParser: '连接字符串解析',
+      keyPairGenerator: '密钥对生成',
+      devReference: '开发速查',
       qrCodeGenerator: '二维码生成',
       settings: '设置',
       about: '关于',

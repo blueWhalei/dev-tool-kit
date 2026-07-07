@@ -15,6 +15,8 @@ export * from './chmod'
 export * from './http-status-codes'
 export * from './xml-sql'
 export * from './connection-string'
+export * from './dev-reference'
+export * from './diceware-words'
 
 // Formatting utilities
 export function formatBytes(bytes: number, decimals = 2): string {

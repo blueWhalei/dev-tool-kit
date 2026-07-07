@@ -294,3 +294,4 @@ export interface OperationResult {
 }
 
 export * from './certificate'
+export * from './key-pair'

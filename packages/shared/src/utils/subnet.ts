@@ -285,3 +285,99 @@ export function parseCidr(input: string): ConverterResult<SubnetInfo> {
 
   return parseIpv6Cidr(addr, prefix)
 }
+
+export interface VlsmSubnet {
+  cidr: string
+  network: string
+  broadcast: string
+  prefix: number
+  usableHosts: number
+}
+
+function hostsToPrefix(hostCount: number): number | null {
+  if (!Number.isInteger(hostCount) || hostCount < 1) return null
+  const needed = hostCount + 2
+  let bits = 0
+  let size = 1
+  while (size < needed && bits < 32) {
+    size <<= 1
+    bits++
+  }
+  if (size < needed) return null
+  return 32 - bits
+}
+
+export function splitVlsm(baseCidr: string, hostCounts: number[]): ConverterResult<VlsmSubnet[]> {
+  const base = parseCidr(baseCidr.trim())
+  if (!base.success || !base.result) {
+    return { success: false, error: base.error ?? '请输入有效的 CIDR' }
+  }
+  if (base.result.version !== 'ipv4') {
+    return { success: false, error: 'VLSM 拆分仅支持 IPv4' }
+  }
+
+  const counts = hostCounts.filter(n => Number.isInteger(n) && n > 0)
+  if (counts.length === 0) {
+    return { success: false, error: '请至少输入一个有效的主机数量' }
+  }
+
+  const baseNetwork = ipToNumber(base.result.network)
+  const baseBroadcast = ipToNumber(base.result.broadcast ?? base.result.network)
+  if (baseNetwork === null || baseBroadcast === null) {
+    return { success: false, error: 'CIDR 解析失败' }
+  }
+
+  const prefixes: number[] = []
+  for (const count of counts) {
+    const prefix = hostsToPrefix(count)
+    if (prefix === null || prefix < base.result.prefix) {
+      return { success: false, error: '主机数量超出父网可用范围' }
+    }
+    prefixes.push(prefix)
+  }
+
+  const subnets: VlsmSubnet[] = []
+  let cursor = baseNetwork
+
+  for (let i = 0; i < counts.length; i++) {
+    const prefix = prefixes[i]
+    const mask = prefixToMask(prefix)
+    const blockSize = 1 << (32 - prefix)
+    const offset = cursor - baseNetwork
+    if (offset % blockSize !== 0) {
+      return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+    }
+    const network = cursor
+    const broadcast = (network | ((~mask) >>> 0)) >>> 0
+    const blockEnd = broadcast
+
+    if (network < baseNetwork || blockEnd > baseBroadcast) {
+      return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+    }
+
+    const totalHosts = 1 << (32 - prefix)
+    let usableHosts: number
+    if (prefix >= 31) {
+      usableHosts = prefix === 31 ? 2 : 1
+    } else {
+      usableHosts = totalHosts - 2
+    }
+
+    subnets.push({
+      cidr: `${numberToIp(network)}/${prefix}`,
+      network: numberToIp(network),
+      broadcast: numberToIp(broadcast),
+      prefix,
+      usableHosts
+    })
+
+    cursor = broadcast + 1
+    if (cursor > baseBroadcast + 1) break
+  }
+
+  if (cursor - 1 > baseBroadcast) {
+    return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+  }
+
+  return { success: true, result: subnets }
+}
