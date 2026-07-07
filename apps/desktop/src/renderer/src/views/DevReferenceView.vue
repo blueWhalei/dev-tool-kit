@@ -147,11 +147,25 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
     :description="page.description"
     container-class="dev-reference-view"
   >
-    <NTabs v-model:value="activeTab" type="line" animated>
-      <NTabPane name="mime" :tab="page.t('tabs.mime')">
-        <NCard class="filter-card" :bordered="false">
+    <NTabs
+      v-model:value="activeTab"
+      type="line"
+      animated
+    >
+      <NTabPane
+        name="mime"
+        :tab="page.t('tabs.mime')"
+      >
+        <NCard
+          class="filter-card"
+          :bordered="false"
+        >
           <span class="field-label">{{ page.t('labels.search') }}</span>
-          <NInput v-model:value="mimeQuery" :placeholder="page.t('placeholders.searchMime')" clearable />
+          <NInput
+            v-model:value="mimeQuery"
+            :placeholder="page.t('placeholders.searchMime')"
+            clearable
+          />
         </NCard>
         <NDataTable
           :columns="mimeColumns"
@@ -161,23 +175,46 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
           :max-height="520"
           class="ref-table"
         />
-        <p v-if="filteredMime.length === 0" class="empty-hint">{{ page.t('labels.noResults') }}</p>
+        <p
+          v-if="filteredMime.length === 0"
+          class="empty-hint"
+        >
+          {{ page.t('labels.noResults') }}
+        </p>
       </NTabPane>
 
-      <NTabPane name="git" :tab="page.t('tabs.git')">
-        <NCard class="filter-card" :bordered="false">
+      <NTabPane
+        name="git"
+        :tab="page.t('tabs.git')"
+      >
+        <NCard
+          class="filter-card"
+          :bordered="false"
+        >
           <div class="filter-row">
             <div class="filter-field">
               <span class="field-label">{{ page.t('labels.search') }}</span>
-              <NInput v-model:value="gitQuery" :placeholder="page.t('placeholders.searchGit')" clearable />
+              <NInput
+                v-model:value="gitQuery"
+                :placeholder="page.t('placeholders.searchGit')"
+                clearable
+              />
             </div>
             <div class="filter-field category-field">
               <span class="field-label">{{ page.t('labels.category') }}</span>
-              <NSelect v-model:value="gitCategory" :options="gitCategoryOptions" />
+              <NSelect
+                v-model:value="gitCategory"
+                :options="gitCategoryOptions"
+              />
             </div>
           </div>
         </NCard>
-        <div v-if="filteredGit.length === 0" class="empty-hint">{{ page.t('labels.noResults') }}</div>
+        <div
+          v-if="filteredGit.length === 0"
+          class="empty-hint"
+        >
+          {{ page.t('labels.noResults') }}
+        </div>
         <NCard
           v-for="template in filteredGit"
           :key="template.id"
@@ -186,50 +223,104 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
         >
           <div class="git-header">
             <div>
-              <div class="git-title">{{ gitTitle(template) }}</div>
-              <div class="git-desc">{{ gitDescription(template) }}</div>
+              <div class="git-title">
+                {{ gitTitle(template) }}
+              </div>
+              <div class="git-desc">
+                {{ gitDescription(template) }}
+              </div>
             </div>
-            <NTag size="small" :bordered="false">{{ page.t(`gitCategories.${template.category}`) }}</NTag>
+            <NTag
+              size="small"
+              :bordered="false"
+            >
+              {{ page.t(`gitCategories.${template.category}`) }}
+            </NTag>
           </div>
-          <div v-if="template.params.length" class="git-params">
+          <div
+            v-if="template.params.length"
+            class="git-params"
+          >
             <span class="field-label">{{ page.t('labels.params') }}</span>
-            <div class="param-row" v-for="param in template.params" :key="param.key">
+            <div
+              v-for="param in template.params"
+              :key="param.key"
+              class="param-row"
+            >
               <span class="param-label">{{ localeKey === 'zh' ? param.labelZh : param.labelEn }}</span>
               <NInput
                 :value="ensureGitParams(template)[param.key] ?? ''"
-                @update:value="(v: string) => setGitParam(template.id, param.key, v)"
                 :placeholder="param.placeholder"
                 size="small"
+                @update:value="(v: string) => setGitParam(template.id, param.key, v)"
               />
             </div>
           </div>
           <div class="command-row">
             <code class="command-text">{{ builtGitCommand(template) }}</code>
-            <NButton size="small" @click="copy(builtGitCommand(template), page.t('messages.copiedCommand'))">
+            <NButton
+              size="small"
+              @click="copy(builtGitCommand(template), page.t('messages.copiedCommand'))"
+            >
               {{ t('common.copy') }}
             </NButton>
           </div>
         </NCard>
       </NTabPane>
 
-      <NTabPane name="http-methods" :tab="page.t('tabs.httpMethods')">
-        <NCard class="filter-card" :bordered="false">
+      <NTabPane
+        name="http-methods"
+        :tab="page.t('tabs.httpMethods')"
+      >
+        <NCard
+          class="filter-card"
+          :bordered="false"
+        >
           <span class="field-label">{{ page.t('labels.search') }}</span>
-          <NInput v-model:value="httpQuery" :placeholder="page.t('placeholders.searchHttp')" clearable />
+          <NInput
+            v-model:value="httpQuery"
+            :placeholder="page.t('placeholders.searchHttp')"
+            clearable
+          />
         </NCard>
-        <div v-if="filteredHttp.length === 0" class="empty-hint">{{ page.t('labels.noResults') }}</div>
-        <NCard v-for="entry in filteredHttp" :key="entry.method" class="http-card" :bordered="false">
+        <div
+          v-if="filteredHttp.length === 0"
+          class="empty-hint"
+        >
+          {{ page.t('labels.noResults') }}
+        </div>
+        <NCard
+          v-for="entry in filteredHttp"
+          :key="entry.method"
+          class="http-card"
+          :bordered="false"
+        >
           <div class="http-header">
-            <NTag type="info" size="medium">{{ entry.method }}</NTag>
-            <NTag size="small" :bordered="false">
+            <NTag
+              type="info"
+              size="medium"
+            >
+              {{ entry.method }}
+            </NTag>
+            <NTag
+              size="small"
+              :bordered="false"
+            >
               {{ page.t('labels.safe') }}: {{ entry.safe ? page.t('bool.yes') : page.t('bool.no') }}
             </NTag>
-            <NTag size="small" :bordered="false">
+            <NTag
+              size="small"
+              :bordered="false"
+            >
               {{ page.t('labels.idempotent') }}: {{ entry.idempotent ? page.t('bool.yes') : page.t('bool.no') }}
             </NTag>
           </div>
-          <p class="http-desc">{{ httpDescription(entry) }}</p>
-          <p class="http-use"><strong>{{ page.t('labels.typicalUse') }}:</strong> {{ httpTypicalUse(entry) }}</p>
+          <p class="http-desc">
+            {{ httpDescription(entry) }}
+          </p>
+          <p class="http-use">
+            <strong>{{ page.t('labels.typicalUse') }}:</strong> {{ httpTypicalUse(entry) }}
+          </p>
         </NCard>
       </NTabPane>
     </NTabs>

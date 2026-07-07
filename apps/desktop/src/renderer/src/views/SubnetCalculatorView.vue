@@ -107,9 +107,20 @@ calculate()
     :description="page.description"
     container-class="subnet-calculator-view page-container--narrow"
   >
-    <NTabs v-model:value="activeTab" type="line" animated class="subnet-tabs">
-      <NTabPane name="single" :tab="page.t('tabs.single')">
-        <NCard class="input-card" :bordered="false">
+    <NTabs
+      v-model:value="activeTab"
+      type="line"
+      animated
+      class="subnet-tabs"
+    >
+      <NTabPane
+        name="single"
+        :tab="page.t('tabs.single')"
+      >
+        <NCard
+          class="input-card"
+          :bordered="false"
+        >
           <div class="input-row">
             <NInput
               v-model:value="cidrInput"
@@ -117,19 +128,50 @@ calculate()
               class="cidr-input"
               @keyup.enter="calculate"
             />
-            <NButton type="primary" @click="calculate">{{ page.t('buttons.calculate') }}</NButton>
-            <NButton @click="copyResult" :disabled="!result">{{ page.t('buttons.copyResult') }}</NButton>
-            <NButton quaternary @click="openPortManager">{{ page.t('buttons.openPortManager') }}</NButton>
+            <NButton
+              type="primary"
+              @click="calculate"
+            >
+              {{ page.t('buttons.calculate') }}
+            </NButton>
+            <NButton
+              :disabled="!result"
+              @click="copyResult"
+            >
+              {{ page.t('buttons.copyResult') }}
+            </NButton>
+            <NButton
+              quaternary
+              @click="openPortManager"
+            >
+              {{ page.t('buttons.openPortManager') }}
+            </NButton>
           </div>
         </NCard>
 
-        <NCard v-if="result" class="result-card" :bordered="false">
+        <NCard
+          v-if="result"
+          class="result-card"
+          :bordered="false"
+        >
           <div class="result-header">
             <span class="result-header-label">{{ page.t('labels.version') }}</span>
-            <NTag size="small" :type="result.version === 'ipv4' ? 'info' : 'success'">{{ versionLabel }}</NTag>
+            <NTag
+              size="small"
+              :type="result.version === 'ipv4' ? 'info' : 'success'"
+            >
+              {{ versionLabel }}
+            </NTag>
           </div>
-          <NGrid :cols="2" :x-gap="16" :y-gap="12">
-            <NGridItem v-for="row in resultRows" :key="row.label">
+          <NGrid
+            :cols="2"
+            :x-gap="16"
+            :y-gap="12"
+          >
+            <NGridItem
+              v-for="row in resultRows"
+              :key="row.label"
+            >
               <div class="result-row">
                 <span class="result-label">{{ row.label }}</span>
                 <code class="result-value">{{ row.value }}</code>
@@ -139,9 +181,17 @@ calculate()
         </NCard>
       </NTabPane>
 
-      <NTabPane name="vlsm" :tab="page.t('tabs.vlsm')">
-        <NCard class="input-card" :bordered="false">
-          <div class="section-title">{{ page.t('labels.vlsm') }}</div>
+      <NTabPane
+        name="vlsm"
+        :tab="page.t('tabs.vlsm')"
+      >
+        <NCard
+          class="input-card"
+          :bordered="false"
+        >
+          <div class="section-title">
+            {{ page.t('labels.vlsm') }}
+          </div>
           <div class="input-row">
             <NInput
               v-model:value="cidrInput"
@@ -155,12 +205,23 @@ calculate()
               class="host-counts-input"
               @keyup.enter="splitVlsmSubnets"
             />
-            <NButton type="primary" @click="splitVlsmSubnets">{{ page.t('buttons.splitVlsm') }}</NButton>
+            <NButton
+              type="primary"
+              @click="splitVlsmSubnets"
+            >
+              {{ page.t('buttons.splitVlsm') }}
+            </NButton>
           </div>
         </NCard>
 
-        <NCard v-if="vlsmResult?.length" class="result-card" :bordered="false">
-          <div class="section-title">{{ page.t('labels.vlsmResult') }}</div>
+        <NCard
+          v-if="vlsmResult?.length"
+          class="result-card"
+          :bordered="false"
+        >
+          <div class="section-title">
+            {{ page.t('labels.vlsmResult') }}
+          </div>
           <NDataTable
             :columns="vlsmColumns"
             :data="vlsmResult"

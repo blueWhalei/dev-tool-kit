@@ -432,14 +432,32 @@ useKeyboardShortcut((event) => {
     :description="page.description"
     container-class="code-converter-view page-container--wide"
   >
-    <NRadioGroup v-model:value="activeCategory" class="category-tabs">
-      <NRadioButton value="encode">{{ page.t('categories.encode') }}</NRadioButton>
-      <NRadioButton value="structure">{{ page.t('categories.structure') }}</NRadioButton>
-      <NRadioButton value="utility">{{ page.t('categories.utility') }}</NRadioButton>
+    <NRadioGroup
+      v-model:value="activeCategory"
+      class="category-tabs"
+    >
+      <NRadioButton value="encode">
+        {{ page.t('categories.encode') }}
+      </NRadioButton>
+      <NRadioButton value="structure">
+        {{ page.t('categories.structure') }}
+      </NRadioButton>
+      <NRadioButton value="utility">
+        {{ page.t('categories.utility') }}
+      </NRadioButton>
     </NRadioGroup>
 
-    <NTabs v-model:value="activeTab" type="line" animated class="converter-tabs">
-      <NTabPane v-if="showTab('base64')" name="base64" :tab="page.t('tabs.base64')">
+    <NTabs
+      v-model:value="activeTab"
+      type="line"
+      animated
+      class="converter-tabs"
+    >
+      <NTabPane
+        v-if="showTab('base64')"
+        name="base64"
+        :tab="page.t('tabs.base64')"
+      >
         <ToolDualPanel
           v-model:input="base64Input"
           v-model:output="base64Output"
@@ -449,12 +467,23 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.timestampResult')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleBase64Encode">{{ page.t('actions.encode') }}</NButton>
-          <NButton @click="handleBase64Decode">{{ page.t('actions.decode') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleBase64Encode"
+          >
+            {{ page.t('actions.encode') }}
+          </NButton>
+          <NButton @click="handleBase64Decode">
+            {{ page.t('actions.decode') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('url')" name="url" :tab="page.t('tabs.url')">
+      <NTabPane
+        v-if="showTab('url')"
+        name="url"
+        :tab="page.t('tabs.url')"
+      >
         <ToolDualPanel
           v-model:input="urlInput"
           v-model:output="urlOutput"
@@ -464,12 +493,23 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.timestampResult')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleUrlEncode">{{ page.t('actions.encode') }}</NButton>
-          <NButton @click="handleUrlDecode">{{ page.t('actions.decode') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleUrlEncode"
+          >
+            {{ page.t('actions.encode') }}
+          </NButton>
+          <NButton @click="handleUrlDecode">
+            {{ page.t('actions.decode') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('json')" name="json" :tab="page.t('tabs.json')">
+      <NTabPane
+        v-if="showTab('json')"
+        name="json"
+        :tab="page.t('tabs.json')"
+      >
         <ToolDualPanel
           v-model:input="jsonInput"
           v-model:output="jsonOutput"
@@ -479,26 +519,48 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.timestampResult')"
         />
         <div class="action-bar json-action-bar">
-          <NButton type="primary" @click="handleJsonFormat">{{ page.t('actions.format') }}</NButton>
-          <NButton @click="handleJsonMinify">{{ page.t('actions.minify') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleJsonFormat"
+          >
+            {{ page.t('actions.format') }}
+          </NButton>
+          <NButton @click="handleJsonMinify">
+            {{ page.t('actions.minify') }}
+          </NButton>
         </div>
 
         <div class="json-extras-grid">
-          <NCard v-if="jsonParsedValue !== null" class="editor-card json-tree-card" :bordered="false">
+          <NCard
+            v-if="jsonParsedValue !== null"
+            class="editor-card json-tree-card"
+            :bordered="false"
+          >
             <template #header>
               <span class="card-title">{{ page.t('labels.jsonTree') }}</span>
             </template>
             <JsonTreeView :value="jsonParsedValue" />
           </NCard>
 
-          <NCard class="editor-card json-schema-card" :bordered="false">
+          <NCard
+            class="editor-card json-schema-card"
+            :bordered="false"
+          >
             <template #header>
               <div class="card-header-flex">
                 <span class="card-title">{{ page.t('labels.jsonSchema') }}</span>
-                <NTag v-if="schemaValidationValid === true" type="success" size="small">
+                <NTag
+                  v-if="schemaValidationValid === true"
+                  type="success"
+                  size="small"
+                >
                   {{ page.t('messages.schemaValid') }}
                 </NTag>
-                <NTag v-else-if="schemaValidationValid === false" type="error" size="small">
+                <NTag
+                  v-else-if="schemaValidationValid === false"
+                  type="error"
+                  size="small"
+                >
                   {{ page.t('messages.schemaInvalid') }}
                 </NTag>
               </div>
@@ -518,17 +580,36 @@ useKeyboardShortcut((event) => {
             >
               {{ schemaValidationError }}
             </NAlert>
-            <ul v-else-if="schemaErrorLines.length" class="schema-errors">
-              <li v-for="(line, index) in schemaErrorLines" :key="index">{{ line }}</li>
+            <ul
+              v-else-if="schemaErrorLines.length"
+              class="schema-errors"
+            >
+              <li
+                v-for="(line, index) in schemaErrorLines"
+                :key="index"
+              >
+                {{ line }}
+              </li>
             </ul>
           </NCard>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('timestamp')" name="timestamp" :tab="page.t('tabs.timestamp')">
-        <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
+      <NTabPane
+        v-if="showTab('timestamp')"
+        name="timestamp"
+        :tab="page.t('tabs.timestamp')"
+      >
+        <NGrid
+          cols="1 768:2"
+          :x-gap="16"
+          :y-gap="16"
+        >
           <NGridItem>
-            <NCard class="editor-card" :bordered="false">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+            >
               <template #header>
                 <span class="card-title">{{ page.t('labels.input') }}</span>
               </template>
@@ -542,68 +623,176 @@ useKeyboardShortcut((event) => {
             </NCard>
           </NGridItem>
           <NGridItem>
-            <NCard class="editor-card" :bordered="false">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+            >
               <template #header>
                 <span class="card-title">{{ page.t('labels.output') }}</span>
               </template>
-              <div v-if="timestampResult" class="result-box">
-                <div class="result-item"><span class="result-label">{{ page.t('labels.unixSeconds') }}</span> {{ timestampResult.unix }}</div>
-                <div class="result-item"><span class="result-label">{{ page.t('labels.millis') }}</span> {{ timestampResult.millis ?? timestampResult.timestamp }}</div>
-                <div class="result-item"><span class="result-label">{{ page.t('labels.iso') }}</span> {{ timestampResult.iso ?? timestampResult.date }}</div>
-                <div class="result-item"><span class="result-label">{{ page.t('labels.utc') }}</span> {{ timestampResult.utc }}</div>
-                <div class="result-item"><span class="result-label">{{ page.t('labels.local') }}</span> {{ timestampResult.local }}</div>
+              <div
+                v-if="timestampResult"
+                class="result-box"
+              >
+                <div class="result-item">
+                  <span class="result-label">{{ page.t('labels.unixSeconds') }}</span> {{ timestampResult.unix }}
+                </div>
+                <div class="result-item">
+                  <span class="result-label">{{ page.t('labels.millis') }}</span> {{ timestampResult.millis ?? timestampResult.timestamp }}
+                </div>
+                <div class="result-item">
+                  <span class="result-label">{{ page.t('labels.iso') }}</span> {{ timestampResult.iso ?? timestampResult.date }}
+                </div>
+                <div class="result-item">
+                  <span class="result-label">{{ page.t('labels.utc') }}</span> {{ timestampResult.utc }}
+                </div>
+                <div class="result-item">
+                  <span class="result-label">{{ page.t('labels.local') }}</span> {{ timestampResult.local }}
+                </div>
               </div>
-              <div v-else class="result-placeholder">{{ page.t('placeholders.timestampResult') }}</div>
+              <div
+                v-else
+                class="result-placeholder"
+              >
+                {{ page.t('placeholders.timestampResult') }}
+              </div>
             </NCard>
           </NGridItem>
         </NGrid>
         <div class="action-bar">
-          <NButton type="primary" @click="handleTimestampConvert">{{ page.t('actions.convert') }}</NButton>
-          <NButton @click="timestampInput = String(Math.floor(Date.now() / 1000))">{{ page.t('actions.now') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleTimestampConvert"
+          >
+            {{ page.t('actions.convert') }}
+          </NButton>
+          <NButton @click="timestampInput = String(Math.floor(Date.now() / 1000))">
+            {{ page.t('actions.now') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('number')" name="number" :tab="page.t('tabs.radix')">
-        <NCard class="editor-card" :bordered="false">
+      <NTabPane
+        v-if="showTab('number')"
+        name="number"
+        :tab="page.t('tabs.radix')"
+      >
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
           <div class="number-converter">
             <div class="number-input-section">
               <span class="section-label">{{ page.t('labels.inputNumber') }}</span>
-              <NInput v-model:value="numberInput" :placeholder="page.t('placeholders.number')" class="number-input" />
+              <NInput
+                v-model:value="numberInput"
+                :placeholder="page.t('placeholders.number')"
+                class="number-input"
+              />
             </div>
             <div class="base-selector">
               <span class="section-label">{{ page.t('labels.from') }}</span>
               <NSpace>
-                <NButton :type="fromBase === 2 ? 'primary' : 'default'" size="small" @click="fromBase = 2">{{ page.t('bases.binary') }}</NButton>
-                <NButton :type="fromBase === 8 ? 'primary' : 'default'" size="small" @click="fromBase = 8">{{ page.t('bases.octal') }}</NButton>
-                <NButton :type="fromBase === 10 ? 'primary' : 'default'" size="small" @click="fromBase = 10">{{ page.t('bases.decimal') }}</NButton>
-                <NButton :type="fromBase === 16 ? 'primary' : 'default'" size="small" @click="fromBase = 16">{{ page.t('bases.hexadecimal') }}</NButton>
+                <NButton
+                  :type="fromBase === 2 ? 'primary' : 'default'"
+                  size="small"
+                  @click="fromBase = 2"
+                >
+                  {{ page.t('bases.binary') }}
+                </NButton>
+                <NButton
+                  :type="fromBase === 8 ? 'primary' : 'default'"
+                  size="small"
+                  @click="fromBase = 8"
+                >
+                  {{ page.t('bases.octal') }}
+                </NButton>
+                <NButton
+                  :type="fromBase === 10 ? 'primary' : 'default'"
+                  size="small"
+                  @click="fromBase = 10"
+                >
+                  {{ page.t('bases.decimal') }}
+                </NButton>
+                <NButton
+                  :type="fromBase === 16 ? 'primary' : 'default'"
+                  size="small"
+                  @click="fromBase = 16"
+                >
+                  {{ page.t('bases.hexadecimal') }}
+                </NButton>
               </NSpace>
             </div>
             <div class="base-selector">
               <span class="section-label">{{ page.t('labels.to') }}</span>
               <NSpace>
-                <NButton :type="toBase === 2 ? 'primary' : 'default'" size="small" @click="toBase = 2">{{ page.t('bases.binary') }}</NButton>
-                <NButton :type="toBase === 8 ? 'primary' : 'default'" size="small" @click="toBase = 8">{{ page.t('bases.octal') }}</NButton>
-                <NButton :type="toBase === 10 ? 'primary' : 'default'" size="small" @click="toBase = 10">{{ page.t('bases.decimal') }}</NButton>
-                <NButton :type="toBase === 16 ? 'primary' : 'default'" size="small" @click="toBase = 16">{{ page.t('bases.hexadecimal') }}</NButton>
+                <NButton
+                  :type="toBase === 2 ? 'primary' : 'default'"
+                  size="small"
+                  @click="toBase = 2"
+                >
+                  {{ page.t('bases.binary') }}
+                </NButton>
+                <NButton
+                  :type="toBase === 8 ? 'primary' : 'default'"
+                  size="small"
+                  @click="toBase = 8"
+                >
+                  {{ page.t('bases.octal') }}
+                </NButton>
+                <NButton
+                  :type="toBase === 10 ? 'primary' : 'default'"
+                  size="small"
+                  @click="toBase = 10"
+                >
+                  {{ page.t('bases.decimal') }}
+                </NButton>
+                <NButton
+                  :type="toBase === 16 ? 'primary' : 'default'"
+                  size="small"
+                  @click="toBase = 16"
+                >
+                  {{ page.t('bases.hexadecimal') }}
+                </NButton>
               </NSpace>
             </div>
           </div>
         </NCard>
         <div class="action-bar">
-          <NButton type="primary" @click="handleNumberBase">{{ page.t('actions.convert') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleNumberBase"
+          >
+            {{ page.t('actions.convert') }}
+          </NButton>
         </div>
-        <NCard v-if="numberOutput" class="editor-card result-card" :bordered="false">
+        <NCard
+          v-if="numberOutput"
+          class="editor-card result-card"
+          :bordered="false"
+        >
           <div class="result-box">
             <span class="result-label">{{ page.t('labels.result') }}</span>
             <code class="result-code">{{ numberOutput }}</code>
-            <NButton size="small" @click="copyToClipboard(numberOutput)">{{ page.t('actions.copy') }}</NButton>
+            <NButton
+              size="small"
+              @click="copyToClipboard(numberOutput)"
+            >
+              {{ page.t('actions.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NTabPane>
 
-      <NTabPane v-if="showTab('case')" name="case" :tab="page.t('tabs.naming')">
-        <NCard class="editor-card" :bordered="false">
+      <NTabPane
+        v-if="showTab('case')"
+        name="case"
+        :tab="page.t('tabs.naming')"
+      >
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
           <template #header>
             <span class="card-title">{{ page.t('labels.input') }}</span>
           </template>
@@ -615,22 +804,44 @@ useKeyboardShortcut((event) => {
             class="code-input"
           />
         </NCard>
-        <NCard v-if="caseFormats" class="editor-card result-card" :bordered="false">
+        <NCard
+          v-if="caseFormats"
+          class="editor-card result-card"
+          :bordered="false"
+        >
           <template #header>
             <span class="card-title">{{ page.t('labels.allFormats') }}</span>
           </template>
           <div class="case-results">
-            <div v-for="item in caseFormatRows" :key="item.label" class="case-result-row">
+            <div
+              v-for="item in caseFormatRows"
+              :key="item.label"
+              class="case-result-row"
+            >
               <span class="result-label">{{ item.label }}</span>
               <code class="result-code">{{ item.value }}</code>
-              <NButton size="tiny" @click="copyToClipboard(item.value)">{{ page.t('actions.copy') }}</NButton>
+              <NButton
+                size="tiny"
+                @click="copyToClipboard(item.value)"
+              >
+                {{ page.t('actions.copy') }}
+              </NButton>
             </div>
           </div>
         </NCard>
-        <div v-else-if="caseInput.trim()" class="result-placeholder case-empty">{{ page.t('placeholders.namingEmpty') }}</div>
+        <div
+          v-else-if="caseInput.trim()"
+          class="result-placeholder case-empty"
+        >
+          {{ page.t('placeholders.namingEmpty') }}
+        </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('html')" name="html" :tab="page.t('tabs.html')">
+      <NTabPane
+        v-if="showTab('html')"
+        name="html"
+        :tab="page.t('tabs.html')"
+      >
         <ToolDualPanel
           v-model:input="htmlInput"
           v-model:output="htmlOutput"
@@ -640,12 +851,23 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.timestampResult')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleHtmlEncode">{{ page.t('actions.encode') }}</NButton>
-          <NButton @click="handleHtmlDecode">{{ page.t('actions.decode') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleHtmlEncode"
+          >
+            {{ page.t('actions.encode') }}
+          </NButton>
+          <NButton @click="handleHtmlDecode">
+            {{ page.t('actions.decode') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('yaml')" name="yaml" :tab="page.t('tabs.yaml')">
+      <NTabPane
+        v-if="showTab('yaml')"
+        name="yaml"
+        :tab="page.t('tabs.yaml')"
+      >
         <ToolDualPanel
           v-model:input="yamlInput"
           v-model:output="yamlOutput"
@@ -655,14 +877,29 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.yamlOutput')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleYamlToJson">{{ page.t('actions.yamlToJson') }}</NButton>
-          <NButton @click="handleJsonToYaml">{{ page.t('actions.jsonToYaml') }}</NButton>
-          <NButton @click="handleYamlFormat">{{ page.t('actions.format') }}</NButton>
-          <NButton @click="handleYamlMinify">{{ page.t('actions.minify') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleYamlToJson"
+          >
+            {{ page.t('actions.yamlToJson') }}
+          </NButton>
+          <NButton @click="handleJsonToYaml">
+            {{ page.t('actions.jsonToYaml') }}
+          </NButton>
+          <NButton @click="handleYamlFormat">
+            {{ page.t('actions.format') }}
+          </NButton>
+          <NButton @click="handleYamlMinify">
+            {{ page.t('actions.minify') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('toml')" name="toml" :tab="page.t('tabs.toml')">
+      <NTabPane
+        v-if="showTab('toml')"
+        name="toml"
+        :tab="page.t('tabs.toml')"
+      >
         <ToolDualPanel
           v-model:input="tomlInput"
           v-model:output="tomlOutput"
@@ -672,13 +909,26 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.tomlOutput')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleTomlToJson">{{ page.t('actions.tomlToJson') }}</NButton>
-          <NButton @click="handleJsonToToml">{{ page.t('actions.jsonToToml') }}</NButton>
-          <NButton @click="handleTomlFormat">{{ page.t('actions.format') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleTomlToJson"
+          >
+            {{ page.t('actions.tomlToJson') }}
+          </NButton>
+          <NButton @click="handleJsonToToml">
+            {{ page.t('actions.jsonToToml') }}
+          </NButton>
+          <NButton @click="handleTomlFormat">
+            {{ page.t('actions.format') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('xml')" name="xml" :tab="page.t('tabs.xml')">
+      <NTabPane
+        v-if="showTab('xml')"
+        name="xml"
+        :tab="page.t('tabs.xml')"
+      >
         <ToolDualPanel
           v-model:input="xmlInput"
           v-model:output="xmlOutput"
@@ -688,12 +938,23 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.xmlOutput')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleXmlFormat">{{ page.t('actions.format') }}</NButton>
-          <NButton @click="handleXmlMinify">{{ page.t('actions.minify') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleXmlFormat"
+          >
+            {{ page.t('actions.format') }}
+          </NButton>
+          <NButton @click="handleXmlMinify">
+            {{ page.t('actions.minify') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('sql')" name="sql" :tab="page.t('tabs.sql')">
+      <NTabPane
+        v-if="showTab('sql')"
+        name="sql"
+        :tab="page.t('tabs.sql')"
+      >
         <ToolDualPanel
           v-model:input="sqlInput"
           v-model:output="sqlOutput"
@@ -703,31 +964,72 @@ useKeyboardShortcut((event) => {
           :output-placeholder="page.t('placeholders.sqlOutput')"
         />
         <div class="action-bar">
-          <NButton type="primary" @click="handleSqlFormat">{{ page.t('actions.format') }}</NButton>
-          <NButton @click="handleSqlMinify">{{ page.t('actions.minify') }}</NButton>
+          <NButton
+            type="primary"
+            @click="handleSqlFormat"
+          >
+            {{ page.t('actions.format') }}
+          </NButton>
+          <NButton @click="handleSqlMinify">
+            {{ page.t('actions.minify') }}
+          </NButton>
         </div>
       </NTabPane>
 
-      <NTabPane v-if="showTab('image')" name="image" :tab="page.t('tabs.image')">
+      <NTabPane
+        v-if="showTab('image')"
+        name="image"
+        :tab="page.t('tabs.image')"
+      >
         <div class="image-base64-panel">
-          <NCard class="editor-card" :bordered="false">
+          <NCard
+            class="editor-card"
+            :bordered="false"
+          >
             <template #header>
               <div class="card-header-flex">
                 <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
-                <NTag v-if="imageFileName" size="small" :bordered="false">{{ imageFileName }}</NTag>
+                <NTag
+                  v-if="imageFileName"
+                  size="small"
+                  :bordered="false"
+                >
+                  {{ imageFileName }}
+                </NTag>
               </div>
             </template>
             <div class="image-actions">
-              <NButton type="primary" :loading="imageLoading" @click="pickImageFile">
+              <NButton
+                type="primary"
+                :loading="imageLoading"
+                @click="pickImageFile"
+              >
                 {{ page.t('actions.pickImage') }}
               </NButton>
-              <NButton v-if="imageBase64" @click="copyImageBase64">{{ page.t('actions.copyBase64') }}</NButton>
-              <NButton v-if="imageDataUri" @click="copyImageDataUri">{{ page.t('actions.copyDataUri') }}</NButton>
-              <NButton v-if="imageBase64" quaternary @click="useImageBase64ForDecode">
+              <NButton
+                v-if="imageBase64"
+                @click="copyImageBase64"
+              >
+                {{ page.t('actions.copyBase64') }}
+              </NButton>
+              <NButton
+                v-if="imageDataUri"
+                @click="copyImageDataUri"
+              >
+                {{ page.t('actions.copyDataUri') }}
+              </NButton>
+              <NButton
+                v-if="imageBase64"
+                quaternary
+                @click="useImageBase64ForDecode"
+              >
                 {{ page.t('actions.useForDecode') }}
               </NButton>
             </div>
-            <div v-if="imageBase64" class="image-meta">
+            <div
+              v-if="imageBase64"
+              class="image-meta"
+            >
               <span>{{ page.t('labels.mimeType') }}: {{ imageMimeType }}</span>
               <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(imageSize) }}</span>
             </div>
@@ -741,13 +1043,20 @@ useKeyboardShortcut((event) => {
             />
           </NCard>
 
-          <NCard class="editor-card" :bordered="false">
+          <NCard
+            class="editor-card"
+            :bordered="false"
+          >
             <template #header>
               <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
             </template>
             <div class="decode-mime-row">
               <span class="section-label">{{ page.t('labels.mimeType') }}</span>
-              <NInput v-model:value="imageDecodeMime" :placeholder="page.t('placeholders.mimeType')" style="max-width: 220px" />
+              <NInput
+                v-model:value="imageDecodeMime"
+                :placeholder="page.t('placeholders.mimeType')"
+                style="max-width: 220px"
+              />
             </div>
             <NInput
               v-model:value="imageDecodeInput"
@@ -756,10 +1065,22 @@ useKeyboardShortcut((event) => {
               :placeholder="page.t('placeholders.imageBase64')"
               class="code-input"
             />
-            <div v-if="imagePreviewVisible" class="image-preview-wrap">
-              <img :src="imagePreviewUri" :alt="page.t('labels.preview')" class="image-preview" />
+            <div
+              v-if="imagePreviewVisible"
+              class="image-preview-wrap"
+            >
+              <img
+                :src="imagePreviewUri"
+                :alt="page.t('labels.preview')"
+                class="image-preview"
+              >
             </div>
-            <p v-else-if="imageDecodeInput.trim()" class="preview-hint">{{ page.t('messages.invalidImageBase64') }}</p>
+            <p
+              v-else-if="imageDecodeInput.trim()"
+              class="preview-hint"
+            >
+              {{ page.t('messages.invalidImageBase64') }}
+            </p>
           </NCard>
         </div>
       </NTabPane>

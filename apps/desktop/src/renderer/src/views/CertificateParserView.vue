@@ -176,14 +176,35 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
     container-class="certificate-parser-view"
   >
     <template #actions>
-      <NButton size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
-      <NButton size="small" :loading="fileLoading" @click="loadFile">{{ page.t('buttons.loadFile') }}</NButton>
+      <NButton
+        size="small"
+        quaternary
+        @click="fillSample"
+      >
+        {{ t('common.fillSample') }}
+      </NButton>
+      <NButton
+        size="small"
+        :loading="fileLoading"
+        @click="loadFile"
+      >
+        {{ page.t('buttons.loadFile') }}
+      </NButton>
     </template>
 
-    <NCard class="input-card" :bordered="false">
+    <NCard
+      class="input-card"
+      :bordered="false"
+    >
       <div class="input-header">
         <span class="field-label">{{ page.t('input') }}</span>
-        <NTag v-if="fileName" size="small" :bordered="false">{{ fileName }}</NTag>
+        <NTag
+          v-if="fileName"
+          size="small"
+          :bordered="false"
+        >
+          {{ fileName }}
+        </NTag>
       </div>
       <NInput
         v-model:value="pemText"
@@ -194,12 +215,20 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
       />
     </NCard>
 
-    <NAlert v-if="parseError" type="error" :bordered="false" class="error-alert">
+    <NAlert
+      v-if="parseError"
+      type="error"
+      :bordered="false"
+      class="error-alert"
+    >
       {{ parseError }}
     </NAlert>
 
     <NSpin :show="loading">
-      <div v-if="certificates.length > 0" class="cert-list">
+      <div
+        v-if="certificates.length > 0"
+        class="cert-list"
+      >
         <NCard
           v-for="(cert, index) in certificates"
           :key="`${cert.serialNumber}-${index}`"
@@ -218,16 +247,32 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
               >
                 {{ page.t('buttons.useInJwt') }}
               </NButton>
-              <NTag :type="validityTagType(cert)" size="small">{{ validityLabel(cert) }}</NTag>
+              <NTag
+                :type="validityTagType(cert)"
+                size="small"
+              >
+                {{ validityLabel(cert) }}
+              </NTag>
             </NSpace>
           </template>
 
-          <NDescriptions :column="1" label-placement="left" bordered size="small">
+          <NDescriptions
+            :column="1"
+            label-placement="left"
+            bordered
+            size="small"
+          >
             <NDescriptionsItem :label="page.t('labels.subject')">
-              <span class="copyable" @click="copyValue(formatDn(cert.subject))">{{ formatDn(cert.subject) }}</span>
+              <span
+                class="copyable"
+                @click="copyValue(formatDn(cert.subject))"
+              >{{ formatDn(cert.subject) }}</span>
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.issuer')">
-              <span class="copyable" @click="copyValue(formatDn(cert.issuer))">{{ formatDn(cert.issuer) }}</span>
+              <span
+                class="copyable"
+                @click="copyValue(formatDn(cert.issuer))"
+              >{{ formatDn(cert.issuer) }}</span>
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.validFrom')">
               {{ formatDate(cert.validFrom) }}
@@ -239,7 +284,10 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
               {{ daysLabel(cert) }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.serialNumber')">
-              <span class="copyable mono" @click="copyValue(cert.serialNumber)">{{ cert.serialNumber }}</span>
+              <span
+                class="copyable mono"
+                @click="copyValue(cert.serialNumber)"
+              >{{ cert.serialNumber }}</span>
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.subjectAltNames')">
               <template v-if="cert.subjectAltNames.length > 0">
@@ -253,7 +301,10 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
                   {{ san }}
                 </NTag>
               </template>
-              <span v-else class="muted">{{ page.t('labels.noSan') }}</span>
+              <span
+                v-else
+                class="muted"
+              >{{ page.t('labels.noSan') }}</span>
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.signatureAlgorithm')">
               {{ cert.signatureAlgorithm }}
@@ -262,10 +313,16 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
               {{ publicKeyLabel(cert) }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.fingerprint')">
-              <span class="copyable mono" @click="copyValue(cert.fingerprint)">{{ cert.fingerprint }}</span>
+              <span
+                class="copyable mono"
+                @click="copyValue(cert.fingerprint)"
+              >{{ cert.fingerprint }}</span>
             </NDescriptionsItem>
             <NDescriptionsItem :label="page.t('labels.fingerprint256')">
-              <span class="copyable mono" @click="copyValue(cert.fingerprint256)">{{ cert.fingerprint256 }}</span>
+              <span
+                class="copyable mono"
+                @click="copyValue(cert.fingerprint256)"
+              >{{ cert.fingerprint256 }}</span>
             </NDescriptionsItem>
           </NDescriptions>
         </NCard>

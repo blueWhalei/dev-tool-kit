@@ -18,6 +18,10 @@ const props = withDefaults(defineProps<{
   outputReadonly?: boolean
   showCopy?: boolean
 }>(), {
+  inputPlaceholder: undefined,
+  outputPlaceholder: undefined,
+  inputLabel: undefined,
+  outputLabel: undefined,
   inputRows: 8,
   outputRows: 8,
   outputReadonly: true,
@@ -47,9 +51,16 @@ useKeyboardShortcut((event) => {
 </script>
 
 <template>
-  <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
+  <NGrid
+    cols="1 768:2"
+    :x-gap="16"
+    :y-gap="16"
+  >
     <NGridItem>
-      <NCard class="tool-panel-card" :bordered="false">
+      <NCard
+        class="tool-panel-card"
+        :bordered="false"
+      >
         <template #header>
           <span class="card-title">{{ inputLabelText }}</span>
         </template>
@@ -63,7 +74,10 @@ useKeyboardShortcut((event) => {
       </NCard>
     </NGridItem>
     <NGridItem>
-      <NCard class="tool-panel-card" :bordered="false">
+      <NCard
+        class="tool-panel-card"
+        :bordered="false"
+      >
         <template #header>
           <div class="card-header-flex">
             <span class="card-title">{{ outputLabelText }}</span>

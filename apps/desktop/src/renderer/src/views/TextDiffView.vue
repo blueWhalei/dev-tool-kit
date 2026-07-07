@@ -130,31 +130,72 @@ async function loadFile(side: 'A' | 'B') {
     container-class="text-diff-view"
   >
     <template #actions>
-      <NButton size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
+      <NButton
+        size="small"
+        quaternary
+        @click="fillSample"
+      >
+        {{ t('common.fillSample') }}
+      </NButton>
       <NButtonGroup size="small">
-        <NButton :type="diffMode === 'line' ? 'primary' : 'default'" @click="diffMode = 'line'">{{ page.t('buttons.lineMode') }}</NButton>
-        <NButton :type="diffMode === 'word' ? 'primary' : 'default'" @click="diffMode = 'word'">{{ page.t('buttons.wordMode') }}</NButton>
+        <NButton
+          :type="diffMode === 'line' ? 'primary' : 'default'"
+          @click="diffMode = 'line'"
+        >
+          {{ page.t('buttons.lineMode') }}
+        </NButton>
+        <NButton
+          :type="diffMode === 'word' ? 'primary' : 'default'"
+          @click="diffMode = 'word'"
+        >
+          {{ page.t('buttons.wordMode') }}
+        </NButton>
       </NButtonGroup>
       <label class="option-toggle">
-        <NSwitch v-model:value="ignoreWhitespace" size="small" />
+        <NSwitch
+          v-model:value="ignoreWhitespace"
+          size="small"
+        />
         <span>{{ page.t('labels.ignoreWhitespace') }}</span>
       </label>
       <label class="option-toggle">
-        <NSwitch v-model:value="ignoreCase" size="small" />
+        <NSwitch
+          v-model:value="ignoreCase"
+          size="small"
+        />
         <span>{{ page.t('labels.ignoreCase') }}</span>
       </label>
     </template>
 
-    <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
+    <NGrid
+      cols="1 768:2"
+      :x-gap="16"
+      :y-gap="16"
+    >
       <NGridItem>
-        <NCard class="editor-card" :bordered="false">
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
           <template #header>
             <div class="card-header">
               <span class="card-title">{{ page.t('labels.textA') }}</span>
-              <NButton size="tiny" quaternary :loading="loadingA" @click="loadFile('A')">{{ page.t('buttons.loadFile') }}</NButton>
+              <NButton
+                size="tiny"
+                quaternary
+                :loading="loadingA"
+                @click="loadFile('A')"
+              >
+                {{ page.t('buttons.loadFile') }}
+              </NButton>
             </div>
           </template>
-          <p v-if="fileNameA" class="file-name">{{ page.t('labels.loadedFile', { name: fileNameA }) }}</p>
+          <p
+            v-if="fileNameA"
+            class="file-name"
+          >
+            {{ page.t('labels.loadedFile', { name: fileNameA }) }}
+          </p>
           <NInput
             v-model:value="textA"
             type="textarea"
@@ -165,14 +206,29 @@ async function loadFile(side: 'A' | 'B') {
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard class="editor-card" :bordered="false">
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
           <template #header>
             <div class="card-header">
               <span class="card-title">{{ page.t('labels.textB') }}</span>
-              <NButton size="tiny" quaternary :loading="loadingB" @click="loadFile('B')">{{ page.t('buttons.loadFile') }}</NButton>
+              <NButton
+                size="tiny"
+                quaternary
+                :loading="loadingB"
+                @click="loadFile('B')"
+              >
+                {{ page.t('buttons.loadFile') }}
+              </NButton>
             </div>
           </template>
-          <p v-if="fileNameB" class="file-name">{{ page.t('labels.loadedFile', { name: fileNameB }) }}</p>
+          <p
+            v-if="fileNameB"
+            class="file-name"
+          >
+            {{ page.t('labels.loadedFile', { name: fileNameB }) }}
+          </p>
           <NInput
             v-model:value="textB"
             type="textarea"
@@ -186,22 +242,61 @@ async function loadFile(side: 'A' | 'B') {
 
     <div class="action-bar">
       <NButtonGroup size="small">
-        <NButton :type="viewMode === 'unified' ? 'primary' : 'default'" @click="viewMode = 'unified'">{{ page.t('buttons.unifiedView') }}</NButton>
-        <NButton :type="viewMode === 'split' ? 'primary' : 'default'" @click="viewMode = 'split'">{{ page.t('buttons.splitView') }}</NButton>
+        <NButton
+          :type="viewMode === 'unified' ? 'primary' : 'default'"
+          @click="viewMode = 'unified'"
+        >
+          {{ page.t('buttons.unifiedView') }}
+        </NButton>
+        <NButton
+          :type="viewMode === 'split' ? 'primary' : 'default'"
+          @click="viewMode = 'split'"
+        >
+          {{ page.t('buttons.splitView') }}
+        </NButton>
       </NButtonGroup>
-      <NButton @click="copyResult" :disabled="!formattedResult">{{ page.t('buttons.copyResult') }}</NButton>
-      <div v-if="diffLines.length" class="stats">
-        <NTag size="small">{{ page.t('labels.equal', { count: stats.equal }) }}</NTag>
-        <NTag size="small" type="success">{{ page.t('labels.insert', { count: stats.insert }) }}</NTag>
-        <NTag size="small" type="error">{{ page.t('labels.delete', { count: stats.delete }) }}</NTag>
+      <NButton
+        :disabled="!formattedResult"
+        @click="copyResult"
+      >
+        {{ page.t('buttons.copyResult') }}
+      </NButton>
+      <div
+        v-if="diffLines.length"
+        class="stats"
+      >
+        <NTag size="small">
+          {{ page.t('labels.equal', { count: stats.equal }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="success"
+        >
+          {{ page.t('labels.insert', { count: stats.insert }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="error"
+        >
+          {{ page.t('labels.delete', { count: stats.delete }) }}
+        </NTag>
       </div>
     </div>
 
-    <NCard v-if="diffLines.length" class="result-card" :bordered="false">
+    <NCard
+      v-if="diffLines.length"
+      class="result-card"
+      :bordered="false"
+    >
       <template #header>
         <div class="result-header">
           <span class="card-title">{{ page.t('labels.result') }}</span>
-          <NButton size="small" @click="copyResult">{{ t('common.copy') }}</NButton>
+          <NButton
+            size="small"
+            @click="copyResult"
+          >
+            {{ t('common.copy') }}
+          </NButton>
         </div>
       </template>
 
@@ -262,10 +357,16 @@ async function loadFile(side: 'A' | 'B') {
             :key="index"
             class="split-row"
           >
-            <div class="split-cell" :class="line.type === 'insert' ? 'split-cell--empty' : lineClass(line.type)">
+            <div
+              class="split-cell"
+              :class="line.type === 'insert' ? 'split-cell--empty' : lineClass(line.type)"
+            >
               {{ line.type !== 'insert' ? line.content : '' }}
             </div>
-            <div class="split-cell" :class="line.type === 'delete' ? 'split-cell--empty' : lineClass(line.type)">
+            <div
+              class="split-cell"
+              :class="line.type === 'delete' ? 'split-cell--empty' : lineClass(line.type)"
+            >
               {{ line.type !== 'delete' ? line.content : '' }}
             </div>
           </div>

@@ -107,7 +107,13 @@ watch([text, size, margin, errorLevel], () => {
     <template #actions>
       <div class="option-control">
         <span class="control-label">{{ page.t('labels.size') }}</span>
-        <NInputNumber v-model:value="size" :min="64" :max="1024" :step="32" style="width: 120px" />
+        <NInputNumber
+          v-model:value="size"
+          :min="64"
+          :max="1024"
+          :step="32"
+          style="width: 120px"
+        />
       </div>
       <NSelect
         v-model:value="errorLevel"
@@ -116,14 +122,32 @@ watch([text, size, margin, errorLevel], () => {
       />
       <div class="option-control">
         <span class="control-label">{{ page.t('labels.margin') }}</span>
-        <NInputNumber v-model:value="margin" :min="0" :max="32" style="width: 80px" />
+        <NInputNumber
+          v-model:value="margin"
+          :min="0"
+          :max="32"
+          style="width: 80px"
+        />
       </div>
-      <NButton :disabled="!hasQr" @click="downloadPng">{{ page.t('buttons.download') }}</NButton>
-      <NButton :disabled="!hasQr" @click="copyImage">{{ page.t('buttons.copyImage') }}</NButton>
+      <NButton
+        :disabled="!hasQr"
+        @click="downloadPng"
+      >
+        {{ page.t('buttons.download') }}
+      </NButton>
+      <NButton
+        :disabled="!hasQr"
+        @click="copyImage"
+      >
+        {{ page.t('buttons.copyImage') }}
+      </NButton>
     </template>
 
     <div class="content-grid">
-      <NCard class="input-card" :bordered="false">
+      <NCard
+        class="input-card"
+        :bordered="false"
+      >
         <label class="field-label">{{ page.t('labels.text') }}</label>
         <NInput
           v-model:value="text"
@@ -133,10 +157,21 @@ watch([text, size, margin, errorLevel], () => {
         />
       </NCard>
 
-      <NCard class="preview-card" :bordered="false">
+      <NCard
+        class="preview-card"
+        :bordered="false"
+      >
         <div class="preview-wrap">
-          <canvas ref="canvasRef" class="qr-canvas" />
-          <p v-if="!hasQr" class="preview-hint">{{ page.t('messages.emptyText') }}</p>
+          <canvas
+            ref="canvasRef"
+            class="qr-canvas"
+          />
+          <p
+            v-if="!hasQr"
+            class="preview-hint"
+          >
+            {{ page.t('messages.emptyText') }}
+          </p>
         </div>
       </NCard>
     </div>

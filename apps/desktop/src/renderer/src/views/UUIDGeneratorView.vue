@@ -196,21 +196,53 @@ generate()
           size="medium"
         />
       </div>
-      <NButton type="primary" @click="generate">{{ page.t('buttons.generate') }}</NButton>
-      <NButton @click="copyAll" :disabled="generatedUuids.length === 0">{{ page.t('buttons.copyAll') }}</NButton>
-      <NButton v-if="generatedUuids.length > 0" quaternary @click="openInMockData">{{ page.t('buttons.openInMockData') }}</NButton>
+      <NButton
+        type="primary"
+        @click="generate"
+      >
+        {{ page.t('buttons.generate') }}
+      </NButton>
+      <NButton
+        :disabled="generatedUuids.length === 0"
+        @click="copyAll"
+      >
+        {{ page.t('buttons.copyAll') }}
+      </NButton>
+      <NButton
+        v-if="generatedUuids.length > 0"
+        quaternary
+        @click="openInMockData"
+      >
+        {{ page.t('buttons.openInMockData') }}
+      </NButton>
     </template>
 
-    <NCard class="result-card" :bordered="false" v-if="generatedUuids.length > 0">
-      <NList hoverable clickable>
-        <NListItem v-for="(uuid, index) in generatedUuids" :key="index" @click="copyOne(uuid)">
+    <NCard
+      v-if="generatedUuids.length > 0"
+      class="result-card"
+      :bordered="false"
+    >
+      <NList
+        hoverable
+        clickable
+      >
+        <NListItem
+          v-for="(uuid, index) in generatedUuids"
+          :key="index"
+          @click="copyOne(uuid)"
+        >
           <NThing>
             <template #header>
               <span class="uuid-value">{{ uuid }}</span>
             </template>
           </NThing>
           <template #suffix>
-            <NButton size="small" @click.stop="copyOne(uuid)">{{ t('common.copy') }}</NButton>
+            <NButton
+              size="small"
+              @click.stop="copyOne(uuid)"
+            >
+              {{ t('common.copy') }}
+            </NButton>
           </template>
         </NListItem>
       </NList>

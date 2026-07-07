@@ -256,7 +256,13 @@ watchDebounced(input, runParse, { debounce: 300 })
     container-class="connection-string-parser-view"
   >
     <template #actions>
-      <NButton size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
+      <NButton
+        size="small"
+        quaternary
+        @click="fillSample"
+      >
+        {{ t('common.fillSample') }}
+      </NButton>
       <NButton
         v-if="parsed"
         size="small"
@@ -274,13 +280,32 @@ watchDebounced(input, runParse, { debounce: 300 })
       >
         {{ page.t('buttons.openInPortManager') }}
       </NButton>
-      <NButton v-if="parsed" size="small" @click="copyJson">{{ page.t('buttons.copyJson') }}</NButton>
+      <NButton
+        v-if="parsed"
+        size="small"
+        @click="copyJson"
+      >
+        {{ page.t('buttons.copyJson') }}
+      </NButton>
     </template>
 
-    <NTabs v-model:value="activeTab" type="line" animated class="conn-tabs">
-      <NTabPane name="parse" :tab="page.t('tabs.parse')">
-        <NCard class="input-card" :bordered="false">
-          <div class="field-label">{{ page.t('labels.input') }}</div>
+    <NTabs
+      v-model:value="activeTab"
+      type="line"
+      animated
+      class="conn-tabs"
+    >
+      <NTabPane
+        name="parse"
+        :tab="page.t('tabs.parse')"
+      >
+        <NCard
+          class="input-card"
+          :bordered="false"
+        >
+          <div class="field-label">
+            {{ page.t('labels.input') }}
+          </div>
           <NInput
             v-model:value="input"
             type="textarea"
@@ -290,13 +315,27 @@ watchDebounced(input, runParse, { debounce: 300 })
           />
         </NCard>
 
-        <NAlert v-if="parseError" type="error" :bordered="false" class="error-alert">
+        <NAlert
+          v-if="parseError"
+          type="error"
+          :bordered="false"
+          class="error-alert"
+        >
           {{ parseError }}
         </NAlert>
 
-        <NCard v-if="parsed" class="result-card" :bordered="false" :title="page.t('labels.parsed')">
+        <NCard
+          v-if="parsed"
+          class="result-card"
+          :bordered="false"
+          :title="page.t('labels.parsed')"
+        >
           <template #header-extra>
-            <NButton size="small" quaternary @click="fillBuilderFromParsed">
+            <NButton
+              size="small"
+              quaternary
+              @click="fillBuilderFromParsed"
+            >
               {{ page.t('buttons.fillBuilder') }}
             </NButton>
           </template>
@@ -310,50 +349,120 @@ watchDebounced(input, runParse, { debounce: 300 })
         </NCard>
       </NTabPane>
 
-      <NTabPane name="build" :tab="page.t('tabs.build')">
-        <NCard class="input-card" :bordered="false">
+      <NTabPane
+        name="build"
+        :tab="page.t('tabs.build')"
+      >
+        <NCard
+          class="input-card"
+          :bordered="false"
+        >
           <div class="builder-grid">
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.protocol') }}</div>
-              <NSelect v-model:value="buildProtocol" :options="PROTOCOL_OPTIONS" />
+              <div class="field-label">
+                {{ page.t('fields.protocol') }}
+              </div>
+              <NSelect
+                v-model:value="buildProtocol"
+                :options="PROTOCOL_OPTIONS"
+              />
             </div>
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.host') }}</div>
-              <NInput v-model:value="buildHost" :placeholder="page.t('placeholders.host')" />
+              <div class="field-label">
+                {{ page.t('fields.host') }}
+              </div>
+              <NInput
+                v-model:value="buildHost"
+                :placeholder="page.t('placeholders.host')"
+              />
             </div>
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.port') }}</div>
-              <NInputNumber v-model:value="buildPort" :min="1" :max="65535" class="port-input" clearable />
+              <div class="field-label">
+                {{ page.t('fields.port') }}
+              </div>
+              <NInputNumber
+                v-model:value="buildPort"
+                :min="1"
+                :max="65535"
+                class="port-input"
+                clearable
+              />
             </div>
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.user') }}</div>
-              <NInput v-model:value="buildUser" :placeholder="page.t('placeholders.user')" />
+              <div class="field-label">
+                {{ page.t('fields.user') }}
+              </div>
+              <NInput
+                v-model:value="buildUser"
+                :placeholder="page.t('placeholders.user')"
+              />
             </div>
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.password') }}</div>
-              <NInput v-model:value="buildPassword" type="password" show-password-on="click" />
+              <div class="field-label">
+                {{ page.t('fields.password') }}
+              </div>
+              <NInput
+                v-model:value="buildPassword"
+                type="password"
+                show-password-on="click"
+              />
             </div>
             <div class="builder-field">
-              <div class="field-label">{{ page.t('fields.database') }}</div>
-              <NInput v-model:value="buildDatabase" :placeholder="page.t('placeholders.database')" />
+              <div class="field-label">
+                {{ page.t('fields.database') }}
+              </div>
+              <NInput
+                v-model:value="buildDatabase"
+                :placeholder="page.t('placeholders.database')"
+              />
             </div>
             <div class="builder-field builder-field--wide">
-              <div class="field-label">{{ page.t('labels.queryParams') }}</div>
-              <NInput v-model:value="buildQuery" :placeholder="page.t('placeholders.queryParams')" />
+              <div class="field-label">
+                {{ page.t('labels.queryParams') }}
+              </div>
+              <NInput
+                v-model:value="buildQuery"
+                :placeholder="page.t('placeholders.queryParams')"
+              />
             </div>
           </div>
           <div class="builder-actions">
-            <NButton type="primary" @click="runBuild">{{ page.t('buttons.build') }}</NButton>
-            <NButton :disabled="!builtOutput" @click="parseBuiltString">{{ page.t('buttons.parseBuilt') }}</NButton>
-            <NButton :disabled="!builtOutput" @click="copyBuilt">{{ page.t('buttons.copyBuilt') }}</NButton>
+            <NButton
+              type="primary"
+              @click="runBuild"
+            >
+              {{ page.t('buttons.build') }}
+            </NButton>
+            <NButton
+              :disabled="!builtOutput"
+              @click="parseBuiltString"
+            >
+              {{ page.t('buttons.parseBuilt') }}
+            </NButton>
+            <NButton
+              :disabled="!builtOutput"
+              @click="copyBuilt"
+            >
+              {{ page.t('buttons.copyBuilt') }}
+            </NButton>
           </div>
         </NCard>
 
-        <NAlert v-if="buildError" type="error" :bordered="false" class="error-alert">
+        <NAlert
+          v-if="buildError"
+          type="error"
+          :bordered="false"
+          class="error-alert"
+        >
           {{ buildError }}
         </NAlert>
 
-        <NCard v-if="builtOutput" class="result-card" :bordered="false" :title="page.t('labels.built')">
+        <NCard
+          v-if="builtOutput"
+          class="result-card"
+          :bordered="false"
+          :title="page.t('labels.built')"
+        >
           <NInput
             :value="builtOutput"
             type="textarea"

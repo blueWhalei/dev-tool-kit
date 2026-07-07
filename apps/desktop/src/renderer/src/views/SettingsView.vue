@@ -196,7 +196,11 @@ function handleClearAll() {
 </script>
 
 <template>
-  <PageLayout :title="t('settings.title')" :description="t('settings.description')" container-class="settings-view">
+  <PageLayout
+    :title="t('settings.title')"
+    :description="t('settings.description')"
+    container-class="settings-view"
+  >
     <input
       ref="importInputRef"
       type="file"
@@ -205,8 +209,14 @@ function handleClearAll() {
       @change="handleImportFile"
     >
     <div class="settings-list">
-      <SettingsSection :title="t('settings.appearance')" icon="theme-system">
-        <SettingsRow :label="t('settings.theme')" :description="t('settings.themeDescription')">
+      <SettingsSection
+        :title="t('settings.appearance')"
+        icon="theme-system"
+      >
+        <SettingsRow
+          :label="t('settings.theme')"
+          :description="t('settings.themeDescription')"
+        >
           <div class="theme-cards">
             <button
               v-for="option in themeOptions"
@@ -216,12 +226,18 @@ function handleClearAll() {
               :class="{ active: themePreference === option.value }"
               @click="handleThemeChange(option.value)"
             >
-              <ToolIcon :name="option.icon" :size="24" />
+              <ToolIcon
+                :name="option.icon"
+                :size="24"
+              />
               <span>{{ option.label }}</span>
             </button>
           </div>
         </SettingsRow>
-        <SettingsRow :label="t('settings.language')" :description="t('settings.languageDescription')">
+        <SettingsRow
+          :label="t('settings.language')"
+          :description="t('settings.languageDescription')"
+        >
           <div class="theme-cards">
             <button
               v-for="option in localeOptions"
@@ -231,15 +247,24 @@ function handleClearAll() {
               :class="{ active: localePreference === option.value }"
               @click="handleLocaleChange(option.value)"
             >
-              <ToolIcon :name="option.icon" :size="24" />
+              <ToolIcon
+                :name="option.icon"
+                :size="24"
+              />
               <span>{{ option.label }}</span>
             </button>
           </div>
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection :title="t('settings.startup')" icon="port">
-        <SettingsRow :label="t('settings.defaultHome')" :description="t('settings.defaultHomeDescription')">
+      <SettingsSection
+        :title="t('settings.startup')"
+        icon="port"
+      >
+        <SettingsRow
+          :label="t('settings.defaultHome')"
+          :description="t('settings.defaultHomeDescription')"
+        >
           <NSelect
             :value="defaultHomeRoute"
             :options="homeOptions"
@@ -252,8 +277,14 @@ function handleClearAll() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection :title="t('settings.sidebarPins')" icon="key">
-        <SettingsRow :label="t('settings.pinnedTools')" :description="t('settings.pinnedToolsDescription')">
+      <SettingsSection
+        :title="t('settings.sidebarPins')"
+        icon="key"
+      >
+        <SettingsRow
+          :label="t('settings.pinnedTools')"
+          :description="t('settings.pinnedToolsDescription')"
+        >
           <NSelect
             :value="pinnedTools"
             :options="homeOptions"
@@ -268,14 +299,27 @@ function handleClearAll() {
             @update:value="handlePinnedChange"
           />
         </SettingsRow>
-        <SettingsRow v-if="pinnedItems.length > 0" :label="t('settings.pinOrder')" :description="t('settings.pinOrderDescription')">
+        <SettingsRow
+          v-if="pinnedItems.length > 0"
+          :label="t('settings.pinOrder')"
+          :description="t('settings.pinOrderDescription')"
+        >
           <NList class="pinned-order-list">
-            <NListItem v-for="(item, index) in pinnedItems" :key="item.routeName" class="pinned-order-item">
+            <NListItem
+              v-for="(item, index) in pinnedItems"
+              :key="item.routeName"
+              class="pinned-order-item"
+            >
               <NThing>
                 <template #avatar>
-                  <ToolIcon :name="item.icon" :size="20" />
+                  <ToolIcon
+                    :name="item.icon"
+                    :size="20"
+                  />
                 </template>
-                <template #header>{{ item.title }}</template>
+                <template #header>
+                  {{ item.title }}
+                </template>
                 <template #description>
                   <div class="pinned-order-actions">
                     <NButton
@@ -302,30 +346,62 @@ function handleClearAll() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection :title="t('settings.dataManagement')" icon="folder">
-        <SettingsRow :label="t('settings.exportConfig')" :description="t('settings.exportConfigDescription')">
-          <NButton @click="handleExportPreferences">{{ t('settings.exportJson') }}</NButton>
+      <SettingsSection
+        :title="t('settings.dataManagement')"
+        icon="folder"
+      >
+        <SettingsRow
+          :label="t('settings.exportConfig')"
+          :description="t('settings.exportConfigDescription')"
+        >
+          <NButton @click="handleExportPreferences">
+            {{ t('settings.exportJson') }}
+          </NButton>
         </SettingsRow>
-        <SettingsRow :label="t('settings.importConfig')" :description="t('settings.importConfigDescription')">
-          <NButton @click="triggerImport">{{ t('settings.chooseFile') }}</NButton>
+        <SettingsRow
+          :label="t('settings.importConfig')"
+          :description="t('settings.importConfigDescription')"
+        >
+          <NButton @click="triggerImport">
+            {{ t('settings.chooseFile') }}
+          </NButton>
         </SettingsRow>
-        <SettingsRow :label="t('settings.resetDefaults')" :description="t('settings.resetDefaultsDescription')">
+        <SettingsRow
+          :label="t('settings.resetDefaults')"
+          :description="t('settings.resetDefaultsDescription')"
+        >
           <NPopconfirm @positive-click="handleClearAll">
             <template #trigger>
-              <NButton type="error" quaternary>{{ t('settings.clearLocalSettings') }}</NButton>
+              <NButton
+                type="error"
+                quaternary
+              >
+                {{ t('settings.clearLocalSettings') }}
+              </NButton>
             </template>
             {{ t('settings.resetConfirm') }}
           </NPopconfirm>
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection :title="t('settings.recent')" icon="clock">
+      <SettingsSection
+        :title="t('settings.recent')"
+        icon="clock"
+      >
         <template #extra>
-          <NButton size="small" quaternary :disabled="recentItems.length === 0" @click="handleClearRecent">
+          <NButton
+            size="small"
+            quaternary
+            :disabled="recentItems.length === 0"
+            @click="handleClearRecent"
+          >
             {{ t('common.clear') }}
           </NButton>
         </template>
-        <NList v-if="recentItems.length > 0" class="recent-list">
+        <NList
+          v-if="recentItems.length > 0"
+          class="recent-list"
+        >
           <NListItem
             v-for="item in recentItems"
             :key="item.routeName"
@@ -334,17 +410,35 @@ function handleClearAll() {
           >
             <NThing>
               <template #avatar>
-                <ToolIcon :name="item.icon" :size="20" />
+                <ToolIcon
+                  :name="item.icon"
+                  :size="20"
+                />
               </template>
-              <template #header>{{ item.name }}</template>
-              <template #description>{{ t('common.open') }}</template>
+              <template #header>
+                {{ item.name }}
+              </template>
+              <template #description>
+                {{ t('common.open') }}
+              </template>
             </NThing>
           </NListItem>
         </NList>
-        <div v-else class="empty-state">
-          <ToolIcon name="search" :size="32" class="empty-icon" />
-          <p class="empty-title">{{ t('settings.recentEmptyTitle') }}</p>
-          <p class="empty-hint">{{ t('settings.recentEmptyHint') }}</p>
+        <div
+          v-else
+          class="empty-state"
+        >
+          <ToolIcon
+            name="search"
+            :size="32"
+            class="empty-icon"
+          />
+          <p class="empty-title">
+            {{ t('settings.recentEmptyTitle') }}
+          </p>
+          <p class="empty-hint">
+            {{ t('settings.recentEmptyHint') }}
+          </p>
         </div>
       </SettingsSection>
     </div>

@@ -492,27 +492,56 @@ onMounted(async () => {
         />
       </div>
       <div class="action-buttons">
-        <NButton @click="confirmFlushDNS">{{ page.t('buttons.flushDns') }}</NButton>
-        <NButton type="primary" :disabled="!hostsWritable" @click="openEditModal()">{{ page.t('buttons.addEntry') }}</NButton>
+        <NButton @click="confirmFlushDNS">
+          {{ page.t('buttons.flushDns') }}
+        </NButton>
+        <NButton
+          type="primary"
+          :disabled="!hostsWritable"
+          @click="openEditModal()"
+        >
+          {{ page.t('buttons.addEntry') }}
+        </NButton>
       </div>
     </template>
 
-    <NAlert v-if="!hostsWritable" type="warning" :bordered="false" class="info-alert">
+    <NAlert
+      v-if="!hostsWritable"
+      type="warning"
+      :bordered="false"
+      class="info-alert"
+    >
       <div class="write-access-alert">
         <span>{{ page.t('hints.noWriteAccess', { path: hostsFilePath }) }}</span>
-        <NButton v-if="hostsSudoHint" size="small" quaternary @click="copyHostsSudoHint">
+        <NButton
+          v-if="hostsSudoHint"
+          size="small"
+          quaternary
+          @click="copyHostsSudoHint"
+        >
           {{ page.t('buttons.copyCommand') }}
         </NButton>
       </div>
     </NAlert>
 
-    <NAlert type="info" :bordered="false" class="info-alert">
+    <NAlert
+      type="info"
+      :bordered="false"
+      class="info-alert"
+    >
       {{ adminHint }}
     </NAlert>
 
     <div class="content-card">
-      <NTabs v-model:value="activeTab" type="line" animated>
-        <NTabPane name="entries" :tab="page.t('tabs.entries')">
+      <NTabs
+        v-model:value="activeTab"
+        type="line"
+        animated
+      >
+        <NTabPane
+          name="entries"
+          :tab="page.t('tabs.entries')"
+        >
           <NDataTable 
             :columns="columns" 
             :data="filteredEntries" 
@@ -521,42 +550,95 @@ onMounted(async () => {
             :bordered="false" 
             striped 
           />
-          <NEmpty v-if="filteredEntries.length === 0 && !loading" :description="page.t('empty.entries')" />
+          <NEmpty
+            v-if="filteredEntries.length === 0 && !loading"
+            :description="page.t('empty.entries')"
+          />
         </NTabPane>
         
-        <NTabPane name="groups" :tab="page.t('tabs.groups')">
+        <NTabPane
+          name="groups"
+          :tab="page.t('tabs.groups')"
+        >
           <div class="groups-container">
-            <div class="group-section" v-for="group in groups" :key="group.id">
-              <div class="group-header" :style="{ borderLeftColor: group.color }">
-                <NTag :color="{ color: group.color + '20', textColor: group.color }" size="medium">{{ group.name }}</NTag>
+            <div
+              v-for="group in groups"
+              :key="group.id"
+              class="group-section"
+            >
+              <div
+                class="group-header"
+                :style="{ borderLeftColor: group.color }"
+              >
+                <NTag
+                  :color="{ color: group.color + '20', textColor: group.color }"
+                  size="medium"
+                >
+                  {{ group.name }}
+                </NTag>
                 <span class="group-count">{{ page.t('labels.entryCount', { count: entriesByGroup[group.id]?.length || 0 }) }}</span>
               </div>
-              <NList v-if="entriesByGroup[group.id]?.length" class="group-list">
-                <NListItem v-for="entry in entriesByGroup[group.id]" :key="entry.id">
-                  <NThing :title="entry.hostname" :description="entry.ip">
+              <NList
+                v-if="entriesByGroup[group.id]?.length"
+                class="group-list"
+              >
+                <NListItem
+                  v-for="entry in entriesByGroup[group.id]"
+                  :key="entry.id"
+                >
+                  <NThing
+                    :title="entry.hostname"
+                    :description="entry.ip"
+                  >
                     <template #header-extra>
-                      <NSwitch :value="entry.enabled" size="small" @update:value="confirmToggle(entry)" />
+                      <NSwitch
+                        :value="entry.enabled"
+                        size="small"
+                        @update:value="confirmToggle(entry)"
+                      />
                     </template>
                   </NThing>
                 </NListItem>
               </NList>
-              <NEmpty v-else :description="page.t('empty.groupEntries')" :show-icon="false" class="group-empty" />
+              <NEmpty
+                v-else
+                :description="page.t('empty.groupEntries')"
+                :show-icon="false"
+                class="group-empty"
+              />
             </div>
-            <div class="group-section" v-if="entriesByGroup.ungrouped?.length">
-              <div class="group-header" style="border-left-color: #8E8E93">
-                <NTag size="medium">{{ page.t('labels.ungrouped') }}</NTag>
+            <div
+              v-if="entriesByGroup.ungrouped?.length"
+              class="group-section"
+            >
+              <div
+                class="group-header"
+                style="border-left-color: #8E8E93"
+              >
+                <NTag size="medium">
+                  {{ page.t('labels.ungrouped') }}
+                </NTag>
                 <span class="group-count">{{ page.t('labels.entryCount', { count: entriesByGroup.ungrouped.length }) }}</span>
               </div>
               <NList class="group-list">
-                <NListItem v-for="entry in entriesByGroup.ungrouped" :key="entry.id">
-                  <NThing :title="entry.hostname" :description="entry.ip" />
+                <NListItem
+                  v-for="entry in entriesByGroup.ungrouped"
+                  :key="entry.id"
+                >
+                  <NThing
+                    :title="entry.hostname"
+                    :description="entry.ip"
+                  />
                 </NListItem>
               </NList>
             </div>
           </div>
         </NTabPane>
         
-        <NTabPane name="schemes" :tab="page.t('tabs.schemes')">
+        <NTabPane
+          name="schemes"
+          :tab="page.t('tabs.schemes')"
+        >
           <div class="scheme-toolbar">
             <div class="scheme-input-row">
               <NInput
@@ -565,29 +647,58 @@ onMounted(async () => {
                 style="flex: 1"
                 @keyup.enter="handleSaveScheme"
               />
-              <NButton type="primary" @click="handleSaveScheme">{{ page.t('buttons.saveScheme') }}</NButton>
+              <NButton
+                type="primary"
+                @click="handleSaveScheme"
+              >
+                {{ page.t('buttons.saveScheme') }}
+              </NButton>
             </div>
             <NSpace>
-              <NButton @click="handleExportSchemes">{{ page.t('buttons.exportAll') }}</NButton>
-              <NButton @click="triggerImportSchemes">{{ page.t('buttons.importSchemes') }}</NButton>
+              <NButton @click="handleExportSchemes">
+                {{ page.t('buttons.exportAll') }}
+              </NButton>
+              <NButton @click="triggerImportSchemes">
+                {{ page.t('buttons.importSchemes') }}
+              </NButton>
             </NSpace>
           </div>
-          <NList v-if="schemes.length > 0" class="scheme-list">
-            <NListItem v-for="scheme in schemes" :key="scheme.id">
+          <NList
+            v-if="schemes.length > 0"
+            class="scheme-list"
+          >
+            <NListItem
+              v-for="scheme in schemes"
+              :key="scheme.id"
+            >
               <NThing
                 :title="scheme.name"
                 :description="page.t('labels.schemeMeta', { count: scheme.count, date: formatDate(scheme.timestamp) })"
               >
                 <template #header-extra>
                   <NSpace>
-                    <NButton size="small" @click="confirmLoadScheme(scheme)">{{ page.t('buttons.load') }}</NButton>
-                    <NButton size="small" type="error" @click="confirmDeleteScheme(scheme)">{{ page.t('buttons.delete') }}</NButton>
+                    <NButton
+                      size="small"
+                      @click="confirmLoadScheme(scheme)"
+                    >
+                      {{ page.t('buttons.load') }}
+                    </NButton>
+                    <NButton
+                      size="small"
+                      type="error"
+                      @click="confirmDeleteScheme(scheme)"
+                    >
+                      {{ page.t('buttons.delete') }}
+                    </NButton>
                   </NSpace>
                 </template>
               </NThing>
             </NListItem>
           </NList>
-          <NEmpty v-else :description="page.t('empty.schemes')" />
+          <NEmpty
+            v-else
+            :description="page.t('empty.schemes')"
+          />
         </NTabPane>
       </NTabs>
     </div>
@@ -598,18 +709,36 @@ onMounted(async () => {
       preset="card" 
       style="width: 500px"
     >
-      <NForm v-if="editingEntry" label-placement="left" label-width="80">
+      <NForm
+        v-if="editingEntry"
+        label-placement="left"
+        label-width="80"
+      >
         <NFormItem :label="page.t('columns.ip')">
-          <NInput v-model:value="editingEntry.ip" :placeholder="page.t('placeholders.ip')" />
+          <NInput
+            v-model:value="editingEntry.ip"
+            :placeholder="page.t('placeholders.ip')"
+          />
         </NFormItem>
         <NFormItem :label="page.t('columns.hostname')">
-          <NInput v-model:value="editingEntry.hostname" :placeholder="page.t('placeholders.hostname')" />
+          <NInput
+            v-model:value="editingEntry.hostname"
+            :placeholder="page.t('placeholders.hostname')"
+          />
         </NFormItem>
         <NFormItem :label="page.t('labels.groupSelect')">
-          <NSelect v-model:value="editingEntry.group" :options="groupOptions" :placeholder="page.t('placeholders.group')" clearable />
+          <NSelect
+            v-model:value="editingEntry.group"
+            :options="groupOptions"
+            :placeholder="page.t('placeholders.group')"
+            clearable
+          />
         </NFormItem>
         <NFormItem :label="page.t('columns.comment')">
-          <NInput v-model:value="editingEntry.comment" :placeholder="page.t('placeholders.comment')" />
+          <NInput
+            v-model:value="editingEntry.comment"
+            :placeholder="page.t('placeholders.comment')"
+          />
         </NFormItem>
         <NFormItem :label="page.t('labels.enabled')">
           <NSwitch v-model:value="editingEntry.enabled" />
@@ -617,8 +746,15 @@ onMounted(async () => {
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showEditModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSave">{{ page.t('buttons.save') }}</NButton>
+          <NButton @click="showEditModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            @click="handleSave"
+          >
+            {{ page.t('buttons.save') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -630,35 +766,77 @@ onMounted(async () => {
       style="width: 640px"
     >
       <div class="diff-summary">
-        <NTag size="small" type="success">{{ page.t('diff.addedCount', { count: diffSummary.added }) }}</NTag>
-        <NTag size="small" type="error">{{ page.t('diff.removedCount', { count: diffSummary.removed }) }}</NTag>
-        <NTag size="small" type="warning">{{ page.t('diff.modifiedCount', { count: diffSummary.modified }) }}</NTag>
-        <NTag size="small">{{ page.t('diff.unchangedCount', { count: diffSummary.unchanged }) }}</NTag>
+        <NTag
+          size="small"
+          type="success"
+        >
+          {{ page.t('diff.addedCount', { count: diffSummary.added }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="error"
+        >
+          {{ page.t('diff.removedCount', { count: diffSummary.removed }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="warning"
+        >
+          {{ page.t('diff.modifiedCount', { count: diffSummary.modified }) }}
+        </NTag>
+        <NTag size="small">
+          {{ page.t('diff.unchangedCount', { count: diffSummary.unchanged }) }}
+        </NTag>
       </div>
-      <NList v-if="visibleDiffChanges.length" class="scheme-diff-list">
-        <NListItem v-for="change in visibleDiffChanges" :key="`${change.type}-${change.hostname}`">
+      <NList
+        v-if="visibleDiffChanges.length"
+        class="scheme-diff-list"
+      >
+        <NListItem
+          v-for="change in visibleDiffChanges"
+          :key="`${change.type}-${change.hostname}`"
+        >
           <NThing>
             <template #header>
               <div class="diff-item-header">
-                <NTag size="small" :type="change.type === 'added' ? 'success' : change.type === 'removed' ? 'error' : 'warning'">
+                <NTag
+                  size="small"
+                  :type="change.type === 'added' ? 'success' : change.type === 'removed' ? 'error' : 'warning'"
+                >
                   {{ diffTypeLabel(change.type) }}
                 </NTag>
                 <span>{{ change.hostname }}</span>
               </div>
             </template>
             <template #description>
-              <div v-if="change.type === 'added' && change.after">{{ page.t('labels.ipPrefix', { ip: change.after.ip }) }}</div>
-              <div v-else-if="change.type === 'removed' && change.before">{{ page.t('labels.ipPrefix', { ip: change.before.ip }) }}</div>
-              <div v-else-if="change.details.length">{{ change.details.join(' · ') }}</div>
+              <div v-if="change.type === 'added' && change.after">
+                {{ page.t('labels.ipPrefix', { ip: change.after.ip }) }}
+              </div>
+              <div v-else-if="change.type === 'removed' && change.before">
+                {{ page.t('labels.ipPrefix', { ip: change.before.ip }) }}
+              </div>
+              <div v-else-if="change.details.length">
+                {{ change.details.join(' · ') }}
+              </div>
             </template>
           </NThing>
         </NListItem>
       </NList>
-      <NEmpty v-else :description="page.t('diff.identical')" />
+      <NEmpty
+        v-else
+        :description="page.t('diff.identical')"
+      />
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showDiffModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" @click="confirmApplyScheme">{{ page.t('buttons.confirmLoad') }}</NButton>
+          <NButton @click="showDiffModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            @click="confirmApplyScheme"
+          >
+            {{ page.t('buttons.confirmLoad') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>

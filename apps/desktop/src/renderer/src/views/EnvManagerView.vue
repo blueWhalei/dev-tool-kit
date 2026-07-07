@@ -484,12 +484,28 @@ onMounted(async () => {
   >
     <template #actions>
       <template v-if="platformSupported">
-        <NButton v-if="!readOnly" @click="openEditModal()">{{ page.t('buttons.create') }}</NButton>
+        <NButton
+          v-if="!readOnly"
+          @click="openEditModal()"
+        >
+          {{ page.t('buttons.create') }}
+        </NButton>
         <NButtonGroup>
-          <NButton @click="handleExport">{{ page.t('buttons.export') }}</NButton>
-          <NButton v-if="writeMode === 'registry'" @click="openImportModal">{{ page.t('buttons.import') }}</NButton>
-          <NButton @click="showBackupModal = true">{{ page.t('buttons.backup') }}</NButton>
-          <NButton @click="fetchBackups">{{ page.t('buttons.history') }}</NButton>
+          <NButton @click="handleExport">
+            {{ page.t('buttons.export') }}
+          </NButton>
+          <NButton
+            v-if="writeMode === 'registry'"
+            @click="openImportModal"
+          >
+            {{ page.t('buttons.import') }}
+          </NButton>
+          <NButton @click="showBackupModal = true">
+            {{ page.t('buttons.backup') }}
+          </NButton>
+          <NButton @click="fetchBackups">
+            {{ page.t('buttons.history') }}
+          </NButton>
         </NButtonGroup>
       </template>
     </template>
@@ -510,7 +526,10 @@ onMounted(async () => {
       style="margin-bottom: 16px;"
     >
       <p>{{ page.t('shellWriteAlert') }}</p>
-      <p v-if="shellConfigFile" class="shell-config-path">
+      <p
+        v-if="shellConfigFile"
+        class="shell-config-path"
+      >
         {{ page.t('hints.shellConfigFile', { file: shellConfigFile }) }}
       </p>
     </NAlert>
@@ -524,27 +543,83 @@ onMounted(async () => {
       {{ page.t('readOnlyAlert') }}
     </NAlert>
     
-    <div v-if="platformSupported" class="content-card">
-      <NTabs v-model:value="activeTab" type="line" animated>
-        <NTabPane name="user" :tab="page.t('tabs.user')">
-          <NDataTable :columns="columns" :data="userVars" :loading="loading" :pagination="{ pageSize: 10 }" :bordered="false" striped />
-          <NEmpty v-if="userVars.length === 0 && !loading" :description="page.t('empty.userVars')" />
+    <div
+      v-if="platformSupported"
+      class="content-card"
+    >
+      <NTabs
+        v-model:value="activeTab"
+        type="line"
+        animated
+      >
+        <NTabPane
+          name="user"
+          :tab="page.t('tabs.user')"
+        >
+          <NDataTable
+            :columns="columns"
+            :data="userVars"
+            :loading="loading"
+            :pagination="{ pageSize: 10 }"
+            :bordered="false"
+            striped
+          />
+          <NEmpty
+            v-if="userVars.length === 0 && !loading"
+            :description="page.t('empty.userVars')"
+          />
         </NTabPane>
         
-        <NTabPane name="system" :tab="page.t('tabs.system')">
-          <NDataTable :columns="columns" :data="systemVars" :loading="loading" :pagination="{ pageSize: 10 }" :bordered="false" striped />
-          <NEmpty v-if="systemVars.length === 0 && !loading" :description="page.t('empty.systemVars')" />
+        <NTabPane
+          name="system"
+          :tab="page.t('tabs.system')"
+        >
+          <NDataTable
+            :columns="columns"
+            :data="systemVars"
+            :loading="loading"
+            :pagination="{ pageSize: 10 }"
+            :bordered="false"
+            striped
+          />
+          <NEmpty
+            v-if="systemVars.length === 0 && !loading"
+            :description="page.t('empty.systemVars')"
+          />
         </NTabPane>
         
-        <NTabPane name="path" :tab="page.t('tabs.path')">
+        <NTabPane
+          name="path"
+          :tab="page.t('tabs.path')"
+        >
           <div class="path-section">
-            <div v-if="!readOnly" class="path-input-row">
-              <NInput v-model:value="pathInput" :placeholder="page.t('placeholders.pathInput')" @keyup.enter="handleAddPath" style="flex: 1" />
-              <NButton type="primary" @click="handleAddPath" :disabled="!pathInput.trim()">{{ page.t('buttons.add') }}</NButton>
+            <div
+              v-if="!readOnly"
+              class="path-input-row"
+            >
+              <NInput
+                v-model:value="pathInput"
+                :placeholder="page.t('placeholders.pathInput')"
+                style="flex: 1"
+                @keyup.enter="handleAddPath"
+              />
+              <NButton
+                type="primary"
+                :disabled="!pathInput.trim()"
+                @click="handleAddPath"
+              >
+                {{ page.t('buttons.add') }}
+              </NButton>
             </div>
             
-            <NList class="path-list" v-if="pathEntries.length > 0">
-              <NListItem v-for="(entry, index) in pathEntries" :key="index">
+            <NList
+              v-if="pathEntries.length > 0"
+              class="path-list"
+            >
+              <NListItem
+                v-for="(entry, index) in pathEntries"
+                :key="index"
+              >
                 <template #prefix>
                   <span class="path-index">{{ index + 1 }}</span>
                 </template>
@@ -555,35 +630,80 @@ onMounted(async () => {
                 >
                   <template #header-extra>
                     <NSpace v-if="!readOnly">
-                      <NButton size="tiny" quaternary :disabled="index === 0" @click="handleMovePath(index, 'up')">↑</NButton>
-                      <NButton size="tiny" quaternary :disabled="index === pathEntries.length - 1" @click="handleMovePath(index, 'down')">↓</NButton>
-                      <NButton size="tiny" quaternary type="error" @click="handleRemovePath(index)">{{ page.t('buttons.remove') }}</NButton>
+                      <NButton
+                        size="tiny"
+                        quaternary
+                        :disabled="index === 0"
+                        @click="handleMovePath(index, 'up')"
+                      >
+                        ↑
+                      </NButton>
+                      <NButton
+                        size="tiny"
+                        quaternary
+                        :disabled="index === pathEntries.length - 1"
+                        @click="handleMovePath(index, 'down')"
+                      >
+                        ↓
+                      </NButton>
+                      <NButton
+                        size="tiny"
+                        quaternary
+                        type="error"
+                        @click="handleRemovePath(index)"
+                      >
+                        {{ page.t('buttons.remove') }}
+                      </NButton>
                     </NSpace>
                   </template>
                 </NThing>
               </NListItem>
             </NList>
-            <NEmpty v-else :description="page.t('empty.path')" />
+            <NEmpty
+              v-else
+              :description="page.t('empty.path')"
+            />
           </div>
         </NTabPane>
         
-        <NTabPane name="backup" :tab="page.t('tabs.backup')">
+        <NTabPane
+          name="backup"
+          :tab="page.t('tabs.backup')"
+        >
           <NList v-if="backups.length > 0">
-            <NListItem v-for="backup in backups" :key="backup.timestamp">
+            <NListItem
+              v-for="backup in backups"
+              :key="backup.timestamp"
+            >
               <NThing
                 :title="backup.name"
                 :description="page.t('labels.backupMeta', { count: backup.count, date: formatDate(backup.timestamp) })"
               >
                 <template #header-extra>
                   <NSpace>
-                    <NButton v-if="!readOnly" size="small" @click="confirmRestoreBackup(backup)">{{ page.t('buttons.restore') }}</NButton>
-                    <NButton size="small" type="error" @click="confirmDeleteBackup(backup)">{{ page.t('buttons.delete') }}</NButton>
+                    <NButton
+                      v-if="!readOnly"
+                      size="small"
+                      @click="confirmRestoreBackup(backup)"
+                    >
+                      {{ page.t('buttons.restore') }}
+                    </NButton>
+                    <NButton
+                      size="small"
+                      type="error"
+                      @click="confirmDeleteBackup(backup)"
+                    >
+                      {{ page.t('buttons.delete') }}
+                    </NButton>
                   </NSpace>
                 </template>
               </NThing>
             </NListItem>
           </NList>
-          <NEmpty v-else :description="page.t('empty.backups')" />
+          <NEmpty
+            v-else
+            :description="page.t('empty.backups')"
+          />
         </NTabPane>
       </NTabs>
     </div>
@@ -594,37 +714,85 @@ onMounted(async () => {
       preset="card"
       style="width: 500px"
     >
-      <NForm v-if="editingVar" label-placement="left" label-width="80">
+      <NForm
+        v-if="editingVar"
+        label-placement="left"
+        label-width="80"
+      >
         <NFormItem :label="page.t('labels.variableName')">
-          <NInput v-model:value="editingVar.name" :disabled="!isNewVar" :placeholder="page.t('placeholders.variableName')" />
+          <NInput
+            v-model:value="editingVar.name"
+            :disabled="!isNewVar"
+            :placeholder="page.t('placeholders.variableName')"
+          />
         </NFormItem>
         <NFormItem :label="page.t('labels.variableValue')">
-          <NInput v-model:value="editingVar.value" type="textarea" :rows="3" :placeholder="page.t('placeholders.variableValue')" />
+          <NInput
+            v-model:value="editingVar.value"
+            type="textarea"
+            :rows="3"
+            :placeholder="page.t('placeholders.variableValue')"
+          />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showEditModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" @click="handleSave">{{ page.t('buttons.save') }}</NButton>
+          <NButton @click="showEditModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            @click="handleSave"
+          >
+            {{ page.t('buttons.save') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>
     
-    <NModal v-model:show="showBackupModal" preset="card" :title="page.t('modals.createBackupTitle')" style="width: 400px">
-      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px;">
+    <NModal
+      v-model:show="showBackupModal"
+      preset="card"
+      :title="page.t('modals.createBackupTitle')"
+      style="width: 400px"
+    >
+      <NAlert
+        type="info"
+        :bordered="false"
+        style="margin-bottom: 12px; border-radius: 8px;"
+      >
         {{ page.t('hints.backupInfo') }}
       </NAlert>
-      <NInput v-model:value="backupName" :placeholder="page.t('placeholders.backupName')" />
+      <NInput
+        v-model:value="backupName"
+        :placeholder="page.t('placeholders.backupName')"
+      />
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showBackupModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" @click="handleCreateBackup">{{ page.t('buttons.createBackup') }}</NButton>
+          <NButton @click="showBackupModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            @click="handleCreateBackup"
+          >
+            {{ page.t('buttons.createBackup') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>
 
-    <NModal v-model:show="showImportModal" preset="card" :title="page.t('modals.importTitle')" style="width: 520px">
-      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px;">
+    <NModal
+      v-model:show="showImportModal"
+      preset="card"
+      :title="page.t('modals.importTitle')"
+      style="width: 520px"
+    >
+      <NAlert
+        type="info"
+        :bordered="false"
+        style="margin-bottom: 12px; border-radius: 8px;"
+      >
         {{ page.t('hints.importInfo') }}
       </NAlert>
       <NInput
@@ -635,8 +803,16 @@ onMounted(async () => {
       />
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showImportModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" :loading="importLoading" @click="handleImport">{{ page.t('buttons.import') }}</NButton>
+          <NButton @click="showImportModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            :loading="importLoading"
+            @click="handleImport"
+          >
+            {{ page.t('buttons.import') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -647,22 +823,50 @@ onMounted(async () => {
       :title="page.t('modals.diffTitle')"
       style="width: 640px"
     >
-      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px;">
+      <NAlert
+        type="info"
+        :bordered="false"
+        style="margin-bottom: 12px; border-radius: 8px;"
+      >
         {{ page.t('hints.diffInfo', { file: diffConfigFile }) }}
       </NAlert>
-      <NList v-if="diffLines.length" class="shell-diff-list">
-        <NListItem v-for="(line, index) in diffLines" :key="`${line.type}-${index}`">
-          <NSpace align="center" :size="8">
-            <NTag size="small" :type="diffTagType(line.type)">{{ diffTypeLabel(line.type) }}</NTag>
+      <NList
+        v-if="diffLines.length"
+        class="shell-diff-list"
+      >
+        <NListItem
+          v-for="(line, index) in diffLines"
+          :key="`${line.type}-${index}`"
+        >
+          <NSpace
+            align="center"
+            :size="8"
+          >
+            <NTag
+              size="small"
+              :type="diffTagType(line.type)"
+            >
+              {{ diffTypeLabel(line.type) }}
+            </NTag>
             <code class="diff-line">{{ line.line }}</code>
           </NSpace>
         </NListItem>
       </NList>
-      <NEmpty v-else :description="page.t('diff.noChanges')" />
+      <NEmpty
+        v-else
+        :description="page.t('diff.noChanges')"
+      />
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="showDiffModal = false">{{ page.t('buttons.cancel') }}</NButton>
-          <NButton type="primary" @click="confirmShellDiff">{{ page.t('buttons.confirmWrite') }}</NButton>
+          <NButton @click="showDiffModal = false">
+            {{ page.t('buttons.cancel') }}
+          </NButton>
+          <NButton
+            type="primary"
+            @click="confirmShellDiff"
+          >
+            {{ page.t('buttons.confirmWrite') }}
+          </NButton>
         </NSpace>
       </template>
     </NModal>

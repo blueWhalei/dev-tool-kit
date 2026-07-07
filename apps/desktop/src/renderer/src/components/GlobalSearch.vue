@@ -190,7 +190,10 @@ onUnmounted(() => {
       >
         <div class="search-container">
           <div class="search-input-wrapper">
-            <span class="search-icon"><ToolIcon name="search" :size="20" /></span>
+            <span class="search-icon"><ToolIcon
+              name="search"
+              :size="20"
+            /></span>
             <input
               ref="inputRef"
               v-model="searchQuery"
@@ -198,13 +201,24 @@ onUnmounted(() => {
               class="search-input"
               :placeholder="t('nav.searchPlaceholder')"
               autofocus
-            />
+            >
             <span class="search-shortcut">⌘K</span>
           </div>
           
-          <div v-if="flatDisplayItems.length > 0" class="search-results">
-            <template v-for="(group, groupIndex) in displayGroups" :key="group.label ?? groupIndex">
-              <div v-if="group.label" class="search-group-label">{{ group.label }}</div>
+          <div
+            v-if="flatDisplayItems.length > 0"
+            class="search-results"
+          >
+            <template
+              v-for="(group, groupIndex) in displayGroups"
+              :key="group.label ?? groupIndex"
+            >
+              <div
+                v-if="group.label"
+                class="search-group-label"
+              >
+                {{ group.label }}
+              </div>
               <div
                 v-for="item in group.items"
                 :key="item.id"
@@ -213,7 +227,10 @@ onUnmounted(() => {
                 @click="selectItem(item)"
                 @mouseenter="selectedIndex = getFlatIndex(item)"
               >
-                <span class="result-icon"><ToolIcon :name="item.icon" :size="22" /></span>
+                <span class="result-icon"><ToolIcon
+                  :name="item.icon"
+                  :size="22"
+                /></span>
                 <div class="result-content">
                   <span class="result-name">{{ item.name }}</span>
                   <span class="result-category">{{ item.category }}</span>
@@ -222,8 +239,14 @@ onUnmounted(() => {
             </template>
           </div>
           
-          <div v-else class="search-empty">
-            <span class="empty-icon"><ToolIcon name="search" :size="28" /></span>
+          <div
+            v-else
+            class="search-empty"
+          >
+            <span class="empty-icon"><ToolIcon
+              name="search"
+              :size="28"
+            /></span>
             <span class="empty-text">{{ t('search.empty') }}</span>
           </div>
           

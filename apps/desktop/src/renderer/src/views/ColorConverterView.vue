@@ -154,93 +154,218 @@ const alphaPercent = computed({
     <div class="color-preview-section">
       <div class="preview-area">
         <div class="checkerboard-bg">
-          <div class="color-swatch" :style="{ backgroundColor: colorPreviewRgba }"></div>
+          <div
+            class="color-swatch"
+            :style="{ backgroundColor: colorPreviewRgba }"
+          />
         </div>
         <label class="picker-wrapper">
-          <input type="color" :value="colorPreview" @input="onPickerChange" class="color-picker" />
+          <input
+            type="color"
+            :value="colorPreview"
+            class="color-picker"
+            @input="onPickerChange"
+          >
           <span class="picker-label">{{ page.t('labels.pickColor') }}</span>
         </label>
       </div>
       <div class="alpha-control">
         <span class="alpha-label">{{ page.t('labels.alpha') }}</span>
-        <NSlider v-model:value="alphaPercent" :min="0" :max="100" :step="1" style="flex: 1" />
+        <NSlider
+          v-model:value="alphaPercent"
+          :min="0"
+          :max="100"
+          :step="1"
+          style="flex: 1"
+        />
         <span class="alpha-value">{{ alphaPercent }}%</span>
       </div>
     </div>
 
-    <NGrid :cols="2" :x-gap="12" :y-gap="12" responsive="screen" item-responsive>
+    <NGrid
+      :cols="2"
+      :x-gap="12"
+      :y-gap="12"
+      responsive="screen"
+      item-responsive
+    >
       <NGridItem span="0:2 640:1">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hex') }}</label>
-            <NInput :value="hexInput" @update:value="hexInput = $event; onHexInput()" :placeholder="page.t('placeholders.hex')" size="small" />
-            <NButton size="tiny" quaternary @click="copyValue(hexInput, 'messages.hexCopied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="hexInput"
+              :placeholder="page.t('placeholders.hex')"
+              size="small"
+              @update:value="hexInput = $event; onHexInput()"
+            />
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copyValue(hexInput, 'messages.hexCopied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.rgba') }}</label>
-            <NInput :value="rgbaInput" @update:value="rgbaInput = $event; onRgbaInput()" :placeholder="page.t('placeholders.rgba')" size="small" />
-            <NButton size="tiny" quaternary @click="copyValue(rgbaToString(currentRgba), 'messages.rgbaCopied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="rgbaInput"
+              :placeholder="page.t('placeholders.rgba')"
+              size="small"
+              @update:value="rgbaInput = $event; onRgbaInput()"
+            />
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copyValue(rgbaToString(currentRgba), 'messages.rgbaCopied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hsla') }}</label>
-            <NInput :value="hslaInput" @update:value="hslaInput = $event; onHslaInput()" :placeholder="page.t('placeholders.hsla')" size="small" />
-            <NButton size="tiny" quaternary @click="copyValue(hslaToString(rgbaToHsla(currentRgba)), 'messages.hslaCopied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="hslaInput"
+              :placeholder="page.t('placeholders.hsla')"
+              size="small"
+              @update:value="hslaInput = $event; onHslaInput()"
+            />
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copyValue(hslaToString(rgbaToHsla(currentRgba)), 'messages.hslaCopied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hex8') }}</label>
-            <NInput :value="hex8Input" @update:value="hex8Input = $event; onHex8Input()" :placeholder="page.t('placeholders.hex8')" size="small" />
-            <NButton size="tiny" quaternary @click="copyValue(hex8Input, 'messages.hex8Copied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="hex8Input"
+              :placeholder="page.t('placeholders.hex8')"
+              size="small"
+              @update:value="hex8Input = $event; onHex8Input()"
+            />
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copyValue(hex8Input, 'messages.hex8Copied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hsv') }}</label>
-            <NInput :value="hsvaDisplay" readonly size="small" />
-            <NButton size="tiny" quaternary @click="copyValue(hsvaDisplay, 'messages.hsvCopied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="hsvaDisplay"
+              readonly
+              size="small"
+            />
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copyValue(hsvaDisplay, 'messages.hsvCopied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="2">
-        <NCard class="format-card" :bordered="false">
+        <NCard
+          class="format-card"
+          :bordered="false"
+        >
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.cssName') }}</label>
-            <NInput :value="cssNameInput" @update:value="cssNameInput = $event; onCssNameInput()" :placeholder="page.t('placeholders.cssName')" size="small" />
-            <span v-if="resolvedCssName" class="css-name-hint">{{ resolvedCssName }}</span>
-            <span v-else-if="cssNameInput" class="css-name-hint no-match">{{ page.t('messages.noCssName') }}</span>
-            <NButton v-if="resolvedCssName" size="tiny" quaternary @click="copyValue(resolvedCssName, 'messages.cssNameCopied')">{{ page.t('buttons.copy') }}</NButton>
+            <NInput
+              :value="cssNameInput"
+              :placeholder="page.t('placeholders.cssName')"
+              size="small"
+              @update:value="cssNameInput = $event; onCssNameInput()"
+            />
+            <span
+              v-if="resolvedCssName"
+              class="css-name-hint"
+            >{{ resolvedCssName }}</span>
+            <span
+              v-else-if="cssNameInput"
+              class="css-name-hint no-match"
+            >{{ page.t('messages.noCssName') }}</span>
+            <NButton
+              v-if="resolvedCssName"
+              size="tiny"
+              quaternary
+              @click="copyValue(resolvedCssName, 'messages.cssNameCopied')"
+            >
+              {{ page.t('buttons.copy') }}
+            </NButton>
           </div>
         </NCard>
       </NGridItem>
     </NGrid>
 
-    <NCard class="contrast-card" :bordered="false">
-      <div class="contrast-header">{{ page.t('labels.contrast') }}</div>
+    <NCard
+      class="contrast-card"
+      :bordered="false"
+    >
+      <div class="contrast-header">
+        {{ page.t('labels.contrast') }}
+      </div>
       <div class="format-row">
         <label class="format-label">{{ page.t('labels.contrastBg') }}</label>
-        <NInput v-model:value="contrastBgInput" :placeholder="page.t('placeholders.hex')" size="small" />
+        <NInput
+          v-model:value="contrastBgInput"
+          :placeholder="page.t('placeholders.hex')"
+          size="small"
+        />
       </div>
-      <div v-if="contrastResult" class="contrast-stats">
+      <div
+        v-if="contrastResult"
+        class="contrast-stats"
+      >
         <span>{{ page.t('labels.contrastRatio', { ratio: contrastResult.ratioFormatted }) }}</span>
         <span :class="contrastResult.aaNormal ? 'pass' : 'fail'">AA</span>
         <span :class="contrastResult.aaaNormal ? 'pass' : 'fail'">AAA</span>
       </div>
     </NCard>
 
-    <div v-if="recentColors.length > 0" class="recent-section">
+    <div
+      v-if="recentColors.length > 0"
+      class="recent-section"
+    >
       <span class="recent-label">{{ page.t('labels.recentColors') }}</span>
       <div class="recent-colors">
         <button
@@ -249,7 +374,10 @@ const alphaPercent = computed({
           class="recent-swatch checkerboard-bg-small"
           @click="applyRecentColor(hex8)"
         >
-          <span class="recent-swatch-inner" :style="{ backgroundColor: hex8 }"></span>
+          <span
+            class="recent-swatch-inner"
+            :style="{ backgroundColor: hex8 }"
+          />
         </button>
       </div>
     </div>

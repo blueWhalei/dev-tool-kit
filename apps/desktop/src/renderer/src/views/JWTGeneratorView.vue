@@ -275,8 +275,16 @@ const signatureStatusText = computed(() => {
     :description="page.description"
     container-class="jwt-tool-view page-container"
   >
-    <NTabs v-model:value="activeTab" type="line" animated class="jwt-tabs">
-      <NTabPane name="generate" :tab="page.t('tabs.generate')">
+    <NTabs
+      v-model:value="activeTab"
+      type="line"
+      animated
+      class="jwt-tabs"
+    >
+      <NTabPane
+        name="generate"
+        :tab="page.t('tabs.generate')"
+      >
         <div class="tab-actions">
           <div class="setting-control">
             <span class="control-label">{{ page.t('labels.secretLength') }}</span>
@@ -288,17 +296,33 @@ const signatureStatusText = computed(() => {
             <span class="recommended">{{ page.t('labels.recommended', { algorithm: recommendedAlgorithm }) }}</span>
           </div>
           <div class="action-buttons">
-            <NButton type="primary" @click="generateSecret">{{ page.t('buttons.generateSecret') }}</NButton>
-            <NButton @click="copySecret" :disabled="!generatedSecret">
+            <NButton
+              type="primary"
+              @click="generateSecret"
+            >
+              {{ page.t('buttons.generateSecret') }}
+            </NButton>
+            <NButton
+              :disabled="!generatedSecret"
+              @click="copySecret"
+            >
               {{ copied ? page.t('buttons.copied') : page.t('buttons.copy') }}
             </NButton>
           </div>
         </div>
 
-        <NCard class="result-card" :bordered="false">
+        <NCard
+          class="result-card"
+          :bordered="false"
+        >
           <div class="result-section">
-            <div class="result-label">{{ page.t('labels.generatedSecret') }}</div>
-            <div class="secret-display" v-if="generatedSecret">
+            <div class="result-label">
+              {{ page.t('labels.generatedSecret') }}
+            </div>
+            <div
+              v-if="generatedSecret"
+              class="secret-display"
+            >
               <NInput
                 :value="generatedSecret"
                 readonly
@@ -307,14 +331,20 @@ const signatureStatusText = computed(() => {
                 class="secret-input"
               />
             </div>
-            <div class="secret-placeholder" v-else>
+            <div
+              v-else
+              class="secret-placeholder"
+            >
               {{ page.t('empty.secret') }}
             </div>
           </div>
         </NCard>
       </NTabPane>
 
-      <NTabPane name="sign" :tab="page.t('tabs.sign')">
+      <NTabPane
+        name="sign"
+        :tab="page.t('tabs.sign')"
+      >
         <div class="tab-actions">
           <div class="setting-control">
             <span class="control-label">{{ page.t('labels.algorithm') }}</span>
@@ -325,7 +355,12 @@ const signatureStatusText = computed(() => {
             />
           </div>
           <div class="action-buttons">
-            <NButton quaternary @click="fillSignSample">{{ page.t('buttons.fillSignSample') }}</NButton>
+            <NButton
+              quaternary
+              @click="fillSignSample"
+            >
+              {{ page.t('buttons.fillSignSample') }}
+            </NButton>
             <NButton
               v-if="generatedSecret"
               quaternary
@@ -333,15 +368,30 @@ const signatureStatusText = computed(() => {
             >
               {{ page.t('buttons.useGeneratedSecret') }}
             </NButton>
-            <NButton type="primary" @click="signToken">{{ page.t('buttons.signToken') }}</NButton>
+            <NButton
+              type="primary"
+              @click="signToken"
+            >
+              {{ page.t('buttons.signToken') }}
+            </NButton>
           </div>
         </div>
 
-        <NAlert v-if="signError" type="error" :title="signError" class="status-alert" />
+        <NAlert
+          v-if="signError"
+          type="error"
+          :title="signError"
+          class="status-alert"
+        />
 
         <div class="decode-panels">
-          <NCard class="result-card" :bordered="false">
-            <div class="result-label">{{ page.t('labels.header') }}</div>
+          <NCard
+            class="result-card"
+            :bordered="false"
+          >
+            <div class="result-label">
+              {{ page.t('labels.header') }}
+            </div>
             <NInput
               v-model:value="signHeaderJson"
               type="textarea"
@@ -350,8 +400,13 @@ const signatureStatusText = computed(() => {
               class="secret-input"
             />
           </NCard>
-          <NCard class="result-card" :bordered="false">
-            <div class="result-label">{{ page.t('labels.payload') }}</div>
+          <NCard
+            class="result-card"
+            :bordered="false"
+          >
+            <div class="result-label">
+              {{ page.t('labels.payload') }}
+            </div>
             <NInput
               v-model:value="signPayloadJson"
               type="textarea"
@@ -363,8 +418,13 @@ const signatureStatusText = computed(() => {
         </div>
 
         <div class="sign-bottom-grid">
-          <NCard class="result-card" :bordered="false">
-            <div class="result-label">{{ page.t('labels.signSecret') }}</div>
+          <NCard
+            class="result-card"
+            :bordered="false"
+          >
+            <div class="result-label">
+              {{ page.t('labels.signSecret') }}
+            </div>
             <NInput
               v-model:value="signSecret"
               type="password"
@@ -374,10 +434,18 @@ const signatureStatusText = computed(() => {
             />
           </NCard>
 
-          <NCard class="result-card" :bordered="false">
+          <NCard
+            class="result-card"
+            :bordered="false"
+          >
             <div class="result-section">
-              <div class="result-label">{{ page.t('labels.signedToken') }}</div>
-              <div class="secret-display" v-if="signedToken">
+              <div class="result-label">
+                {{ page.t('labels.signedToken') }}
+              </div>
+              <div
+                v-if="signedToken"
+                class="secret-display"
+              >
                 <NInput
                   :value="signedToken"
                   readonly
@@ -389,7 +457,10 @@ const signatureStatusText = computed(() => {
                   {{ signCopied ? page.t('buttons.copied') : page.t('buttons.copy') }}
                 </NButton>
               </div>
-              <div class="secret-placeholder" v-else>
+              <div
+                v-else
+                class="secret-placeholder"
+              >
                 {{ page.t('empty.signedToken') }}
               </div>
             </div>
@@ -397,10 +468,18 @@ const signatureStatusText = computed(() => {
         </div>
       </NTabPane>
 
-      <NTabPane name="decode" :tab="page.t('tabs.decode')">
-        <NCard class="result-card" :bordered="false">
+      <NTabPane
+        name="decode"
+        :tab="page.t('tabs.decode')"
+      >
+        <NCard
+          class="result-card"
+          :bordered="false"
+        >
           <div class="decode-section">
-            <div class="result-label">{{ page.t('labels.jwtToken') }}</div>
+            <div class="result-label">
+              {{ page.t('labels.jwtToken') }}
+            </div>
             <NInput
               v-model:value="jwtToken"
               type="textarea"
@@ -409,13 +488,28 @@ const signatureStatusText = computed(() => {
               class="secret-input"
             />
             <div class="action-buttons decode-actions">
-              <NButton quaternary @click="fillSampleToken">{{ page.t('buttons.fillSample') }}</NButton>
-              <NButton type="primary" @click="decodeToken">{{ page.t('buttons.decodeNow') }}</NButton>
+              <NButton
+                quaternary
+                @click="fillSampleToken"
+              >
+                {{ page.t('buttons.fillSample') }}
+              </NButton>
+              <NButton
+                type="primary"
+                @click="decodeToken"
+              >
+                {{ page.t('buttons.decodeNow') }}
+              </NButton>
             </div>
           </div>
         </NCard>
 
-        <NAlert v-if="decodeError" type="error" :title="decodeError" class="status-alert" />
+        <NAlert
+          v-if="decodeError"
+          type="error"
+          :title="decodeError"
+          class="status-alert"
+        />
 
         <template v-if="headerJson">
           <NAlert
@@ -424,34 +518,67 @@ const signatureStatusText = computed(() => {
             :title="page.t('messages.tokenExpired')"
             class="status-alert"
           >
-            <template v-if="timeInfo.expDate">{{ page.t('messages.expiredAt', { date: timeInfo.expDate }) }}</template>
+            <template v-if="timeInfo.expDate">
+              {{ page.t('messages.expiredAt', { date: timeInfo.expDate }) }}
+            </template>
           </NAlert>
 
-          <div v-if="timeInfo" class="time-info">
-            <NTag v-if="timeInfo.iatDate" size="small">{{ page.t('labels.issuedAt', { date: timeInfo.iatDate }) }}</NTag>
-            <NTag v-if="timeInfo.expDate" size="small" :type="timeInfo.isExpired ? 'error' : 'success'">
+          <div
+            v-if="timeInfo"
+            class="time-info"
+          >
+            <NTag
+              v-if="timeInfo.iatDate"
+              size="small"
+            >
+              {{ page.t('labels.issuedAt', { date: timeInfo.iatDate }) }}
+            </NTag>
+            <NTag
+              v-if="timeInfo.expDate"
+              size="small"
+              :type="timeInfo.isExpired ? 'error' : 'success'"
+            >
               {{ page.t('labels.expiresAt', { date: timeInfo.expDate }) }}
             </NTag>
-            <NTag v-if="timeInfo.expiresInSeconds !== undefined && !timeInfo.isExpired" size="small">
+            <NTag
+              v-if="timeInfo.expiresInSeconds !== undefined && !timeInfo.isExpired"
+              size="small"
+            >
               {{ page.t('labels.remainingDays', { days: Math.floor(timeInfo.expiresInSeconds / 86400) }) }}
             </NTag>
           </div>
 
           <div class="decode-panels">
-            <NCard class="result-card" :bordered="false">
+            <NCard
+              class="result-card"
+              :bordered="false"
+            >
               <template #header>
                 <div class="panel-header">
                   <span>{{ page.t('labels.header') }}</span>
-                  <NButton size="small" @click="copyDecoded('header')">{{ page.t('buttons.copy') }}</NButton>
+                  <NButton
+                    size="small"
+                    @click="copyDecoded('header')"
+                  >
+                    {{ page.t('buttons.copy') }}
+                  </NButton>
                 </div>
               </template>
               <pre class="json-display">{{ headerJson }}</pre>
             </NCard>
-            <NCard class="result-card" :bordered="false">
+            <NCard
+              class="result-card"
+              :bordered="false"
+            >
               <template #header>
                 <div class="panel-header">
                   <span>{{ page.t('labels.payload') }}</span>
-                  <NButton size="small" @click="copyDecoded('payload')">{{ page.t('buttons.copy') }}</NButton>
+                  <NButton
+                    size="small"
+                    @click="copyDecoded('payload')"
+                  >
+                    {{ page.t('buttons.copy') }}
+                  </NButton>
                 </div>
               </template>
               <pre class="json-display">{{ payloadJson }}</pre>
@@ -459,8 +586,13 @@ const signatureStatusText = computed(() => {
           </div>
 
           <div class="verify-grid">
-            <NCard class="result-card verify-card" :bordered="false">
-              <div class="result-label">{{ page.t('labels.hmacVerify') }}</div>
+            <NCard
+              class="result-card verify-card"
+              :bordered="false"
+            >
+              <div class="result-label">
+                {{ page.t('labels.hmacVerify') }}
+              </div>
               <div class="verify-row">
                 <NInput
                   v-model:value="verifySecret"
@@ -469,18 +601,34 @@ const signatureStatusText = computed(() => {
                   :placeholder="page.t('placeholders.verifySecret')"
                   class="verify-input"
                 />
-                <NButton type="primary" @click="verifySignature">{{ page.t('buttons.verify') }}</NButton>
+                <NButton
+                  type="primary"
+                  @click="verifySignature"
+                >
+                  {{ page.t('buttons.verify') }}
+                </NButton>
               </div>
-              <div v-if="verifyResult && !verifyPublicKey.trim()" class="verify-result">
+              <div
+                v-if="verifyResult && !verifyPublicKey.trim()"
+                class="verify-result"
+              >
                 <NTag :type="verifyResult.valid ? 'success' : 'error'">
                   {{ signatureStatusText }}
                 </NTag>
-                <span v-if="verifySecret && verifyResult.valid" class="verify-hint">{{ page.t('labels.secretMatch') }}</span>
+                <span
+                  v-if="verifySecret && verifyResult.valid"
+                  class="verify-hint"
+                >{{ page.t('labels.secretMatch') }}</span>
               </div>
             </NCard>
 
-            <NCard class="result-card verify-card" :bordered="false">
-              <div class="result-label">{{ page.t('labels.rsaVerify') }}</div>
+            <NCard
+              class="result-card verify-card"
+              :bordered="false"
+            >
+              <div class="result-label">
+                {{ page.t('labels.rsaVerify') }}
+              </div>
               <NInput
                 v-model:value="verifyPublicKey"
                 type="textarea"
@@ -488,7 +636,10 @@ const signatureStatusText = computed(() => {
                 :placeholder="page.t('placeholders.verifyPublicKey')"
                 class="verify-input"
               />
-              <div v-if="verifyResult && verifyPublicKey.trim()" class="verify-result">
+              <div
+                v-if="verifyResult && verifyPublicKey.trim()"
+                class="verify-result"
+              >
                 <NTag :type="verifyResult.valid ? 'success' : 'error'">
                   {{ signatureStatusText }}
                 </NTag>

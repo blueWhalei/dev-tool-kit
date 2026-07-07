@@ -130,10 +130,20 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
     :description="page.description"
     container-class="password-generator-view"
   >
-    <NCard class="setting-card" :bordered="false">
-      <NRadioGroup v-model:value="mode" class="mode-switch">
-        <NRadioButton value="random">{{ page.t('modes.random') }}</NRadioButton>
-        <NRadioButton value="passphrase">{{ page.t('modes.passphrase') }}</NRadioButton>
+    <NCard
+      class="setting-card"
+      :bordered="false"
+    >
+      <NRadioGroup
+        v-model:value="mode"
+        class="mode-switch"
+      >
+        <NRadioButton value="random">
+          {{ page.t('modes.random') }}
+        </NRadioButton>
+        <NRadioButton value="passphrase">
+          {{ page.t('modes.passphrase') }}
+        </NRadioButton>
       </NRadioGroup>
 
       <template v-if="mode === 'random'">
@@ -142,24 +152,40 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
             <span>{{ page.t('labels.length') }}</span>
             <NInput
               :value="lengthInput"
-              @update:value="onLengthInput"
-              @blur="onLengthInput(lengthInput)"
               type="text"
               size="small"
               style="width: 80px; text-align: center;"
+              @update:value="onLengthInput"
+              @blur="onLengthInput(lengthInput)"
             />
           </div>
-          <NSlider v-model:value="length" :min="8" :max="256" :step="1" @update:value="onLengthChange" />
+          <NSlider
+            v-model:value="length"
+            :min="8"
+            :max="256"
+            :step="1"
+            @update:value="onLengthChange"
+          />
         </div>
 
         <div class="setting-item">
-          <div class="setting-label">{{ page.t('labels.charTypes') }}</div>
+          <div class="setting-label">
+            {{ page.t('labels.charTypes') }}
+          </div>
           <div class="checkbox-group">
             <NSpace vertical>
-              <NCheckbox v-model:checked="useUppercase">{{ page.t('labels.uppercase') }}</NCheckbox>
-              <NCheckbox v-model:checked="useLowercase">{{ page.t('labels.lowercase') }}</NCheckbox>
-              <NCheckbox v-model:checked="useNumbers">{{ page.t('labels.numbers') }}</NCheckbox>
-              <NCheckbox v-model:checked="useSpecial">{{ page.t('labels.special') }}</NCheckbox>
+              <NCheckbox v-model:checked="useUppercase">
+                {{ page.t('labels.uppercase') }}
+              </NCheckbox>
+              <NCheckbox v-model:checked="useLowercase">
+                {{ page.t('labels.lowercase') }}
+              </NCheckbox>
+              <NCheckbox v-model:checked="useNumbers">
+                {{ page.t('labels.numbers') }}
+              </NCheckbox>
+              <NCheckbox v-model:checked="useSpecial">
+                {{ page.t('labels.special') }}
+              </NCheckbox>
             </NSpace>
           </div>
         </div>
@@ -184,23 +210,47 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
             <span>{{ page.t('labels.wordCount') }}</span>
             <span>{{ wordCount }}</span>
           </div>
-          <NSlider v-model:value="wordCount" :min="3" :max="12" :step="1" />
+          <NSlider
+            v-model:value="wordCount"
+            :min="3"
+            :max="12"
+            :step="1"
+          />
         </div>
         <div class="setting-item">
-          <div class="setting-label">{{ page.t('labels.separator') }}</div>
-          <NInput v-model:value="separator" :maxlength="3" style="max-width: 120px" />
+          <div class="setting-label">
+            {{ page.t('labels.separator') }}
+          </div>
+          <NInput
+            v-model:value="separator"
+            :maxlength="3"
+            style="max-width: 120px"
+          />
         </div>
       </template>
 
-      <NButton type="primary" block size="large" @click="generatePassword">
+      <NButton
+        type="primary"
+        block
+        size="large"
+        @click="generatePassword"
+      >
         {{ page.t('buttons.generate') }}
       </NButton>
     </NCard>
 
-    <NCard class="result-card" :bordered="false">
+    <NCard
+      class="result-card"
+      :bordered="false"
+    >
       <div class="result-section">
-        <div class="password-display" v-if="generatedPassword">
-          <div class="password-text">{{ generatedPassword }}</div>
+        <div
+          v-if="generatedPassword"
+          class="password-display"
+        >
+          <div class="password-text">
+            {{ generatedPassword }}
+          </div>
           <NButton
             :type="copied ? 'success' : 'primary'"
             @click="copyPassword"
@@ -208,12 +258,18 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
             {{ copied ? page.t('buttons.copied') : t('common.copy') }}
           </NButton>
         </div>
-        <div class="password-placeholder" v-else>
+        <div
+          v-else
+          class="password-placeholder"
+        >
           {{ page.t('empty') }}
         </div>
       </div>
 
-      <div class="strength-section" v-if="generatedPassword">
+      <div
+        v-if="generatedPassword"
+        class="strength-section"
+      >
         <div class="strength-label">
           <span>{{ page.t('labels.strength') }}</span>
           <span :style="{ color: passwordStrength.color }">{{ passwordStrength.label }}</span>
@@ -228,8 +284,14 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
         />
       </div>
 
-      <div class="action-buttons" v-if="generatedPassword">
-        <NButton block @click="regenerate">
+      <div
+        v-if="generatedPassword"
+        class="action-buttons"
+      >
+        <NButton
+          block
+          @click="regenerate"
+        >
           {{ page.t('buttons.regenerate') }}
         </NButton>
       </div>

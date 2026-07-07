@@ -7,9 +7,18 @@ defineProps<{
 
 <template>
   <div class="settings-row">
-    <div v-if="label || description" class="settings-row-label">
-      <span v-if="label" class="settings-row-title">{{ label }}</span>
-      <span v-if="description" class="settings-row-desc">{{ description }}</span>
+    <div
+      v-if="label || description"
+      class="settings-row-label"
+    >
+      <span
+        v-if="label"
+        class="settings-row-title"
+      >{{ label }}</span>
+      <span
+        v-if="description"
+        class="settings-row-desc"
+      >{{ description }}</span>
     </div>
     <div class="settings-row-control">
       <slot />

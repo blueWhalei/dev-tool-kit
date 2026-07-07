@@ -177,10 +177,19 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
     container-class="regex-tester-view"
   >
     <template #actions>
-      <NButton size="small" quaternary @click="fillSample">{{ page.t('buttons.fillSample') }}</NButton>
+      <NButton
+        size="small"
+        quaternary
+        @click="fillSample"
+      >
+        {{ page.t('buttons.fillSample') }}
+      </NButton>
     </template>
 
-    <NCard :title="page.t('labels.pattern')" class="regex-card">
+    <NCard
+      :title="page.t('labels.pattern')"
+      class="regex-card"
+    >
       <div class="regex-input-row">
         <NInput
           v-model:value="pattern"
@@ -188,43 +197,65 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
           class="regex-input"
         />
         <div class="flags-panel">
-          <NButtonGroup size="small" class="flags-toggle">
+          <NButtonGroup
+            size="small"
+            class="flags-toggle"
+          >
             <NButton
               :type="flagG ? 'primary' : 'default'"
               :title="flagLabel('g')"
               @click="flagG = !flagG"
-            >g</NButton>
+            >
+              g
+            </NButton>
             <NButton
               :type="flagI ? 'primary' : 'default'"
               :title="flagLabel('i')"
               @click="flagI = !flagI"
-            >i</NButton>
+            >
+              i
+            </NButton>
             <NButton
               :type="flagM ? 'primary' : 'default'"
               :title="flagLabel('m')"
               @click="flagM = !flagM"
-            >m</NButton>
+            >
+              m
+            </NButton>
             <NButton
               :type="flagS ? 'primary' : 'default'"
               :title="flagLabel('s')"
               @click="flagS = !flagS"
-            >s</NButton>
+            >
+              s
+            </NButton>
           </NButtonGroup>
-          <div v-if="activeFlags.length" class="active-flags">
+          <div
+            v-if="activeFlags.length"
+            class="active-flags"
+          >
             <NTag
               v-for="f in activeFlags"
               :key="f"
               size="small"
               type="info"
               :bordered="false"
-            >/{{ f }}</NTag>
+            >
+              /{{ f }}
+            </NTag>
           </div>
-          <span v-else class="no-flags">{{ page.t('labels.noFlags') }}</span>
+          <span
+            v-else
+            class="no-flags"
+          >{{ page.t('labels.noFlags') }}</span>
         </div>
       </div>
     </NCard>
 
-    <NCard :title="page.t('labels.testText')" class="test-card">
+    <NCard
+      :title="page.t('labels.testText')"
+      class="test-card"
+    >
       <NInput
         v-model:value="testString"
         type="textarea"
@@ -232,9 +263,17 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
         :placeholder="page.t('placeholders.testText')"
         class="test-textarea"
       />
-      <div v-if="highlightSegments.length" class="highlight-panel">
-        <div class="input-label">{{ page.t('labels.highlightPreview') }}</div>
-        <pre class="highlight-text" aria-label="match highlight preview"><span
+      <div
+        v-if="highlightSegments.length"
+        class="highlight-panel"
+      >
+        <div class="input-label">
+          {{ page.t('labels.highlightPreview') }}
+        </div>
+        <pre
+          class="highlight-text"
+          aria-label="match highlight preview"
+        ><span
           v-for="(seg, si) in highlightSegments"
           :key="si"
           :class="{
@@ -248,26 +287,54 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
       </div>
     </NCard>
 
-    <NTabs type="line" animated class="result-tabs">
-      <NTabPane name="matches" :tab="matchesTabLabel">
+    <NTabs
+      type="line"
+      animated
+      class="result-tabs"
+    >
+      <NTabPane
+        name="matches"
+        :tab="matchesTabLabel"
+      >
         <NCard class="result-card">
-          <NAlert v-if="result && !result.isValid" type="error" :bordered="false">
+          <NAlert
+            v-if="result && !result.isValid"
+            type="error"
+            :bordered="false"
+          >
             {{ result.error }}
           </NAlert>
-          <NEmpty v-else-if="!result || matchCount === 0" :description="page.t('empty.matches')" />
-          <NList v-else class="matches-list">
-            <NListItem v-for="(m, i) in result?.matches || []" :key="i">
+          <NEmpty
+            v-else-if="!result || matchCount === 0"
+            :description="page.t('empty.matches')"
+          />
+          <NList
+            v-else
+            class="matches-list"
+          >
+            <NListItem
+              v-for="(m, i) in result?.matches || []"
+              :key="i"
+            >
               <NThing>
                 <template #header>
                   <div class="match-header">
-                    <NTag type="primary" size="small">#{{ i + 1 }}</NTag>
+                    <NTag
+                      type="primary"
+                      size="small"
+                    >
+                      #{{ i + 1 }}
+                    </NTag>
                     <span class="match-text">"{{ m.match }}"</span>
                   </div>
                 </template>
                 <template #description>
                   <div class="match-info">
                     <span class="match-index">{{ page.t('labels.matchIndex', { index: m.index }) }}</span>
-                    <div v-if="m.groups.length > 0" class="match-groups">
+                    <div
+                      v-if="m.groups.length > 0"
+                      class="match-groups"
+                    >
                       <NTag
                         v-for="(g, gi) in m.groups"
                         :key="gi"
@@ -286,21 +353,39 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
         </NCard>
       </NTabPane>
 
-      <NTabPane name="replace" :tab="page.t('tabs.replace')">
+      <NTabPane
+        name="replace"
+        :tab="page.t('tabs.replace')"
+      >
         <NCard class="result-card">
-          <NSpace vertical :size="16">
+          <NSpace
+            vertical
+            :size="16"
+          >
             <div class="replace-input-wrapper">
-              <div class="input-label">{{ page.t('labels.replacement') }}</div>
+              <div class="input-label">
+                {{ page.t('labels.replacement') }}
+              </div>
               <NInput
                 v-model:value="replacement"
                 :placeholder="page.t('placeholders.replacement')"
                 class="replace-input"
               />
-              <div class="replace-hint">{{ page.t('labels.replacementHint') }}</div>
+              <div class="replace-hint">
+                {{ page.t('labels.replacementHint') }}
+              </div>
             </div>
-            <NAlert v-if="replaceError" type="error" :bordered="false">{{ replaceError }}</NAlert>
+            <NAlert
+              v-if="replaceError"
+              type="error"
+              :bordered="false"
+            >
+              {{ replaceError }}
+            </NAlert>
             <div class="replace-preview">
-              <div class="input-label">{{ page.t('labels.replaceResult') }}</div>
+              <div class="input-label">
+                {{ page.t('labels.replaceResult') }}
+              </div>
               <NInput
                 v-if="replaceResult || (pattern && testString)"
                 :value="replaceResult"
@@ -319,17 +404,29 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
         </NCard>
       </NTabPane>
 
-      <NTabPane name="common" :tab="page.t('tabs.common')">
+      <NTabPane
+        name="common"
+        :tab="page.t('tabs.common')"
+      >
         <NCard class="result-card">
           <NList class="common-list">
-            <NListItem v-for="r in commonRegexes" :key="r.name" class="common-item" @click="useCommonRegex(r)">
+            <NListItem
+              v-for="r in commonRegexes"
+              :key="r.name"
+              class="common-item"
+              @click="useCommonRegex(r)"
+            >
               <NThing>
                 <template #header>
                   <span class="common-name">{{ commonRegexLabel(r, 'name') }}</span>
                 </template>
                 <template #description>
-                  <div class="common-pattern">{{ r.pattern }}</div>
-                  <div class="common-desc">{{ commonRegexLabel(r, 'description') }}</div>
+                  <div class="common-pattern">
+                    {{ r.pattern }}
+                  </div>
+                  <div class="common-desc">
+                    {{ commonRegexLabel(r, 'description') }}
+                  </div>
                 </template>
               </NThing>
             </NListItem>

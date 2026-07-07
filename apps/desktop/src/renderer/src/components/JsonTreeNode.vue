@@ -51,17 +51,41 @@ function toggle() {
 </script>
 
 <template>
-  <div class="json-tree-node" :style="{ paddingLeft: depth > 0 ? '14px' : undefined }">
-    <div class="json-tree-row" @click="toggle">
-      <span v-if="isExpandable" class="json-tree-toggle">{{ expanded ? '▾' : '▸' }}</span>
-      <span v-else class="json-tree-toggle json-tree-toggle--empty" />
-      <span v-if="name !== undefined" class="json-tree-key">{{ name }}:</span>
-      <span v-if="isExpandable && !expanded" class="json-tree-summary">{{ summary }}</span>
-      <span v-else-if="!isExpandable" :class="['json-tree-value', primitiveClass(value)]">
+  <div
+    class="json-tree-node"
+    :style="{ paddingLeft: depth > 0 ? '14px' : undefined }"
+  >
+    <div
+      class="json-tree-row"
+      @click="toggle"
+    >
+      <span
+        v-if="isExpandable"
+        class="json-tree-toggle"
+      >{{ expanded ? '▾' : '▸' }}</span>
+      <span
+        v-else
+        class="json-tree-toggle json-tree-toggle--empty"
+      />
+      <span
+        v-if="name !== undefined"
+        class="json-tree-key"
+      >{{ name }}:</span>
+      <span
+        v-if="isExpandable && !expanded"
+        class="json-tree-summary"
+      >{{ summary }}</span>
+      <span
+        v-else-if="!isExpandable"
+        :class="['json-tree-value', primitiveClass(value)]"
+      >
         {{ formatPrimitive(value) }}
       </span>
     </div>
-    <div v-if="isExpandable && expanded" class="json-tree-children">
+    <div
+      v-if="isExpandable && expanded"
+      class="json-tree-children"
+    >
       <JsonTreeNode
         v-for="[childName, childValue] in entries"
         :key="childName"

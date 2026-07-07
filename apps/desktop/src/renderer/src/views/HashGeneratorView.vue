@@ -113,8 +113,20 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
   >
     <template #actions>
       <NButtonGroup>
-        <NButton :type="hashMode === 'text' ? 'primary' : 'default'" size="small" @click="hashMode = 'text'">{{ page.t('modes.text') }}</NButton>
-        <NButton :type="hashMode === 'file' ? 'primary' : 'default'" size="small" @click="hashMode = 'file'">{{ page.t('modes.file') }}</NButton>
+        <NButton
+          :type="hashMode === 'text' ? 'primary' : 'default'"
+          size="small"
+          @click="hashMode = 'text'"
+        >
+          {{ page.t('modes.text') }}
+        </NButton>
+        <NButton
+          :type="hashMode === 'file' ? 'primary' : 'default'"
+          size="small"
+          @click="hashMode = 'file'"
+        >
+          {{ page.t('modes.file') }}
+        </NButton>
       </NButtonGroup>
       <NSelect
         v-if="hashMode === 'text'"
@@ -122,7 +134,14 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
         :options="algorithmOptions"
         style="width: 160px"
       />
-      <NButton v-if="hashMode === 'text'" size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
+      <NButton
+        v-if="hashMode === 'text'"
+        size="small"
+        quaternary
+        @click="fillSample"
+      >
+        {{ t('common.fillSample') }}
+      </NButton>
       <NButton
         v-if="hashMode === 'text' && hashOutput"
         size="small"
@@ -140,7 +159,15 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
       >
         {{ page.t('buttons.useInJwt') }}
       </NButton>
-      <NButton v-if="hashMode === 'file'" type="primary" size="small" @click="selectAndHashFile" :loading="fileHashLoading">{{ page.t('fileArea.selectFile') }}</NButton>
+      <NButton
+        v-if="hashMode === 'file'"
+        type="primary"
+        size="small"
+        :loading="fileHashLoading"
+        @click="selectAndHashFile"
+      >
+        {{ page.t('fileArea.selectFile') }}
+      </NButton>
     </template>
 
     <template v-if="hashMode === 'text'">
@@ -158,13 +185,20 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
 
     <template v-else>
       <NSpin :show="fileHashLoading">
-        <NCard v-if="fileHashResults" class="file-hash-card" :bordered="false">
+        <NCard
+          v-if="fileHashResults"
+          class="file-hash-card"
+          :bordered="false"
+        >
           <div class="file-info">
             <span class="file-info-item"><strong>{{ page.t('fileArea.fileName') }}:</strong> {{ fileHashResults.fileName }}</span>
             <span class="file-info-item"><strong>{{ page.t('fileArea.fileSize') }}:</strong> {{ formatBytes(fileHashResults.fileSize) }}</span>
           </div>
           <NList hoverable>
-            <NListItem v-for="item in fileHashResults.hashes" :key="item.algorithm">
+            <NListItem
+              v-for="item in fileHashResults.hashes"
+              :key="item.algorithm"
+            >
               <NThing>
                 <template #header>
                   <span class="hash-algorithm">{{ item.algorithm }}</span>
@@ -174,13 +208,24 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
                 </template>
               </NThing>
               <template #suffix>
-                <NButton size="small" @click="copyHash(item.hash)">{{ t('common.copy') }}</NButton>
+                <NButton
+                  size="small"
+                  @click="copyHash(item.hash)"
+                >
+                  {{ t('common.copy') }}
+                </NButton>
               </template>
             </NListItem>
           </NList>
         </NCard>
-        <NCard v-else class="file-hash-card empty-card" :bordered="false">
-          <div class="empty-hint">{{ page.t('messages.noFileSelected') }}</div>
+        <NCard
+          v-else
+          class="file-hash-card empty-card"
+          :bordered="false"
+        >
+          <div class="empty-hint">
+            {{ page.t('messages.noFileSelected') }}
+          </div>
         </NCard>
       </NSpin>
     </template>

@@ -278,10 +278,18 @@ useKeyboardShortcut((event) => {
   >
     <template #actions>
       <NButtonGroup>
-        <NButton :type="quickScanMode === 'all' ? 'primary' : 'default'" @click="fetchPorts('all')" :loading="loading && quickScanMode === 'all'">
+        <NButton
+          :type="quickScanMode === 'all' ? 'primary' : 'default'"
+          :loading="loading && quickScanMode === 'all'"
+          @click="fetchPorts('all')"
+        >
           {{ page.t('buttons.scanAll') }}
         </NButton>
-        <NButton :type="quickScanMode === 'common' ? 'primary' : 'default'" @click="fetchPorts('common')" :loading="loading && quickScanMode === 'common'">
+        <NButton
+          :type="quickScanMode === 'common' ? 'primary' : 'default'"
+          :loading="loading && quickScanMode === 'common'"
+          @click="fetchPorts('common')"
+        >
           {{ page.t('buttons.scanCommon') }}
         </NButton>
       </NButtonGroup>
@@ -312,7 +320,12 @@ useKeyboardShortcut((event) => {
         style="width: 160px"
         clearable
       />
-      <NButton quaternary @click="clearSearch">{{ t('common.clear') }}</NButton>
+      <NButton
+        quaternary
+        @click="clearSearch"
+      >
+        {{ t('common.clear') }}
+      </NButton>
     </div>
 
     <NAlert
@@ -327,24 +340,56 @@ useKeyboardShortcut((event) => {
 
     <div class="port-filter-bar">
       <div class="port-stats">
-        <NTag size="small" :bordered="false">{{ page.t('stats.total', { count: portStats.total }) }}</NTag>
-        <NTag size="small" type="success" :bordered="false">{{ page.t('stats.listening', { count: portStats.listening }) }}</NTag>
-        <NTag size="small" type="warning" :bordered="false">{{ page.t('stats.established', { count: portStats.established }) }}</NTag>
+        <NTag
+          size="small"
+          :bordered="false"
+        >
+          {{ page.t('stats.total', { count: portStats.total }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="success"
+          :bordered="false"
+        >
+          {{ page.t('stats.listening', { count: portStats.listening }) }}
+        </NTag>
+        <NTag
+          size="small"
+          type="warning"
+          :bordered="false"
+        >
+          {{ page.t('stats.established', { count: portStats.established }) }}
+        </NTag>
       </div>
-      <NButtonGroup size="small" class="state-filter">
-        <NButton :type="stateFilter === 'all' ? 'primary' : 'default'" @click="stateFilter = 'all'">
+      <NButtonGroup
+        size="small"
+        class="state-filter"
+      >
+        <NButton
+          :type="stateFilter === 'all' ? 'primary' : 'default'"
+          @click="stateFilter = 'all'"
+        >
           {{ page.t('filters.allWithCount', { count: portStats.total }) }}
         </NButton>
-        <NButton :type="stateFilter === 'LISTENING' ? 'primary' : 'default'" @click="stateFilter = 'LISTENING'">
+        <NButton
+          :type="stateFilter === 'LISTENING' ? 'primary' : 'default'"
+          @click="stateFilter = 'LISTENING'"
+        >
           {{ page.t('filters.listeningWithCount', { count: portStats.listening }) }}
         </NButton>
-        <NButton :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'" @click="stateFilter = 'ESTABLISHED'">
+        <NButton
+          :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'"
+          @click="stateFilter = 'ESTABLISHED'"
+        >
           {{ page.t('filters.establishedWithCount', { count: portStats.established }) }}
         </NButton>
       </NButtonGroup>
     </div>
 
-    <NCard class="content-card" :bordered="false">
+    <NCard
+      class="content-card"
+      :bordered="false"
+    >
       <NSpin :show="loading && ports.length === 0">
         <NDataTable
           v-if="filteredPorts.length > 0"
@@ -357,7 +402,10 @@ useKeyboardShortcut((event) => {
           :row-key="(row: PortInfo) => `${row.port}-${row.pid}`"
           class="port-table"
         />
-        <NEmpty v-else-if="!loading" :description="page.t('empty')" />
+        <NEmpty
+          v-else-if="!loading"
+          :description="page.t('empty')"
+        />
       </NSpin>
     </NCard>
   </PageLayout>

@@ -10,9 +10,19 @@ defineProps<{
 <template>
   <section class="settings-section">
     <div class="settings-section-header">
-      <ToolIcon v-if="icon" :name="icon" :size="18" class="settings-section-icon" />
-      <h3 class="settings-section-title">{{ title }}</h3>
-      <div v-if="$slots.extra" class="settings-section-extra">
+      <ToolIcon
+        v-if="icon"
+        :name="icon"
+        :size="18"
+        class="settings-section-icon"
+      />
+      <h3 class="settings-section-title">
+        {{ title }}
+      </h3>
+      <div
+        v-if="$slots.extra"
+        class="settings-section-extra"
+      >
         <slot name="extra" />
       </div>
     </div>

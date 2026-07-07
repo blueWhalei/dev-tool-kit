@@ -308,17 +308,30 @@ onMounted(() => {
   >
     <template #actions>
       <NSpace>
-        <NButton type="primary" @click="selectFolder">{{ page.t('selectFolder') }}</NButton>
-        <NButton @click="selectFiles">{{ page.t('selectFiles') }}</NButton>
+        <NButton
+          type="primary"
+          @click="selectFolder"
+        >
+          {{ page.t('selectFolder') }}
+        </NButton>
+        <NButton @click="selectFiles">
+          {{ page.t('selectFiles') }}
+        </NButton>
       </NSpace>
     </template>
 
-    <div v-if="folderPath" class="folder-bar">
+    <div
+      v-if="folderPath"
+      class="folder-bar"
+    >
       <span class="folder-label">{{ page.t('currentFolder') }}</span>
       <span class="folder-path">{{ folderPath }}</span>
     </div>
 
-    <div v-else-if="sourceType === 'files'" class="folder-bar">
+    <div
+      v-else-if="sourceType === 'files'"
+      class="folder-bar"
+    >
       <span class="folder-label">{{ page.t('selectedFiles') }}</span>
       <span class="folder-path">{{ page.t('filesCount', { count: files.length }) }}</span>
     </div>
@@ -326,23 +339,35 @@ onMounted(() => {
     <template v-if="files.length > 0">
       <div class="renamer-layout">
         <!-- 左栏：文件选择与规则 -->
-        <NCard :title="page.t('filesAndRules')" class="panel-card panel-left" :bordered="false">
+        <NCard
+          :title="page.t('filesAndRules')"
+          class="panel-card panel-left"
+          :bordered="false"
+        >
           <section class="panel-section">
             <div class="section-head">
               <span class="section-title">{{ page.t('fileList') }}</span>
               <NSpace :size="8">
-                <NCheckbox v-model:checked="allSelected">{{ page.t('selectAll') }}</NCheckbox>
+                <NCheckbox v-model:checked="allSelected">
+                  {{ page.t('selectAll') }}
+                </NCheckbox>
                 <span class="preview-count">{{ selectedFiles.length }} / {{ files.length }}</span>
               </NSpace>
             </div>
             <NList class="files-list">
-              <NListItem v-for="file in files" :key="file.path">
+              <NListItem
+                v-for="file in files"
+                :key="file.path"
+              >
                 <div class="file-row">
                   <NCheckbox
                     :checked="selectedFiles.includes(file.path)"
                     @update:checked="(checked) => toggleFile(file.path, checked)"
                   />
-                  <span class="file-name" :title="file.path">{{ file.name }}</span>
+                  <span
+                    class="file-name"
+                    :title="file.path"
+                  >{{ file.name }}</span>
                 </div>
               </NListItem>
             </NList>
@@ -353,24 +378,53 @@ onMounted(() => {
           <section class="panel-section">
             <div class="section-head">
               <span class="section-title">{{ page.t('renameRules') }}</span>
-              <NButton size="tiny" quaternary @click="showSaveRuleModal = true">{{ page.t('saveRule') }}</NButton>
+              <NButton
+                size="tiny"
+                quaternary
+                @click="showSaveRuleModal = true"
+              >
+                {{ page.t('saveRule') }}
+              </NButton>
             </div>
-            <NForm label-placement="top" size="small">
+            <NForm
+              label-placement="top"
+              size="small"
+            >
               <NFormItem :label="page.t('savedRules')">
-                <NSpace vertical style="width: 100%">
+                <NSpace
+                  vertical
+                  style="width: 100%"
+                >
                   <NSelect
                     :options="savedRuleOptions"
                     :placeholder="page.t('loadSavedRule')"
                     clearable
                     @update:value="applySavedRule"
                   />
-                  <NList v-if="savedRules.length" class="saved-rules-list">
-                    <NListItem v-for="item in savedRules" :key="item.name">
+                  <NList
+                    v-if="savedRules.length"
+                    class="saved-rules-list"
+                  >
+                    <NListItem
+                      v-for="item in savedRules"
+                      :key="item.name"
+                    >
                       <div class="saved-rule-row">
-                        <button type="button" class="saved-rule-name" @click="applySavedRule(item.name)">
+                        <button
+                          type="button"
+                          class="saved-rule-name"
+                          @click="applySavedRule(item.name)"
+                        >
                           {{ item.name }}
                         </button>
-                        <NButton size="tiny" quaternary type="error" @click="deleteSavedRule(item.name)">{{ t('common.delete') }}</NButton>
+                        <NButton
+                          size="tiny"
+                          quaternary
+                          type="error"
+                          @click="deleteSavedRule(item.name)"
+                        >
+                          {{ t('common.delete') }}
+                        </NButton>
                       </div>
                     </NListItem>
                   </NList>
@@ -378,55 +432,130 @@ onMounted(() => {
               </NFormItem>
 
               <NFormItem :label="page.t('ruleChain')">
-                <NSpace vertical style="width: 100%">
-                  <div v-for="(rule, index) in rules" :key="index" class="rule-chain-item">
+                <NSpace
+                  vertical
+                  style="width: 100%"
+                >
+                  <div
+                    v-for="(rule, index) in rules"
+                    :key="index"
+                    class="rule-chain-item"
+                  >
                     <div class="rule-chain-head">
-                      <NTag size="small" type="info">{{ page.t('ruleStep', { step: index + 1 }) }}</NTag>
-                      <NButton v-if="rules.length > 1" size="tiny" quaternary type="error" @click="removeRule(index)">{{ t('common.delete') }}</NButton>
+                      <NTag
+                        size="small"
+                        type="info"
+                      >
+                        {{ page.t('ruleStep', { step: index + 1 }) }}
+                      </NTag>
+                      <NButton
+                        v-if="rules.length > 1"
+                        size="tiny"
+                        quaternary
+                        type="error"
+                        @click="removeRule(index)"
+                      >
+                        {{ t('common.delete') }}
+                      </NButton>
                     </div>
                     <NFormItem :label="page.t('ruleType')">
-                      <NSelect v-model:value="rule.type" :options="ruleTypes" />
+                      <NSelect
+                        v-model:value="rule.type"
+                        :options="ruleTypes"
+                      />
                     </NFormItem>
 
-                    <NFormItem v-if="rule.type === 'prefix'" :label="page.t('prefix')">
-                      <NInput v-model:value="rule.value" :placeholder="page.t('prefix')" />
+                    <NFormItem
+                      v-if="rule.type === 'prefix'"
+                      :label="page.t('prefix')"
+                    >
+                      <NInput
+                        v-model:value="rule.value"
+                        :placeholder="page.t('prefix')"
+                      />
                     </NFormItem>
 
-                    <NFormItem v-if="rule.type === 'suffix'" :label="page.t('suffix')">
-                      <NInput v-model:value="rule.value" :placeholder="page.t('suffix')" />
+                    <NFormItem
+                      v-if="rule.type === 'suffix'"
+                      :label="page.t('suffix')"
+                    >
+                      <NInput
+                        v-model:value="rule.value"
+                        :placeholder="page.t('suffix')"
+                      />
                     </NFormItem>
 
                     <template v-if="rule.type === 'replace'">
                       <NFormItem :label="page.t('findText')">
-                        <NInput v-model:value="rule.value" :placeholder="page.t('findText')" />
+                        <NInput
+                          v-model:value="rule.value"
+                          :placeholder="page.t('findText')"
+                        />
                       </NFormItem>
                       <NFormItem :label="page.t('replaceWith')">
-                        <NInput v-model:value="rule.replaceWith" :placeholder="page.t('replaceWith')" />
+                        <NInput
+                          v-model:value="rule.replaceWith"
+                          :placeholder="page.t('replaceWith')"
+                        />
                       </NFormItem>
                     </template>
 
                     <template v-if="rule.type === 'regex'">
                       <NFormItem :label="page.t('regexPattern')">
-                        <NInput v-model:value="rule.pattern" :placeholder="page.t('regexPattern')" />
+                        <NInput
+                          v-model:value="rule.pattern"
+                          :placeholder="page.t('regexPattern')"
+                        />
                       </NFormItem>
                       <NFormItem :label="page.t('replaceWith')">
-                        <NInput v-model:value="rule.replaceWith" :placeholder="page.t('replaceWith')" />
+                        <NInput
+                          v-model:value="rule.replaceWith"
+                          :placeholder="page.t('replaceWith')"
+                        />
                       </NFormItem>
                     </template>
 
-                    <NFormItem v-if="rule.type === 'number'" :label="page.t('startNumber')">
-                      <NInput v-model:value="rule.startNumber" type="number" :min="1" />
+                    <NFormItem
+                      v-if="rule.type === 'number'"
+                      :label="page.t('startNumber')"
+                    >
+                      <NInput
+                        v-model:value="rule.startNumber"
+                        type="number"
+                        :min="1"
+                      />
                     </NFormItem>
 
-                    <NFormItem v-if="rule.type === 'number'" :label="page.t('padding')">
-                      <NInput v-model:value="rule.padding" type="number" :min="1" :max="10" />
+                    <NFormItem
+                      v-if="rule.type === 'number'"
+                      :label="page.t('padding')"
+                    >
+                      <NInput
+                        v-model:value="rule.padding"
+                        type="number"
+                        :min="1"
+                        :max="10"
+                      />
                     </NFormItem>
 
-                    <NFormItem v-if="rule.type === 'case'" :label="page.t('caseType')">
-                      <NSelect v-model:value="rule.caseType" :options="caseOptions" />
+                    <NFormItem
+                      v-if="rule.type === 'case'"
+                      :label="page.t('caseType')"
+                    >
+                      <NSelect
+                        v-model:value="rule.caseType"
+                        :options="caseOptions"
+                      />
                     </NFormItem>
                   </div>
-                  <NButton size="small" dashed block @click="addRule">{{ page.t('addRule') }}</NButton>
+                  <NButton
+                    size="small"
+                    dashed
+                    block
+                    @click="addRule"
+                  >
+                    {{ page.t('addRule') }}
+                  </NButton>
                 </NSpace>
               </NFormItem>
             </NForm>
@@ -434,11 +563,27 @@ onMounted(() => {
         </NCard>
 
         <!-- 右栏：并排预览 -->
-        <NCard :title="page.t('preview')" class="panel-card panel-right" :bordered="false">
+        <NCard
+          :title="page.t('preview')"
+          class="panel-card panel-right"
+          :bordered="false"
+        >
           <template #header-extra>
-            <NSpace align="center" :size="12">
-              <span v-if="previews.length > 0" class="preview-count">{{ previews.length }}</span>
-              <NTag v-if="hasConflicts" type="warning" size="small">{{ page.t('conflictWarning', { count: conflictCount }) }}</NTag>
+            <NSpace
+              align="center"
+              :size="12"
+            >
+              <span
+                v-if="previews.length > 0"
+                class="preview-count"
+              >{{ previews.length }}</span>
+              <NTag
+                v-if="hasConflicts"
+                type="warning"
+                size="small"
+              >
+                {{ page.t('conflictWarning', { count: conflictCount }) }}
+              </NTag>
               <NButton
                 v-if="canUndo"
                 :loading="undoing"
@@ -465,11 +610,17 @@ onMounted(() => {
             :title="page.t('conflictWarning', { count: conflictCount })"
           />
 
-          <div v-if="previews.length > 0" class="preview-table-wrap">
+          <div
+            v-if="previews.length > 0"
+            class="preview-table-wrap"
+          >
             <div class="preview-table">
               <div class="preview-table-head">
                 <span class="col-original">{{ page.t('originalName') }}</span>
-                <span class="col-arrow" aria-hidden="true" />
+                <span
+                  class="col-arrow"
+                  aria-hidden="true"
+                />
                 <span class="col-preview">{{ page.t('newName') }}</span>
               </div>
               <div
@@ -478,27 +629,62 @@ onMounted(() => {
                 class="preview-table-row"
                 :class="{ conflict: !!preview.conflict }"
               >
-                <span class="col-original" :title="preview.original">{{ preview.original }}</span>
-                <span class="col-arrow" aria-hidden="true">→</span>
+                <span
+                  class="col-original"
+                  :title="preview.original"
+                >{{ preview.original }}</span>
+                <span
+                  class="col-arrow"
+                  aria-hidden="true"
+                >→</span>
                 <span class="col-preview">
-                  <span class="preview-name" :class="{ conflict: preview.conflict }">{{ preview.preview }}</span>
-                  <NTag v-if="preview.conflict" size="tiny" type="error">{{ preview.conflict }}</NTag>
+                  <span
+                    class="preview-name"
+                    :class="{ conflict: preview.conflict }"
+                  >{{ preview.preview }}</span>
+                  <NTag
+                    v-if="preview.conflict"
+                    size="tiny"
+                    type="error"
+                  >{{ preview.conflict }}</NTag>
                 </span>
               </div>
             </div>
           </div>
-          <NEmpty v-else :description="page.t('previewEmpty')" class="preview-empty" />
+          <NEmpty
+            v-else
+            :description="page.t('previewEmpty')"
+            class="preview-empty"
+          />
         </NCard>
       </div>
     </template>
 
-    <NEmpty v-else :description="page.t('empty')" class="empty-state" />
+    <NEmpty
+      v-else
+      :description="page.t('empty')"
+      class="empty-state"
+    />
 
-    <NModal v-model:show="showSaveRuleModal" preset="dialog" :title="page.t('saveRuleTitle')" :positive-text="t('common.save')" @positive-click="saveCurrentRule">
-      <NInput v-model:value="ruleNameInput" :placeholder="page.t('saveRulePlaceholder')" />
+    <NModal
+      v-model:show="showSaveRuleModal"
+      preset="dialog"
+      :title="page.t('saveRuleTitle')"
+      :positive-text="t('common.save')"
+      @positive-click="saveCurrentRule"
+    >
+      <NInput
+        v-model:value="ruleNameInput"
+        :placeholder="page.t('saveRulePlaceholder')"
+      />
     </NModal>
 
-    <NModal v-model:show="showResultModal" preset="card" :title="page.t('resultTitle')" style="width: 500px">
+    <NModal
+      v-model:show="showResultModal"
+      preset="card"
+      :title="page.t('resultTitle')"
+      style="width: 500px"
+    >
       <div class="result-summary">
         <NProgress
           type="line"
@@ -508,14 +694,25 @@ onMounted(() => {
         />
         <div class="result-stats">
           <span class="success">✓ {{ page.t('resultSuccess', { count: successCount }) }}</span>
-          <span v-if="failCount > 0" class="fail">✕ {{ page.t('resultFail', { count: failCount }) }}</span>
+          <span
+            v-if="failCount > 0"
+            class="fail"
+          >✕ {{ page.t('resultFail', { count: failCount }) }}</span>
         </div>
       </div>
       <div class="result-list">
-        <div v-for="result in results" :key="result.original" class="result-item" :class="{ error: !result.success }">
+        <div
+          v-for="result in results"
+          :key="result.original"
+          class="result-item"
+          :class="{ error: !result.success }"
+        >
           <span>{{ result.original }}</span>
           <span v-if="result.success">→ {{ result.renamed }}</span>
-          <span v-else class="error-msg">{{ result.error }}</span>
+          <span
+            v-else
+            class="error-msg"
+          >{{ result.error }}</span>
         </div>
       </div>
     </NModal>

@@ -214,7 +214,10 @@ async function copyResult() {
     :description="page.description"
     container-class="cron-parser-view"
   >
-    <NCard class="cron-input-card" :bordered="true">
+    <NCard
+      class="cron-input-card"
+      :bordered="true"
+    >
       <template #header>
         <div class="card-header">
           <span class="card-title">{{ page.t('labels.expression') }}</span>
@@ -234,12 +237,19 @@ async function copyResult() {
       </div>
     </NCard>
 
-    <NCard class="visual-editor-card" :bordered="true">
+    <NCard
+      class="visual-editor-card"
+      :bordered="true"
+    >
       <template #header>
         <span class="card-title">{{ page.t('labels.visualEditor') }}</span>
       </template>
       <div class="field-editor-grid">
-        <div v-for="key in activeFieldKeys" :key="key" class="field-editor-item">
+        <div
+          v-for="key in activeFieldKeys"
+          :key="key"
+          class="field-editor-item"
+        >
           <div class="field-editor-header">
             <span class="field-name">{{ fieldLabel(key) }}</span>
             <span class="field-range">{{ fieldRange(key) }}</span>
@@ -250,7 +260,10 @@ async function copyResult() {
             size="small"
             @update:value="(type: CronFieldPatternType) => onFieldPatternChange(key, type)"
           />
-          <div v-if="cronFields[key].type === 'step'" class="field-editor-inputs">
+          <div
+            v-if="cronFields[key].type === 'step'"
+            class="field-editor-inputs"
+          >
             <NInputNumber
               v-model:value="cronFields[key].step"
               :min="1"
@@ -259,7 +272,10 @@ async function copyResult() {
               :placeholder="page.t('placeholders.step')"
             />
           </div>
-          <div v-else-if="cronFields[key].type === 'value'" class="field-editor-inputs">
+          <div
+            v-else-if="cronFields[key].type === 'value'"
+            class="field-editor-inputs"
+          >
             <NInputNumber
               v-model:value="cronFields[key].value"
               :min="fieldDef(key).min"
@@ -267,7 +283,10 @@ async function copyResult() {
               size="small"
             />
           </div>
-          <div v-else-if="cronFields[key].type === 'range'" class="field-editor-inputs field-editor-inputs--inline">
+          <div
+            v-else-if="cronFields[key].type === 'range'"
+            class="field-editor-inputs field-editor-inputs--inline"
+          >
             <NInputNumber
               v-model:value="cronFields[key].start"
               :min="fieldDef(key).min"
@@ -282,7 +301,10 @@ async function copyResult() {
               size="small"
             />
           </div>
-          <div v-else-if="cronFields[key].type === 'list'" class="field-editor-inputs">
+          <div
+            v-else-if="cronFields[key].type === 'list'"
+            class="field-editor-inputs"
+          >
             <NInput
               :value="(cronFields[key].values ?? []).join(',')"
               size="small"
@@ -297,14 +319,23 @@ async function copyResult() {
               "
             />
           </div>
-          <div v-else-if="cronFields[key].type === 'custom'" class="field-editor-inputs">
-            <NInput v-model:value="cronFields[key].raw" size="small" />
+          <div
+            v-else-if="cronFields[key].type === 'custom'"
+            class="field-editor-inputs"
+          >
+            <NInput
+              v-model:value="cronFields[key].raw"
+              size="small"
+            />
           </div>
         </div>
       </div>
     </NCard>
 
-    <NCard class="preset-card" :bordered="true">
+    <NCard
+      class="preset-card"
+      :bordered="true"
+    >
       <template #header>
         <span class="card-title">{{ page.t('labels.presets') }}</span>
       </template>
@@ -320,7 +351,10 @@ async function copyResult() {
       </div>
     </NCard>
 
-    <NCard class="result-card" :bordered="true">
+    <NCard
+      class="result-card"
+      :bordered="true"
+    >
       <template #header>
         <span class="card-title">{{ page.t('labels.description') }}</span>
       </template>
@@ -329,11 +363,18 @@ async function copyResult() {
       </div>
     </NCard>
 
-    <NCard class="result-card" :bordered="true">
+    <NCard
+      class="result-card"
+      :bordered="true"
+    >
       <template #header>
         <div class="card-header">
           <span class="card-title">{{ page.t('labels.nextRuns') }}</span>
-          <NButton size="small" :disabled="!nextRuns.length" @click="copyResult">
+          <NButton
+            size="small"
+            :disabled="!nextRuns.length"
+            @click="copyResult"
+          >
             {{ page.t('buttons.copy') }}
           </NButton>
         </div>
@@ -348,12 +389,29 @@ async function copyResult() {
         />
       </div>
       <NSpin :show="parsing">
-        <div v-if="parseError" class="error-text">{{ translatedParseError }}</div>
-        <div v-else class="runs-list">
-          <div v-for="(run, index) in nextRuns" :key="index" class="run-item">
+        <div
+          v-if="parseError"
+          class="error-text"
+        >
+          {{ translatedParseError }}
+        </div>
+        <div
+          v-else
+          class="runs-list"
+        >
+          <div
+            v-for="(run, index) in nextRuns"
+            :key="index"
+            class="run-item"
+          >
             <span class="run-index">{{ page.t('labels.runIndex', { index: index + 1 }) }}</span>
             <span class="run-absolute">{{ run.absolute }}</span>
-            <NTag size="small" :bordered="false">{{ runRelative(run) }}</NTag>
+            <NTag
+              size="small"
+              :bordered="false"
+            >
+              {{ runRelative(run) }}
+            </NTag>
           </div>
         </div>
       </NSpin>

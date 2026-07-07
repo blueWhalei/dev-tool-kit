@@ -77,7 +77,10 @@ async function copyLine(entry: HttpStatusCode) {
     :description="page.description"
     container-class="http-status-codes-view"
   >
-    <NCard class="filter-card" :bordered="false">
+    <NCard
+      class="filter-card"
+      :bordered="false"
+    >
       <div class="filter-row">
         <div class="filter-field search-field">
           <span class="field-label">{{ page.t('labels.search') }}</span>
@@ -97,7 +100,12 @@ async function copyLine(entry: HttpStatusCode) {
       </div>
     </NCard>
 
-    <p v-if="totalVisible === 0" class="empty-hint">{{ page.t('labels.noResults') }}</p>
+    <p
+      v-if="totalVisible === 0"
+      class="empty-hint"
+    >
+      {{ page.t('labels.noResults') }}
+    </p>
 
     <section
       v-for="category in visibleCategories"
@@ -105,11 +113,19 @@ async function copyLine(entry: HttpStatusCode) {
       class="category-section"
     >
       <div class="category-header">
-        <NTag size="small" :type="categoryTagType[category]">{{ categoryLabels[category] }}</NTag>
+        <NTag
+          size="small"
+          :type="categoryTagType[category]"
+        >
+          {{ categoryLabels[category] }}
+        </NTag>
         <span class="category-count">{{ groupedCodes[category].length }}</span>
       </div>
 
-      <NCard class="codes-card" :bordered="false">
+      <NCard
+        class="codes-card"
+        :bordered="false"
+      >
         <button
           v-for="entry in groupedCodes[category]"
           :key="entry.code"
@@ -117,7 +133,10 @@ async function copyLine(entry: HttpStatusCode) {
           class="code-row"
           @click="copyLine(entry)"
         >
-          <span class="code-badge" @click="copyCode(entry, $event)">{{ entry.code }}</span>
+          <span
+            class="code-badge"
+            @click="copyCode(entry, $event)"
+          >{{ entry.code }}</span>
           <span class="code-name">{{ entry.name }}</span>
           <span class="code-desc">{{ descriptionFor(entry) }}</span>
         </button>
