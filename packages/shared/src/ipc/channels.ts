@@ -51,6 +51,7 @@ export const IPC_INVOKE_CHANNELS = [
   'env-manager:export',
   'env-manager:import',
   // Hosts Editor
+  'hosts:checkWriteAccess',
   'hosts:getAll',
   'hosts:add',
   'hosts:update',

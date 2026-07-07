@@ -105,6 +105,7 @@ function runParse() {
 
 function fillSample() {
   input.value = SAMPLE_MYSQL
+  runParse()
 }
 
 async function copyField(value: string) {

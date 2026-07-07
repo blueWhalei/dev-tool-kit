@@ -16,6 +16,22 @@ describe('parseConnectionString', () => {
     })
   })
 
+  it('parses MySQL URI with password literal in credentials', () => {
+    const result = parseConnectionString(
+      'mysql://root:password@localhost:3306/myapp?charset=utf8mb4'
+    )
+    expect(result.success).toBe(true)
+    expect(result.result).toMatchObject({
+      protocol: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      user: 'root',
+      password: 'password',
+      database: 'myapp',
+      queryParams: { charset: 'utf8mb4' }
+    })
+  })
+
   it('parses PostgreSQL URI with default port', () => {
     const result = parseConnectionString('postgresql://app:pass@db.example.com/app_db')
     expect(result.success).toBe(true)

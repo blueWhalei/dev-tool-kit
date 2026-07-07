@@ -14,6 +14,7 @@ describe('ipc channels smoke', () => {
 
   it('includes newly added app and hosts channels', () => {
     expect(IPC_INVOKE_CHANNELS).toContain('app:getRuntimeInfo')
+    expect(IPC_INVOKE_CHANNELS).toContain('hosts:checkWriteAccess')
     expect(IPC_INVOKE_CHANNELS).toContain('hosts:exportSchemes')
     expect(IPC_INVOKE_CHANNELS).toContain('file-renamer:listRules')
     expect(IPC_INVOKE_CHANNELS).toContain('image-base64:pickImage')
