@@ -137,8 +137,6 @@ async function copyHostsSudoHint() {
   if (!hostsSudoHint.value) return
   await copy(hostsSudoHint.value, page.t('messages.commandCopied'))
 }
-  return new Date(timestamp).toLocaleString(page.locale.value)
-}
 
 function translateError(error: string | undefined, fallbackKey: string): string {
   return translateToolError(t, 'hostsEditor', error) || page.t(fallbackKey)
