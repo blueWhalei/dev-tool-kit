@@ -110,12 +110,13 @@ function isPermissionError(error: unknown): boolean {
   )
 }
 
-function permissionDeniedResult(backupPath?: string): HostsOperationResult {
+async function permissionDeniedResult(backupPath?: string): Promise<HostsOperationResult> {
+  const resolvedBackup = backupPath ?? await getLatestBackupPath()
   return {
     success: false,
     error: HOSTS_PERMISSION_ERROR,
-    sudoCommand: buildHostsSudoCommand(backupPath),
-    backupPath
+    sudoCommand: buildHostsSudoCommand(resolvedBackup),
+    backupPath: resolvedBackup
   }
 }
 
@@ -180,7 +181,7 @@ async function writeHostsEntries(entries: HostsEntry[]): Promise<HostsOperationR
     return { success: true, backupPath }
   } catch (error) {
     if (isPermissionError(error)) {
-      return permissionDeniedResult(backupPath)
+      return await permissionDeniedResult(backupPath)
     }
     throw error
   }
