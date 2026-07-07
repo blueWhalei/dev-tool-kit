@@ -53,6 +53,18 @@ async function calculateHash() {
 
 function fillSample() {
   inputText.value = SAMPLE_TEXT
+  void calculateHash()
+}
+
+function useHashInBase64() {
+  if (!hashOutput.value) {
+    message.warning(page.t('messages.noHash'))
+    return
+  }
+  void router.push({
+    name: 'CodeConverter',
+    query: { tab: 'base64', input: hashOutput.value }
+  })
 }
 
 async function selectAndHashFile() {
@@ -111,6 +123,14 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
         style="width: 160px"
       />
       <NButton v-if="hashMode === 'text'" size="small" quaternary @click="fillSample">{{ t('common.fillSample') }}</NButton>
+      <NButton
+        v-if="hashMode === 'text' && hashOutput"
+        size="small"
+        quaternary
+        @click="useHashInBase64"
+      >
+        {{ page.t('buttons.useInBase64') }}
+      </NButton>
       <NButton
         v-if="hashMode === 'text' && hashOutput"
         size="small"

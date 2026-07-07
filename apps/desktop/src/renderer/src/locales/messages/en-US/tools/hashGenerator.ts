@@ -11,7 +11,8 @@ export default {
     outputPlaceholder: 'Hash result...',
     hashFailed: 'Hash computation failed',
     buttons: {
-      useInJwt: 'Use in JWT sign'
+      useInJwt: 'Use in JWT sign',
+      useInBase64: 'Use in Base64'
     },
     fileArea: {
       selectFile: 'Select file',

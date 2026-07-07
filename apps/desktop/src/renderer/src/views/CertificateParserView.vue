@@ -148,6 +148,7 @@ async function loadFile() {
 function fillSample() {
   pemText.value = SAMPLE_PEM
   fileName.value = ''
+  void parsePem()
 }
 
 async function copyValue(value: string) {

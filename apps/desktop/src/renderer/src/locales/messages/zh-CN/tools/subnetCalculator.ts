@@ -29,7 +29,8 @@ export default {
     buttons: {
       calculate: '计算',
       copyResult: '复制结果',
-      splitVlsm: '拆分'
+      splitVlsm: '拆分',
+      openPortManager: '查看端口占用'
     },
     messages: {
       copied: '已复制结果'

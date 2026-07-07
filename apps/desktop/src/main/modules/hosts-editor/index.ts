@@ -6,7 +6,7 @@ import { readFile, writeFile, mkdir, copyFile, readdir, unlink, access, constant
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { logger } from '../../logger'
-import { isValidIP, isValidHostname } from '@dev-tool-kit/shared'
+import { isValidIP, isValidHostname, getDnsFlushPlatformInfo, type DnsFlushResult } from '@dev-tool-kit/shared'
 import type { HostsEntry, HostsGroup, HostsScheme } from '@dev-tool-kit/shared'
 import {
   splitHostsFile,
@@ -29,6 +29,7 @@ const HOSTS_PERMISSION_ERROR = 'HOSTS_PERMISSION_DENIED'
 export interface HostsWriteAccess {
   writable: boolean
   path: string
+  sudoHint?: string
 }
 
 export interface HostsOperationResult {
@@ -97,7 +98,11 @@ export async function checkHostsWriteAccess(): Promise<HostsWriteAccess> {
     await access(HOSTS_PATH, constants.W_OK)
     return { writable: true, path: HOSTS_PATH }
   } catch {
-    return { writable: false, path: HOSTS_PATH }
+    return {
+      writable: false,
+      path: HOSTS_PATH,
+      sudoHint: buildHostsSudoCommand()
+    }
   }
 }
 
@@ -190,7 +195,10 @@ async function writeHostsEntries(entries: HostsEntry[]): Promise<HostsOperationR
 async function writeEntriesAndFlush(entries: HostsEntry[]): Promise<HostsOperationResult> {
   const writeResult = await writeHostsEntries(entries)
   if (!writeResult.success) return writeResult
-  await flushDNS()
+  const flushResult = await flushDNS()
+  if (!flushResult.success) {
+    logger.warn('[Hosts] DNS flush failed after write:', flushResult.errorCode ?? flushResult.error)
+  }
   return writeResult
 }
 
@@ -473,30 +481,76 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:flushDNS', async () => {
+  ipcMain.handle('hosts:flushDNS', async (): Promise<DnsFlushResult> => {
     try {
-      await flushDNS()
-      return { success: true }
+      return await flushDNS()
     } catch (error) {
       logger.error('Failed to flush DNS:', error)
-      return { success: false, error: '刷新 DNS 失败' }
+      const info = getDnsFlushPlatformInfo(process.platform)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        errorCode: 'flush_failed',
+        manualCommands: info.manualCommands
+      }
     }
   })
 
   logger.info('Hosts Editor IPC handlers ready')
 }
 
-async function flushDNS(): Promise<void> {
-  if (process.platform === 'win32') {
-    await execFileAsync('ipconfig', ['/flushdns'], { windowsHide: true })
-  } else if (process.platform === 'darwin') {
-    await execFileAsync('dscacheutil', ['-flushcache'], { windowsHide: true })
-  } else {
-    try {
-      await execFileAsync('systemd-resolve', ['--flush-caches'], { windowsHide: true })
-    } catch {
-      await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true })
+async function flushDNS(): Promise<DnsFlushResult> {
+  const platform = process.platform
+  const info = getDnsFlushPlatformInfo(platform)
+
+  if (info.platform === 'unknown') {
+    return {
+      success: false,
+      errorCode: 'unsupported_platform',
+      manualCommands: info.manualCommands
     }
+  }
+
+  if (platform === 'win32') {
+    await execFileAsync('ipconfig', ['/flushdns'], { windowsHide: true })
+    return { success: true, method: 'ipconfig' }
+  }
+
+  if (platform === 'darwin') {
+    await execFileAsync('dscacheutil', ['-flushcache'], { windowsHide: true })
+    return { success: true, method: 'dscacheutil' }
+  }
+
+  const attempts: Array<{ method: DnsFlushResult['method']; run: () => Promise<unknown> }> = [
+    {
+      method: 'systemd-resolve',
+      run: async () => { await execFileAsync('systemd-resolve', ['--flush-caches'], { windowsHide: true }) }
+    },
+    {
+      method: 'resolvectl',
+      run: async () => { await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true }) }
+    },
+    {
+      method: 'nscd',
+      run: async () => { await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true }) }
+    }
+  ]
+
+  const errors: string[] = []
+  for (const attempt of attempts) {
+    try {
+      await attempt.run()
+      return { success: true, method: attempt.method }
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  return {
+    success: false,
+    errorCode: 'no_flush_tool',
+    error: errors.join('; '),
+    manualCommands: info.manualCommands
   }
 }
 

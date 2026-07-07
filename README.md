@@ -36,9 +36,9 @@
 
 | 工具 | 说明 |
 |------|------|
-| 端口管理 | 本地端口扫描、常用端口、进程终止（Windows 完整支持；macOS/Linux 可终止用户进程） |
-| 环境变量 | Windows 用户/系统变量读写、PATH、备份与导入导出；macOS/Linux 读取并写入 Shell 配置（备份 + diff 预览） |
-| Hosts 编辑 | hosts 可视化管理、分组、方案 diff、导入导出、DNS 刷新；权限不足时提示 sudo 命令 |
+| 端口管理 | 本地端口扫描、常用端口、进程终止（Windows 完整支持；macOS/Linux 可终止用户进程，失败时复制 sudo 命令） |
+| 环境变量 | Windows 用户/系统变量读写、PATH、备份与导入导出；macOS/Linux 读取并写入 Shell 配置（显示目标文件、备份 + diff 预览） |
+| Hosts 编辑 | hosts 可视化管理、分组、方案 diff、导入导出、DNS 刷新（Linux 多工具回退）；无写权限时禁用保存并一键复制 sudo 命令 |
 | 文件重命名 | 批量重命名、规则链、正则替换、撤销、规则库、冲突预览 |
 | 正则测试 | 正则匹配、替换预览（支持 flags）、常用表达式库 |
 
@@ -59,7 +59,7 @@
 | HTTP 状态码 | 62 个常用状态码速查、搜索与分类 |
 | 开发速查 | MIME 类型、Git 命令模板、HTTP 方法离线速查（Tab 深链） |
 | 二维码生成 | 文本/URL 本地生成二维码，可调尺寸与纠错级别 |
-| 连接字符串解析 | MySQL、PostgreSQL、Redis、MongoDB URI 解析，字段表与 JSON 导出 |
+| 连接字符串解析 | MySQL、PostgreSQL、Redis、MongoDB URI **解析与构建**，字段表与 JSON 导出；可跳转 Mock 数据 / 端口管理 |
 
 ### 密码与密钥
 
@@ -126,7 +126,7 @@
 | `/image-base64` | 编码转换 · 图片 Base64 Tab |
 | `/chmod-calculator` | Chmod 计算器 |
 | `/http-status-codes` | HTTP 状态码速查 |
-| `/connection-string-parser` | 数据库连接字符串解析 |
+| `/connection-string-parser` | 连接字符串解析与构建 |
 | `/dev-reference` | 开发速查（`?tab=mime` / `git` / `http-methods`） |
 | `/key-pair-generator` | RSA/EC 密钥对生成 |
 | `/certificate-parser` | 证书 PEM 解析 |

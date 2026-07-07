@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { 
   NDataTable, NButton, NSpace, NInput, NModal, NForm, 
@@ -15,7 +16,8 @@ import {
   diffHostsEntries,
   summarizeHostsDiff,
   type HostsScheme,
-  type HostsEntryChange
+  type HostsEntryChange,
+  type DnsFlushResult
 } from '@dev-tool-kit/shared'
 import {
   type HostsEntry,
@@ -32,6 +34,7 @@ import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 
 const message = useMessage()
+const router = useRouter()
 const { t } = useI18n()
 const page = useToolI18n('hostsEditor')
 const dialog = useDialog()
@@ -40,6 +43,7 @@ const { copy } = useCopyToClipboard()
 const { platform, loadPlatform } = usePlatform()
 const hostsWritable = ref(true)
 const hostsFilePath = ref('')
+const hostsSudoHint = ref('')
 const entries = ref<HostsEntry[]>([])
 const groups = ref<HostsGroup[]>([])
 const schemes = ref<SchemeInfo[]>([])
@@ -102,9 +106,10 @@ const columns = computed(() => [
   { title: page.t('columns.ip'), key: 'ip', width: 140, ellipsis: { tooltip: true } },
   { title: page.t('columns.hostname'), key: 'hostname', ellipsis: { tooltip: true } },
   { title: page.t('columns.comment'), key: 'comment', ellipsis: { tooltip: true } },
-  { title: '', key: 'actions', width: 100, render: (row: HostsEntry) => {
+  { title: '', key: 'actions', width: 150, render: (row: HostsEntry) => {
     return h(NSpace, { size: 'small', noWrap: true }, {
       default: () => [
+        h(NButton, { size: 'small', quaternary: true, onClick: () => openPortManagerForEntry(row) }, { default: () => page.t('buttons.checkPorts') }),
         h(NButton, { size: 'small', quaternary: true, onClick: () => openEditModal(row) }, { default: () => page.t('buttons.edit') }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row.id) }, { trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { default: () => page.t('buttons.delete') }) })
       ]
@@ -112,7 +117,26 @@ const columns = computed(() => [
   }}
 ])
 
-function formatDate(timestamp: string): string {
+function translateFlushError(result: DnsFlushResult): string {
+  if (result.errorCode) {
+    const key = `errors.dnsFlush.${result.errorCode}`
+    const translated = page.t(key)
+    if (translated !== key) return translated
+  }
+  return result.error || page.t('errors.flushDnsFailed')
+}
+
+function openPortManagerForEntry(entry: HostsEntry) {
+  void router.push({
+    name: 'PortManager',
+    query: { address: entry.ip }
+  })
+}
+
+async function copyHostsSudoHint() {
+  if (!hostsSudoHint.value) return
+  await copy(hostsSudoHint.value, page.t('messages.commandCopied'))
+}
   return new Date(timestamp).toLocaleString(page.locale.value)
 }
 
@@ -401,24 +425,44 @@ async function handleDeleteScheme(id: string) {
 
 async function handleFlushDNS() {
   try {
-    const data = await invoke('hosts:flushDNS')
-    const result = validateOptional(data, isOperationResult, 'handleFlushDNS')
+    const result = await invoke<DnsFlushResult>('hosts:flushDNS')
     if (result?.success) {
       message.success(page.t('messages.dnsFlushed'))
-    } else {
-      message.warning(translateError(result?.error, 'errors.flushDnsFailed'))
+      return
     }
+
+    if (result?.manualCommands?.length) {
+      const commands = result.manualCommands.join('\n')
+      dialog.warning({
+        title: page.t('dialogs.flushDnsFailedTitle'),
+        content: () => h('div', { class: 'permission-dialog' }, [
+          h('p', translateFlushError(result)),
+          h('pre', { class: 'sudo-command' }, commands)
+        ]),
+        positiveText: page.t('buttons.copyCommand'),
+        negativeText: t('common.cancel'),
+        onPositiveClick: () => copy(commands, page.t('messages.commandCopied'))
+      })
+      return
+    }
+
+    message.warning(translateFlushError(result ?? { success: false }))
   } catch {
     message.error(page.t('errors.flushDnsFailed'))
   }
 }
 
+function formatDate(timestamp: string): string {
+  return new Date(timestamp).toLocaleString(page.locale.value)
+}
+
 onMounted(async () => {
   await loadPlatform()
   try {
-    const access = await invoke('hosts:checkWriteAccess') as { writable?: boolean; path?: string }
+    const access = await invoke('hosts:checkWriteAccess') as { writable?: boolean; path?: string; sudoHint?: string }
     hostsWritable.value = access?.writable ?? true
     hostsFilePath.value = access?.path ?? ''
+    hostsSudoHint.value = access?.sudoHint ?? ''
   } catch {
     hostsWritable.value = true
   }
@@ -451,12 +495,17 @@ onMounted(async () => {
       </div>
       <div class="action-buttons">
         <NButton @click="confirmFlushDNS">{{ page.t('buttons.flushDns') }}</NButton>
-        <NButton type="primary" @click="openEditModal()">{{ page.t('buttons.addEntry') }}</NButton>
+        <NButton type="primary" :disabled="!hostsWritable" @click="openEditModal()">{{ page.t('buttons.addEntry') }}</NButton>
       </div>
     </template>
 
     <NAlert v-if="!hostsWritable" type="warning" :bordered="false" class="info-alert">
-      {{ page.t('hints.noWriteAccess', { path: hostsFilePath }) }}
+      <div class="write-access-alert">
+        <span>{{ page.t('hints.noWriteAccess', { path: hostsFilePath }) }}</span>
+        <NButton v-if="hostsSudoHint" size="small" quaternary @click="copyHostsSudoHint">
+          {{ page.t('buttons.copyCommand') }}
+        </NButton>
+      </div>
     </NAlert>
 
     <NAlert type="info" :bordered="false" class="info-alert">
@@ -638,6 +687,14 @@ onMounted(async () => {
 .info-alert {
   margin-bottom: var(--space-4);
   border-radius: var(--radius-lg);
+}
+
+.write-access-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .content-card {

@@ -61,7 +61,8 @@ export default {
     hints: {
       backupInfo: 'Backups save a snapshot of user/session environment variables. Up to 10 backups are kept.',
       importInfo: 'Paste .env content (KEY=VALUE per line). Values are written to user environment variables (Windows only).',
-      diffInfo: 'Target file: {file}'
+      diffInfo: 'Target file: {file}',
+      shellConfigFile: 'Config file: {file}'
     },
     dialogs: {
       restoreTitle: 'Restore backup',

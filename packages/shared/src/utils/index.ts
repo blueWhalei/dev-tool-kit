@@ -15,6 +15,7 @@ export * from './chmod'
 export * from './http-status-codes'
 export * from './xml-sql'
 export * from './connection-string'
+export * from './dns-flush'
 export * from './dev-reference'
 export * from './diceware-words'
 

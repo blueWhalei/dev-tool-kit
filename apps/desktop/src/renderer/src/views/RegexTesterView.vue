@@ -148,6 +148,7 @@ function fillSample() {
   flagS.value = false
   testString.value = SAMPLE_TEXT
   replacement.value = SAMPLE_REPLACEMENT
+  void testRegex()
 }
 
 async function loadCommonRegexes() {

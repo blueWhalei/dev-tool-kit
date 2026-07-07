@@ -4,6 +4,7 @@ export default {
     buttons: {
       flushDns: '刷新 DNS',
       addEntry: '添加条目',
+      checkPorts: '查端口',
       edit: '编辑',
       delete: '删除',
       save: '保存',
@@ -55,7 +56,7 @@ export default {
     hints: {
       adminRequired: '修改 hosts 文件可能需要管理员权限{platformSuffix}。',
       platformSuffix: '（当前平台：{platform}）',
-      noWriteAccess: '当前无法直接写入 {path}。保存失败时将提供 sudo/管理员命令，可先手动复制备份文件。'
+      noWriteAccess: '当前无法直接写入 {path}。可查看与导出方案；保存时需管理员权限，可点击下方复制命令。'
     },
     dialogs: {
       permissionTitle: '需要管理员权限',
@@ -68,7 +69,8 @@ export default {
       deleteSchemeTitle: '删除方案',
       deleteSchemeContent: '确定删除方案「{name}」？此操作不可恢复。',
       flushDnsTitle: '刷新 DNS',
-      flushDnsContent: '确定刷新 DNS 缓存吗？'
+      flushDnsContent: '确定刷新 DNS 缓存吗？',
+      flushDnsFailedTitle: 'DNS 刷新需要手动执行'
     },
     diff: {
       added: '新增',
@@ -109,6 +111,11 @@ export default {
       importFailed: '导入失败',
       readFileFailed: '无法读取方案文件',
       flushDnsFailed: '刷新 DNS 失败',
+      dnsFlush: {
+        unsupported_platform: '当前平台不支持自动刷新 DNS',
+        no_flush_tool: '未检测到 systemd-resolve、resolvectl 或 nscd，请在终端手动执行下方命令',
+        flush_failed: 'DNS 刷新失败，请尝试手动执行命令'
+      },
       permissionDenied: '没有写入 hosts 文件的权限'
     },
     empty: {

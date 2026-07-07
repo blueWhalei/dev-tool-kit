@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NDataTable, NButton, NTag, NInput, NPopconfirm, useMessage, useDialog, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
@@ -22,6 +23,7 @@ import {
 
 const message = useMessage()
 const dialog = useDialog()
+const route = useRoute()
 const { t } = useI18n()
 const page = useToolI18n('portManager')
 const { invoke } = useIpc()
@@ -33,6 +35,7 @@ const loading = ref(false)
 const search = ref('')
 const processFilter = ref('')
 const pidFilter = ref('')
+const addressFilter = ref('')
 const stateFilter = ref<'all' | 'LISTENING' | 'ESTABLISHED'>('all')
 
 const quickScanMode = ref<'all' | 'common'>('all')
@@ -56,6 +59,10 @@ const filteredPorts = computed(() => {
   if (pidFilter.value) {
     const keyword = pidFilter.value.trim()
     list = list.filter(p => p.pid.toString().includes(keyword))
+  }
+  if (addressFilter.value) {
+    const keyword = addressFilter.value.trim().toLowerCase()
+    list = list.filter(p => p.localAddress?.toLowerCase().includes(keyword))
   }
   return list
 })
@@ -108,6 +115,16 @@ function showKillFailure(pid: number, result: OperationResult) {
 
   if (result.errorCode === 'process_not_found') {
     message.warning(translateKillError(result, pid))
+    return
+  }
+
+  if (result.errorCode === 'protected_pid') {
+    dialog.warning({
+      title: page.t('dialogs.killFailedTitle'),
+      content: page.t('dialogs.protectedPidContent', { pid }),
+      positiveText: page.t('buttons.confirm'),
+      negativeText: t('common.cancel')
+    })
     return
   }
 
@@ -222,9 +239,22 @@ function clearSearch() {
   search.value = ''
   processFilter.value = ''
   pidFilter.value = ''
+  addressFilter.value = ''
+}
+
+function applyRouteFilters() {
+  const portQuery = route.query.port
+  const addressQuery = route.query.address
+  if (typeof portQuery === 'string' && portQuery.trim()) {
+    search.value = portQuery.trim()
+  }
+  if (typeof addressQuery === 'string' && addressQuery.trim()) {
+    addressFilter.value = addressQuery.trim()
+  }
 }
 
 onMounted(async () => {
+  applyRouteFilters()
   await loadPlatform()
   await fetchCommonPorts()
   await fetchPorts('all')
@@ -275,8 +305,14 @@ useKeyboardShortcut((event) => {
         :placeholder="page.t('placeholders.searchPid')"
         style="width: 120px"
         clearable
-        @clear="clearSearch"
       />
+      <NInput
+        v-model:value="addressFilter"
+        :placeholder="page.t('placeholders.searchAddress')"
+        style="width: 160px"
+        clearable
+      />
+      <NButton quaternary @click="clearSearch">{{ t('common.clear') }}</NButton>
     </div>
 
     <NAlert

@@ -11,7 +11,8 @@ export default {
     outputPlaceholder: '哈希结果...',
     hashFailed: 'Hash 计算失败',
     buttons: {
-      useInJwt: '用于 JWT 签名'
+      useInJwt: '用于 JWT 签名',
+      useInBase64: '用于 Base64'
     },
     fileArea: {
       selectFile: '选择文件',

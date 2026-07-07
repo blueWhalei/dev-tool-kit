@@ -29,7 +29,8 @@ export default {
     buttons: {
       calculate: 'Calculate',
       copyResult: 'Copy result',
-      splitVlsm: 'Split'
+      splitVlsm: 'Split',
+      openPortManager: 'Check port usage'
     },
     messages: {
       copied: 'Result copied'

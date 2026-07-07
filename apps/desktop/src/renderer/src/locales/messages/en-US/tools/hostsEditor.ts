@@ -4,6 +4,7 @@ export default {
     buttons: {
       flushDns: 'Flush DNS',
       addEntry: 'Add entry',
+      checkPorts: 'Ports',
       edit: 'Edit',
       delete: 'Delete',
       save: 'Save',
@@ -55,7 +56,7 @@ export default {
     hints: {
       adminRequired: 'Editing hosts may require administrator privileges{platformSuffix}.',
       platformSuffix: ' (platform: {platform})',
-      noWriteAccess: 'Cannot write to {path} directly. If save fails, a sudo/admin command with the backup path will be shown.'
+      noWriteAccess: 'Cannot write to {path} directly. You can view and export schemes; use Copy command below when admin rights are required.'
     },
     dialogs: {
       permissionTitle: 'Administrator privileges required',
@@ -68,7 +69,8 @@ export default {
       deleteSchemeTitle: 'Delete scheme',
       deleteSchemeContent: 'Delete scheme "{name}"? This cannot be undone.',
       flushDnsTitle: 'Flush DNS',
-      flushDnsContent: 'Flush DNS cache?'
+      flushDnsContent: 'Flush DNS cache?',
+      flushDnsFailedTitle: 'Manual DNS flush required'
     },
     diff: {
       added: 'Added',
@@ -109,6 +111,11 @@ export default {
       importFailed: 'Import failed',
       readFileFailed: 'Unable to read scheme file',
       flushDnsFailed: 'Failed to flush DNS',
+      dnsFlush: {
+        unsupported_platform: 'Automatic DNS flush is not supported on this platform',
+        no_flush_tool: 'systemd-resolve, resolvectl, and nscd were not available — run a command below in terminal',
+        flush_failed: 'DNS flush failed — try the manual commands below'
+      },
       permissionDenied: 'No permission to write the hosts file'
     },
     empty: {

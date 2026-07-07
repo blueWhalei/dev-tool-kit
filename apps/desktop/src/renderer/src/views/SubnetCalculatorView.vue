@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { NInput, NButton, NCard, NGrid, NGridItem, NTag, NDataTable, NTabs, NTabPane, useMessage, type DataTableColumns } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
@@ -9,6 +10,7 @@ import { translateToolError } from '../utils/translateToolError'
 import { parseCidr, splitVlsm, type SubnetInfo, type VlsmSubnet } from '@dev-tool-kit/shared'
 
 const message = useMessage()
+const router = useRouter()
 const { t } = useI18n()
 const page = useToolI18n('subnetCalculator')
 const { copy } = useCopyToClipboard()
@@ -92,6 +94,10 @@ async function copyResult() {
   await copy(lines.join('\n'), page.t('messages.copied'))
 }
 
+function openPortManager() {
+  void router.push({ name: 'PortManager' })
+}
+
 calculate()
 </script>
 
@@ -113,6 +119,7 @@ calculate()
             />
             <NButton type="primary" @click="calculate">{{ page.t('buttons.calculate') }}</NButton>
             <NButton @click="copyResult" :disabled="!result">{{ page.t('buttons.copyResult') }}</NButton>
+            <NButton quaternary @click="openPortManager">{{ page.t('buttons.openPortManager') }}</NButton>
           </div>
         </NCard>
 

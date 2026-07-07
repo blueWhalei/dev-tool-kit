@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseConnectionString, parsedConnectionToJson } from './connection-string'
+import { parseConnectionString, parsedConnectionToJson, buildConnectionString } from './connection-string'
 
 describe('parseConnectionString', () => {
   it('parses MySQL URI', () => {
@@ -117,5 +117,70 @@ describe('parsedConnectionToJson', () => {
     expect(parsed.success).toBe(true)
     const json = parsedConnectionToJson(parsed.result!)
     expect(JSON.parse(json)).toMatchObject({ protocol: 'redis', host: 'localhost' })
+  })
+})
+
+describe('buildConnectionString', () => {
+  it('builds MySQL URI with query params', () => {
+    const built = buildConnectionString({
+      protocol: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      user: 'root',
+      password: 'secret',
+      database: 'mydb',
+      queryParams: { charset: 'utf8mb4' }
+    })
+    expect(built.success).toBe(true)
+    expect(built.result).toBe('mysql://root:secret@localhost:3306/mydb?charset=utf8mb4')
+  })
+
+  it('omits default PostgreSQL port', () => {
+    const built = buildConnectionString({
+      protocol: 'postgresql',
+      host: 'db.example.com',
+      port: 5432,
+      user: 'app',
+      password: 'pass',
+      database: 'app_db'
+    })
+    expect(built.result).toBe('postgresql://app:pass@db.example.com/app_db')
+  })
+
+  it('builds Redis URI with password only', () => {
+    const built = buildConnectionString({
+      protocol: 'redis',
+      host: '127.0.0.1',
+      port: 6379,
+      password: 'password',
+      database: '2'
+    })
+    expect(built.result).toBe('redis://:password@127.0.0.1:6379/2')
+  })
+
+  it('round-trips with parseConnectionString', () => {
+    const original = 'mysql://root:password@localhost:3306/myapp?charset=utf8mb4'
+    const parsed = parseConnectionString(original)
+    expect(parsed.success).toBe(true)
+    const built = buildConnectionString({
+      protocol: parsed.result!.protocol,
+      host: parsed.result!.host,
+      port: parsed.result!.port,
+      user: parsed.result!.user,
+      password: parsed.result!.password,
+      database: parsed.result!.database,
+      queryParams: parsed.result!.queryParams
+    })
+    expect(built.success).toBe(true)
+    const reparsed = parseConnectionString(built.result!)
+    expect(reparsed.result).toEqual(parsed.result)
+  })
+
+  it('rejects missing host', () => {
+    expect(buildConnectionString({ protocol: 'mysql', host: '' }).error).toBe('missing_host')
+  })
+
+  it('rejects unsupported protocol', () => {
+    expect(buildConnectionString({ protocol: 'ftp', host: 'localhost' }).error).toBe('unsupported_protocol')
   })
 })

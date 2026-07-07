@@ -104,6 +104,12 @@ onMounted(() => {
     if (savedTab) activeTab.value = savedTab
   }
   syncCategoryFromTab(activeTab.value)
+
+  const queryInput = route.query.input
+  if (typeof queryInput === 'string' && queryInput.trim()) {
+    base64Input.value = queryInput
+    handleBase64Encode()
+  }
 })
 
 watch(activeTab, (tab) => {

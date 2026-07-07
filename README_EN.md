@@ -36,9 +36,9 @@ Representative previews below (port manager, encoding converter, settings). The 
 
 | Tool | Description |
 |------|------|
-| Port Manager | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux) |
-| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux read & write shell config (backup + diff preview) |
-| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush; sudo command hint on permission failure |
+| Port Manager | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux; copy sudo command on failure) |
+| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux shell config write (shows target file, backup + diff preview) |
+| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush (Linux multi-tool fallback); disable save without write access, one-click sudo copy |
 | File Renamer | Batch rename, rule chains, regex replace, undo, rule library, conflict preview |
 | Regex Tester | Regex matching, replace preview with flags, common expression library |
 
@@ -59,7 +59,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 | HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
 | Developer Reference | Offline MIME types, Git command templates, HTTP methods (tab deep links) |
 | QR Code Generator | Generate QR codes locally from text/URL with adjustable size and error correction |
-| Connection String Parser | Parse MySQL, PostgreSQL, Redis, MongoDB URIs into fields and JSON |
+| Connection String Parser | Parse and build MySQL, PostgreSQL, Redis, MongoDB URIs; export JSON; link to Mock Data / Port Manager |
 
 ### Password & Keys
 
@@ -126,7 +126,7 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/image-base64` | Encoding Conversion · Image Base64 Tab |
 | `/chmod-calculator` | Chmod Calculator |
 | `/http-status-codes` | HTTP Status Codes Reference |
-| `/connection-string-parser` | Database Connection String Parser |
+| `/connection-string-parser` | Connection string parse & build |
 | `/dev-reference` | Developer Reference (`?tab=mime` / `git` / `http-methods`) |
 | `/key-pair-generator` | RSA/EC Key Pair Generator |
 | `/certificate-parser` | Certificate PEM Parser |

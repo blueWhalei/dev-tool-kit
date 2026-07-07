@@ -35,6 +35,7 @@ const platformSupported = ref(true)
 const readOnly = ref(false)
 const writeMode = ref<'registry' | 'shell' | 'none'>('none')
 const platformName = ref('')
+const shellConfigFile = ref('')
 const variables = ref<EnvVariable[]>([])
 const pathEntries = ref<PathEntry[]>([])
 const backups = ref<BackupInfo[]>([])
@@ -454,12 +455,14 @@ onMounted(async () => {
       platform?: string
       readOnly?: boolean
       writeMode?: 'registry' | 'shell' | 'none'
+      shellConfigFile?: string
     } | undefined
     if (support) {
       platformSupported.value = support.supported
       platformName.value = support.platform ?? ''
       readOnly.value = support.readOnly ?? false
       writeMode.value = support.writeMode ?? (support.readOnly ? 'none' : 'registry')
+      shellConfigFile.value = support.shellConfigFile ?? ''
     }
   } catch {
     platformSupported.value = false
@@ -506,7 +509,10 @@ onMounted(async () => {
       :title="page.t('shellWriteTitle')"
       style="margin-bottom: 16px;"
     >
-      {{ page.t('shellWriteAlert') }}
+      <p>{{ page.t('shellWriteAlert') }}</p>
+      <p v-if="shellConfigFile" class="shell-config-path">
+        {{ page.t('hints.shellConfigFile', { file: shellConfigFile }) }}
+      </p>
     </NAlert>
 
     <NAlert
@@ -677,4 +683,5 @@ onMounted(async () => {
 .path-index { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-tertiary); font-size: var(--font-size-caption1); color: var(--color-text-secondary); margin-right: var(--space-3); }
 .shell-diff-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
 .diff-line { font-family: var(--font-family-mono); font-size: var(--font-size-footnote); word-break: break-all; }
+.shell-config-path { margin: 8px 0 0; font-family: var(--font-family-mono); font-size: var(--font-size-footnote); color: var(--color-text-secondary); }
 </style>

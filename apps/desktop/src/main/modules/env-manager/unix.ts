@@ -341,6 +341,7 @@ export function getUnixSupportInfo() {
     supported: true,
     platform: process.platform,
     readOnly: false,
-    writeMode: 'shell' as const
+    writeMode: 'shell' as const,
+    shellConfigFile: resolvePrimaryShellConfigPath()
   }
 }

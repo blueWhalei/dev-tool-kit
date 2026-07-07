@@ -61,7 +61,8 @@ export default {
     hints: {
       backupInfo: '备份将保存当前用户/会话环境变量快照，最多保留 10 个备份。',
       importInfo: '粘贴 .env 格式内容（每行 KEY=VALUE），将写入用户环境变量（仅 Windows）。',
-      diffInfo: '将写入文件：{file}'
+      diffInfo: '将写入文件：{file}',
+      shellConfigFile: '目标配置文件：{file}'
     },
     dialogs: {
       restoreTitle: '恢复备份',

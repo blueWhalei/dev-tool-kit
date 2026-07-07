@@ -229,6 +229,91 @@ export function parsedConnectionToJson(result: ParsedConnectionString): string {
   return JSON.stringify(result, null, 2)
 }
 
+export interface ConnectionStringBuildInput {
+  protocol: string
+  host: string
+  port?: number | null
+  user?: string | null
+  password?: string | null
+  database?: string | null
+  queryParams?: Record<string, string>
+}
+
+export interface ConnectionStringBuildResult {
+  success: boolean
+  result?: string
+  error?: string
+}
+
+function encodeUriComponent(value: string): string {
+  return encodeURIComponent(value)
+}
+
+function buildUserInfoAuthority(user: string | null | undefined, password: string | null | undefined): string {
+  const trimmedUser = user?.trim()
+  const hasUser = Boolean(trimmedUser)
+  const hasPassword = password != null && password !== ''
+
+  if (!hasUser && !hasPassword) return ''
+  if (hasUser && hasPassword) {
+    return `${encodeUriComponent(trimmedUser!)}:${encodeUriComponent(password!)}@`
+  }
+  if (hasUser) return `${encodeUriComponent(trimmedUser!)}@`
+  return `:${encodeUriComponent(password!)}@`
+}
+
+function formatAuthorityHost(host: string, port: number | null, protocol: string): string {
+  const trimmedHost = host.trim()
+  if (!trimmedHost) return ''
+
+  const isIpv6 = trimmedHost.includes(':') && !trimmedHost.startsWith('[')
+  const hostPart = isIpv6 ? `[${trimmedHost}]` : trimmedHost
+  const defaultPort = DEFAULT_PORTS[protocol] ?? null
+
+  if (protocol === 'mongodb+srv') return hostPart
+  if (port != null && port !== defaultPort) return `${hostPart}:${port}`
+  return hostPart
+}
+
+function buildDatabasePath(protocol: string, database: string | null | undefined): string {
+  const db = database?.trim()
+  if (!db) return ''
+
+  if (protocol === 'redis' || protocol === 'rediss') {
+    return `/${db}`
+  }
+
+  return `/${encodeUriComponent(db)}`
+}
+
+function buildQueryString(queryParams: Record<string, string> | undefined): string {
+  if (!queryParams) return ''
+  const entries = Object.entries(queryParams).filter(([, value]) => value !== '')
+  if (entries.length === 0) return ''
+  return `?${new URLSearchParams(entries).toString()}`
+}
+
+export function buildConnectionString(input: ConnectionStringBuildInput): ConnectionStringBuildResult {
+  const protocol = normalizeProtocol(input.protocol)
+  if (!SUPPORTED_PROTOCOLS.has(protocol)) {
+    return { success: false, error: 'unsupported_protocol' }
+  }
+
+  const host = input.host?.trim()
+  if (!host) {
+    return { success: false, error: 'missing_host' }
+  }
+
+  const authority = `${buildUserInfoAuthority(input.user, input.password)}${formatAuthorityHost(host, input.port ?? null, protocol)}`
+  const path = buildDatabasePath(protocol, input.database)
+  const query = buildQueryString(input.queryParams)
+
+  return {
+    success: true,
+    result: `${protocol}://${authority}${path}${query}`
+  }
+}
+
 export const CONNECTION_STRING_FIELD_KEYS = [
   'protocol',
   'host',

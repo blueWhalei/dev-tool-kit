@@ -71,6 +71,7 @@ function fillSample() {
   textB.value = SAMPLE_B
   fileNameA.value = ''
   fileNameB.value = ''
+  runDiff()
 }
 
 function lineClass(type: DiffLine['type']): string {

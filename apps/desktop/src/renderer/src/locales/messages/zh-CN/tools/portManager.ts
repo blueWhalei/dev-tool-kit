@@ -14,7 +14,8 @@ export default {
     placeholders: {
       searchPort: '端口',
       searchProcess: '进程名',
-      searchPid: 'PID'
+      searchPid: 'PID',
+      searchAddress: '本地地址'
     },
     filters: {
       all: '全部',
@@ -54,7 +55,8 @@ export default {
     },
     dialogs: {
       killFailedTitle: '无法终止进程',
-      killFailedContent: '{message}\n\n请在终端执行以下命令：\n{command}'
+      killFailedContent: '{message}\n\n请在终端执行以下命令：\n{command}',
+      protectedPidContent: '进程 {pid} 为系统关键进程，无法通过应用终止。请确认是否需要该操作，并在了解风险后于终端手动处理。'
     },
     errors: {
       fetchFailed: '获取端口列表失败',

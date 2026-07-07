@@ -248,6 +248,7 @@ async function verifySignature() {
 function fillSampleToken() {
   jwtToken.value = SAMPLE_JWT
   verifySecret.value = SAMPLE_SECRET
+  decodeToken()
 }
 
 watchDebounced(jwtToken, decodeToken, { debounce: 400 })

@@ -14,7 +14,8 @@ export default {
     placeholders: {
       searchPort: 'Port',
       searchProcess: 'Process name',
-      searchPid: 'PID'
+      searchPid: 'PID',
+      searchAddress: 'Local address'
     },
     filters: {
       all: 'All',
@@ -54,7 +55,8 @@ export default {
     },
     dialogs: {
       killFailedTitle: 'Could not kill process',
-      killFailedContent: '{message}\n\nRun this command in a terminal:\n{command}'
+      killFailedContent: '{message}\n\nRun this command in a terminal:\n{command}',
+      protectedPidContent: 'Process {pid} is a protected system process and cannot be killed from the app. Proceed only if you understand the risk and handle it manually in a terminal.'
     },
     errors: {
       fetchFailed: 'Failed to fetch port list',
