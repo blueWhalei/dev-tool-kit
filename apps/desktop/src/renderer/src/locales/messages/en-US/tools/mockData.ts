@@ -20,6 +20,7 @@ export default {
       addField: 'Add field',
       delete: 'Delete',
       copyJson: 'Copy JSON',
+      exportMenu: 'Export',
       exportJson: 'Export JSON',
       exportCsv: 'Export CSV',
       exportSql: 'Export SQL'

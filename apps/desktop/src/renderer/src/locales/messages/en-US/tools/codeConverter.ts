@@ -1,6 +1,11 @@
 export default {
     title: 'Code & Format Converter',
     description: 'Base64, URL, JSON, YAML, timestamps, and more',
+    categories: {
+      encode: 'Text encoding',
+      structure: 'Structured formats',
+      utility: 'Converters'
+    },
     tabs: {
       base64: 'Base64',
       url: 'URL encode',

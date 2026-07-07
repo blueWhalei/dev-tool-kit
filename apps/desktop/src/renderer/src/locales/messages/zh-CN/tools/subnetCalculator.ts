@@ -1,6 +1,10 @@
 export default {
     title: 'IP 子网计算器',
     description: '根据 CIDR 计算 IPv4/IPv6 网络地址与地址范围，支持 VLSM 拆分',
+    tabs: {
+      single: 'CIDR 计算',
+      vlsm: 'VLSM 拆分'
+    },
     labels: {
       version: '协议',
       versionIpv4: 'IPv4',

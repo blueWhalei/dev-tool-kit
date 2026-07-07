@@ -1,6 +1,10 @@
 export default {
     title: 'Subnet Calculator',
     description: 'Compute IPv4/IPv6 network from CIDR, with VLSM splitting',
+    tabs: {
+      single: 'CIDR calculator',
+      vlsm: 'VLSM split'
+    },
     labels: {
       version: 'Protocol',
       versionIpv4: 'IPv4',

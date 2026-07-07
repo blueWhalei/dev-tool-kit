@@ -244,9 +244,20 @@ useKeyboardShortcut((event) => {
   <PageLayout
     :title="page.title"
     :description="page.description"
-    container-class="port-manager-view"
+    container-class="port-manager-view page-container--wide"
   >
     <template #actions>
+      <NButtonGroup>
+        <NButton :type="quickScanMode === 'all' ? 'primary' : 'default'" @click="fetchPorts('all')" :loading="loading && quickScanMode === 'all'">
+          {{ page.t('buttons.scanAll') }}
+        </NButton>
+        <NButton :type="quickScanMode === 'common' ? 'primary' : 'default'" @click="fetchPorts('common')" :loading="loading && quickScanMode === 'common'">
+          {{ page.t('buttons.scanCommon') }}
+        </NButton>
+      </NButtonGroup>
+    </template>
+
+    <div class="page-toolbar port-toolbar">
       <NInput
         v-model:value="search"
         :placeholder="page.t('placeholders.searchPort')"
@@ -266,15 +277,7 @@ useKeyboardShortcut((event) => {
         clearable
         @clear="clearSearch"
       />
-      <NButtonGroup>
-        <NButton :type="quickScanMode === 'all' ? 'primary' : 'default'" @click="fetchPorts('all')" :loading="loading && quickScanMode === 'all'">
-          {{ page.t('buttons.scanAll') }}
-        </NButton>
-        <NButton :type="quickScanMode === 'common' ? 'primary' : 'default'" @click="fetchPorts('common')" :loading="loading && quickScanMode === 'common'">
-          {{ page.t('buttons.scanCommon') }}
-        </NButton>
-      </NButtonGroup>
-    </template>
+    </div>
 
     <NAlert
       v-if="platform && !isWindows()"
@@ -286,23 +289,24 @@ useKeyboardShortcut((event) => {
       {{ platformHint }}
     </NAlert>
 
-    <div class="port-stats">
-      <NTag size="small" :bordered="false">{{ page.t('stats.total', { count: portStats.total }) }}</NTag>
-      <NTag size="small" type="success" :bordered="false">{{ page.t('stats.listening', { count: portStats.listening }) }}</NTag>
-      <NTag size="small" type="warning" :bordered="false">{{ page.t('stats.established', { count: portStats.established }) }}</NTag>
+    <div class="port-filter-bar">
+      <div class="port-stats">
+        <NTag size="small" :bordered="false">{{ page.t('stats.total', { count: portStats.total }) }}</NTag>
+        <NTag size="small" type="success" :bordered="false">{{ page.t('stats.listening', { count: portStats.listening }) }}</NTag>
+        <NTag size="small" type="warning" :bordered="false">{{ page.t('stats.established', { count: portStats.established }) }}</NTag>
+      </div>
+      <NButtonGroup size="small" class="state-filter">
+        <NButton :type="stateFilter === 'all' ? 'primary' : 'default'" @click="stateFilter = 'all'">
+          {{ page.t('filters.allWithCount', { count: portStats.total }) }}
+        </NButton>
+        <NButton :type="stateFilter === 'LISTENING' ? 'primary' : 'default'" @click="stateFilter = 'LISTENING'">
+          {{ page.t('filters.listeningWithCount', { count: portStats.listening }) }}
+        </NButton>
+        <NButton :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'" @click="stateFilter = 'ESTABLISHED'">
+          {{ page.t('filters.establishedWithCount', { count: portStats.established }) }}
+        </NButton>
+      </NButtonGroup>
     </div>
-
-    <NButtonGroup size="small" class="state-filter">
-      <NButton :type="stateFilter === 'all' ? 'primary' : 'default'" @click="stateFilter = 'all'">
-        {{ page.t('filters.allWithCount', { count: portStats.total }) }}
-      </NButton>
-      <NButton :type="stateFilter === 'LISTENING' ? 'primary' : 'default'" @click="stateFilter = 'LISTENING'">
-        {{ page.t('filters.listeningWithCount', { count: portStats.listening }) }}
-      </NButton>
-      <NButton :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'" @click="stateFilter = 'ESTABLISHED'">
-        {{ page.t('filters.establishedWithCount', { count: portStats.established }) }}
-      </NButton>
-    </NButtonGroup>
 
     <NCard class="content-card" :bordered="false">
       <NSpin :show="loading && ports.length === 0">
@@ -325,8 +329,7 @@ useKeyboardShortcut((event) => {
 
 <style scoped>
 .port-manager-view {
-  max-width: 1200px;
-  margin: 0 auto;
+  /* layout via page-container--wide */
 }
 
 .content-card {
@@ -338,11 +341,10 @@ useKeyboardShortcut((event) => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .state-filter {
-  margin-bottom: 4px;
+  margin-left: auto;
 }
 
 .port-table :deep(.n-data-table-th) {

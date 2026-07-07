@@ -272,7 +272,7 @@ const signatureStatusText = computed(() => {
   <PageLayout
     :title="page.title"
     :description="page.description"
-    container-class="jwt-tool-view"
+    container-class="jwt-tool-view page-container"
   >
     <NTabs v-model:value="activeTab" type="line" animated class="jwt-tabs">
       <NTabPane name="generate" :tab="page.t('tabs.generate')">
@@ -361,37 +361,39 @@ const signatureStatusText = computed(() => {
           </NCard>
         </div>
 
-        <NCard class="result-card" :bordered="false">
-          <div class="result-label">{{ page.t('labels.signSecret') }}</div>
-          <NInput
-            v-model:value="signSecret"
-            type="password"
-            show-password-on="click"
-            :placeholder="page.t('placeholders.signSecret')"
-            class="secret-input"
-          />
-        </NCard>
+        <div class="sign-bottom-grid">
+          <NCard class="result-card" :bordered="false">
+            <div class="result-label">{{ page.t('labels.signSecret') }}</div>
+            <NInput
+              v-model:value="signSecret"
+              type="password"
+              show-password-on="click"
+              :placeholder="page.t('placeholders.signSecret')"
+              class="secret-input"
+            />
+          </NCard>
 
-        <NCard class="result-card" :bordered="false">
-          <div class="result-section">
-            <div class="result-label">{{ page.t('labels.signedToken') }}</div>
-            <div class="secret-display" v-if="signedToken">
-              <NInput
-                :value="signedToken"
-                readonly
-                type="textarea"
-                :rows="4"
-                class="secret-input"
-              />
-              <NButton @click="copySignedToken">
-                {{ signCopied ? page.t('buttons.copied') : page.t('buttons.copy') }}
-              </NButton>
+          <NCard class="result-card" :bordered="false">
+            <div class="result-section">
+              <div class="result-label">{{ page.t('labels.signedToken') }}</div>
+              <div class="secret-display" v-if="signedToken">
+                <NInput
+                  :value="signedToken"
+                  readonly
+                  type="textarea"
+                  :rows="4"
+                  class="secret-input"
+                />
+                <NButton @click="copySignedToken">
+                  {{ signCopied ? page.t('buttons.copied') : page.t('buttons.copy') }}
+                </NButton>
+              </div>
+              <div class="secret-placeholder" v-else>
+                {{ page.t('empty.signedToken') }}
+              </div>
             </div>
-            <div class="secret-placeholder" v-else>
-              {{ page.t('empty.signedToken') }}
-            </div>
-          </div>
-        </NCard>
+          </NCard>
+        </div>
       </NTabPane>
 
       <NTabPane name="decode" :tab="page.t('tabs.decode')">
@@ -455,33 +457,43 @@ const signatureStatusText = computed(() => {
             </NCard>
           </div>
 
-          <NCard class="result-card verify-card" :bordered="false">
-            <div class="result-label">{{ page.t('labels.hmacVerify') }}</div>
-            <div class="verify-row">
+          <div class="verify-grid">
+            <NCard class="result-card verify-card" :bordered="false">
+              <div class="result-label">{{ page.t('labels.hmacVerify') }}</div>
+              <div class="verify-row">
+                <NInput
+                  v-model:value="verifySecret"
+                  type="password"
+                  show-password-on="click"
+                  :placeholder="page.t('placeholders.verifySecret')"
+                  class="verify-input"
+                />
+                <NButton type="primary" @click="verifySignature">{{ page.t('buttons.verify') }}</NButton>
+              </div>
+              <div v-if="verifyResult && !verifyPublicKey.trim()" class="verify-result">
+                <NTag :type="verifyResult.valid ? 'success' : 'error'">
+                  {{ signatureStatusText }}
+                </NTag>
+                <span v-if="verifySecret && verifyResult.valid" class="verify-hint">{{ page.t('labels.secretMatch') }}</span>
+              </div>
+            </NCard>
+
+            <NCard class="result-card verify-card" :bordered="false">
+              <div class="result-label">{{ page.t('labels.rsaVerify') }}</div>
               <NInput
-                v-model:value="verifySecret"
-                type="password"
-                show-password-on="click"
-                :placeholder="page.t('placeholders.verifySecret')"
+                v-model:value="verifyPublicKey"
+                type="textarea"
+                :rows="4"
+                :placeholder="page.t('placeholders.verifyPublicKey')"
                 class="verify-input"
               />
-              <NButton type="primary" @click="verifySignature">{{ page.t('buttons.verify') }}</NButton>
-            </div>
-            <div class="result-label rsa-label">{{ page.t('labels.rsaVerify') }}</div>
-            <NInput
-              v-model:value="verifyPublicKey"
-              type="textarea"
-              :rows="4"
-              :placeholder="page.t('placeholders.verifyPublicKey')"
-              class="verify-input"
-            />
-            <div v-if="verifyResult" class="verify-result">
-              <NTag :type="verifyResult.valid ? 'success' : 'error'">
-                {{ signatureStatusText }}
-              </NTag>
-              <span v-if="verifySecret && verifyResult.valid" class="verify-hint">{{ page.t('labels.secretMatch') }}</span>
-            </div>
-          </NCard>
+              <div v-if="verifyResult && verifyPublicKey.trim()" class="verify-result">
+                <NTag :type="verifyResult.valid ? 'success' : 'error'">
+                  {{ signatureStatusText }}
+                </NTag>
+              </div>
+            </NCard>
+          </div>
         </template>
       </NTabPane>
     </NTabs>
@@ -490,8 +502,7 @@ const signatureStatusText = computed(() => {
 
 <style scoped>
 .jwt-tool-view {
-  max-width: 960px;
-  margin: 0 auto;
+  /* layout via page-container */
 }
 
 .jwt-tabs {
@@ -528,6 +539,7 @@ const signatureStatusText = computed(() => {
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
 }
 

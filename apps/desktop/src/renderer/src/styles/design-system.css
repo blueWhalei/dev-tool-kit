@@ -150,6 +150,10 @@
   --sidebar-collapsed-width: 64px;
   --header-height: 48px;
   --content-max-width: 1200px;
+  --content-max-width-narrow: 720px;
+  --content-max-width-medium: 960px;
+  --content-max-width-narrow: 720px;
+  --content-max-width-medium: 960px;
   
   /* Page Layout */
   --page-title-size: 28px;

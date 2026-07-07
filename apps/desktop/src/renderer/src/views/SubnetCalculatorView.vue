@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NInput, NButton, NCard, NGrid, NGridItem, NTag, NDataTable, useMessage, type DataTableColumns } from 'naive-ui'
+import { NInput, NButton, NCard, NGrid, NGridItem, NTag, NDataTable, NTabs, NTabPane, useMessage, type DataTableColumns } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -15,6 +15,7 @@ const { copy } = useCopyToClipboard()
 
 const cidrInput = ref('192.168.1.0/24')
 const hostCountsInput = ref('50, 20, 10')
+const activeTab = ref<'single' | 'vlsm'>('single')
 const result = ref<SubnetInfo | null>(null)
 const vlsmResult = ref<VlsmSubnet[] | null>(null)
 
@@ -98,65 +99,80 @@ calculate()
   <PageLayout
     :title="page.title"
     :description="page.description"
-    container-class="subnet-calculator-view"
+    container-class="subnet-calculator-view page-container--narrow"
   >
-    <NCard class="input-card" :bordered="false">
-      <div class="input-row">
-        <NInput
-          v-model:value="cidrInput"
-          :placeholder="page.t('placeholders.cidr')"
-          class="cidr-input"
-          @keyup.enter="calculate"
-        />
-        <NButton type="primary" @click="calculate">{{ page.t('buttons.calculate') }}</NButton>
-        <NButton @click="copyResult" :disabled="!result">{{ page.t('buttons.copyResult') }}</NButton>
-      </div>
-    </NCard>
-
-    <NCard v-if="result" class="result-card" :bordered="false">
-      <div class="result-header">
-        <span class="result-header-label">{{ page.t('labels.version') }}</span>
-        <NTag size="small" :type="result.version === 'ipv4' ? 'info' : 'success'">{{ versionLabel }}</NTag>
-      </div>
-      <NGrid :cols="2" :x-gap="16" :y-gap="12">
-        <NGridItem v-for="row in resultRows" :key="row.label">
-          <div class="result-row">
-            <span class="result-label">{{ row.label }}</span>
-            <code class="result-value">{{ row.value }}</code>
+    <NTabs v-model:value="activeTab" type="line" animated class="subnet-tabs">
+      <NTabPane name="single" :tab="page.t('tabs.single')">
+        <NCard class="input-card" :bordered="false">
+          <div class="input-row">
+            <NInput
+              v-model:value="cidrInput"
+              :placeholder="page.t('placeholders.cidr')"
+              class="cidr-input"
+              @keyup.enter="calculate"
+            />
+            <NButton type="primary" @click="calculate">{{ page.t('buttons.calculate') }}</NButton>
+            <NButton @click="copyResult" :disabled="!result">{{ page.t('buttons.copyResult') }}</NButton>
           </div>
-        </NGridItem>
-      </NGrid>
-    </NCard>
+        </NCard>
 
-    <NCard class="input-card" :bordered="false">
-      <div class="section-title">{{ page.t('labels.vlsm') }}</div>
-      <div class="input-row">
-        <NInput
-          v-model:value="hostCountsInput"
-          :placeholder="page.t('placeholders.hostCounts')"
-          class="cidr-input"
-          @keyup.enter="splitVlsmSubnets"
-        />
-        <NButton type="primary" @click="splitVlsmSubnets">{{ page.t('buttons.splitVlsm') }}</NButton>
-      </div>
-    </NCard>
+        <NCard v-if="result" class="result-card" :bordered="false">
+          <div class="result-header">
+            <span class="result-header-label">{{ page.t('labels.version') }}</span>
+            <NTag size="small" :type="result.version === 'ipv4' ? 'info' : 'success'">{{ versionLabel }}</NTag>
+          </div>
+          <NGrid :cols="2" :x-gap="16" :y-gap="12">
+            <NGridItem v-for="row in resultRows" :key="row.label">
+              <div class="result-row">
+                <span class="result-label">{{ row.label }}</span>
+                <code class="result-value">{{ row.value }}</code>
+              </div>
+            </NGridItem>
+          </NGrid>
+        </NCard>
+      </NTabPane>
 
-    <NCard v-if="vlsmResult?.length" class="result-card" :bordered="false">
-      <div class="section-title">{{ page.t('labels.vlsmResult') }}</div>
-      <NDataTable
-        :columns="vlsmColumns"
-        :data="vlsmResult"
-        :bordered="false"
-        size="small"
-      />
-    </NCard>
+      <NTabPane name="vlsm" :tab="page.t('tabs.vlsm')">
+        <NCard class="input-card" :bordered="false">
+          <div class="section-title">{{ page.t('labels.vlsm') }}</div>
+          <div class="input-row">
+            <NInput
+              v-model:value="cidrInput"
+              :placeholder="page.t('placeholders.cidr')"
+              class="cidr-input"
+              @keyup.enter="splitVlsmSubnets"
+            />
+            <NInput
+              v-model:value="hostCountsInput"
+              :placeholder="page.t('placeholders.hostCounts')"
+              class="host-counts-input"
+              @keyup.enter="splitVlsmSubnets"
+            />
+            <NButton type="primary" @click="splitVlsmSubnets">{{ page.t('buttons.splitVlsm') }}</NButton>
+          </div>
+        </NCard>
+
+        <NCard v-if="vlsmResult?.length" class="result-card" :bordered="false">
+          <div class="section-title">{{ page.t('labels.vlsmResult') }}</div>
+          <NDataTable
+            :columns="vlsmColumns"
+            :data="vlsmResult"
+            :bordered="false"
+            size="small"
+          />
+        </NCard>
+      </NTabPane>
+    </NTabs>
   </PageLayout>
 </template>
 
 <style scoped>
 .subnet-calculator-view {
-  max-width: 720px;
-  margin: 0 auto;
+  /* layout via page-container--narrow */
+}
+
+.subnet-tabs {
+  margin-top: var(--space-2);
 }
 
 .input-card,
@@ -180,6 +196,11 @@ calculate()
 .cidr-input {
   flex: 1;
   min-width: 200px;
+}
+
+.host-counts-input {
+  flex: 1;
+  min-width: 160px;
 }
 
 .result-header {

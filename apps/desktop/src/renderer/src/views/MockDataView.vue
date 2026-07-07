@@ -8,9 +8,10 @@ import {
   NInput,
   NSelect,
   NDataTable,
-  NButtonGroup,
+  NDropdown,
   useMessage,
-  type DataTableColumns
+  type DataTableColumns,
+  type DropdownOption
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
@@ -151,6 +152,20 @@ function exportSql() {
   message.success(page.t('messages.exportedSql'))
 }
 
+const exportMenuOptions = computed<DropdownOption[]>(() => [
+  { label: page.t('buttons.exportJson'), key: 'json' },
+  { label: page.t('buttons.exportCsv'), key: 'csv' },
+  { label: page.t('buttons.exportSql'), key: 'sql' }
+])
+
+function handleExportMenu(key: string) {
+  switch (key) {
+    case 'json': exportJson(); break
+    case 'csv': exportCsv(); break
+    case 'sql': exportSql(); break
+  }
+}
+
 onMounted(() => {
   if (route.query.addField === 'uuid') {
     activePreset.value = null
@@ -200,7 +215,7 @@ generate()
   <PageLayout
     :title="page.title"
     :description="page.description"
-    container-class="mock-data-view"
+    container-class="mock-data-view page-container--wide"
   >
     <template #actions>
       <NSelect
@@ -215,12 +230,14 @@ generate()
         <NInputNumber v-model:value="count" :min="1" :max="1000" />
       </div>
       <NButton type="primary" @click="generate">{{ page.t('buttons.generate') }}</NButton>
-      <NButtonGroup>
-        <NButton @click="copyJson" :disabled="!records.length">{{ page.t('buttons.copyJson') }}</NButton>
-        <NButton @click="exportJson" :disabled="!records.length">{{ page.t('buttons.exportJson') }}</NButton>
-        <NButton @click="exportCsv" :disabled="!records.length">{{ page.t('buttons.exportCsv') }}</NButton>
-        <NButton @click="exportSql" :disabled="!records.length">{{ page.t('buttons.exportSql') }}</NButton>
-      </NButtonGroup>
+      <NButton @click="copyJson" :disabled="!records.length">{{ page.t('buttons.copyJson') }}</NButton>
+      <NDropdown
+        :options="exportMenuOptions"
+        :disabled="!records.length"
+        @select="handleExportMenu"
+      >
+        <NButton :disabled="!records.length">{{ page.t('buttons.exportMenu') }}</NButton>
+      </NDropdown>
     </template>
 
     <NCard class="fields-card" :bordered="false">
@@ -269,12 +286,12 @@ generate()
       <template #header>
         <div class="result-header">
           <span class="card-title">{{ page.t('labels.preview', { count: records.length }) }}</span>
-          <NButtonGroup size="small">
-            <NButton @click="copyJson">{{ page.t('buttons.copyJson') }}</NButton>
-            <NButton @click="exportJson">{{ page.t('buttons.exportJson') }}</NButton>
-            <NButton @click="exportCsv">{{ page.t('buttons.exportCsv') }}</NButton>
-            <NButton @click="exportSql">{{ page.t('buttons.exportSql') }}</NButton>
-          </NButtonGroup>
+          <div class="result-actions">
+            <NButton size="small" @click="copyJson">{{ page.t('buttons.copyJson') }}</NButton>
+            <NDropdown :options="exportMenuOptions" @select="handleExportMenu">
+              <NButton size="small">{{ page.t('buttons.exportMenu') }}</NButton>
+            </NDropdown>
+          </div>
         </div>
       </template>
       <NDataTable
@@ -292,8 +309,7 @@ generate()
 
 <style scoped>
 .mock-data-view {
-  max-width: 960px;
-  margin: 0 auto;
+  /* layout via page-container--wide */
 }
 
 .count-control {
@@ -320,6 +336,12 @@ generate()
   justify-content: space-between;
   align-items: center;
   width: 100%;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .card-title {

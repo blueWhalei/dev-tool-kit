@@ -1,6 +1,11 @@
 export default {
     title: '编码与格式转换',
     description: 'Base64、URL、JSON、YAML、时间戳等编码与格式工具',
+    categories: {
+      encode: '文本编码',
+      structure: '结构化格式',
+      utility: '转换工具'
+    },
     tabs: {
       base64: 'Base64',
       url: 'URL 编码',

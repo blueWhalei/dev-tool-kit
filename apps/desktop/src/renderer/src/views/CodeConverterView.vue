@@ -3,7 +3,7 @@ import { ref, onMounted, watch, computed, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
-import { NInput, NButton, NSpace, NTabs, NTabPane, NGrid, NGridItem, NCard, NTag, NAlert, useMessage } from 'naive-ui'
+import { NInput, NButton, NSpace, NTabs, NTabPane, NGrid, NGridItem, NCard, NTag, NAlert, NRadioGroup, NRadioButton, useMessage } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import ToolDualPanel from '../components/ToolDualPanel.vue'
@@ -55,7 +55,37 @@ const route = useRoute()
 const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql', 'image'] as const
 type TabName = (typeof VALID_TABS)[number]
 
+type CategoryName = 'encode' | 'structure' | 'utility'
+
+const TAB_CATEGORIES: Record<CategoryName, readonly TabName[]> = {
+  encode: ['base64', 'url', 'html'],
+  structure: ['json', 'yaml', 'toml', 'xml', 'sql'],
+  utility: ['timestamp', 'number', 'case', 'image']
+}
+
 const activeTab = ref<TabName>('base64')
+const activeCategory = ref<CategoryName>('encode')
+
+function categoryForTab(tab: TabName): CategoryName {
+  if (TAB_CATEGORIES.encode.includes(tab)) return 'encode'
+  if (TAB_CATEGORIES.structure.includes(tab)) return 'structure'
+  return 'utility'
+}
+
+function showTab(tab: TabName): boolean {
+  return TAB_CATEGORIES[activeCategory.value].includes(tab)
+}
+
+function syncCategoryFromTab(tab: TabName): void {
+  activeCategory.value = categoryForTab(tab)
+}
+
+function ensureTabInCategory(): void {
+  const tabs = TAB_CATEGORIES[activeCategory.value]
+  if (!tabs.includes(activeTab.value)) {
+    activeTab.value = tabs[0]
+  }
+}
 
 function resolveTab(tab: unknown): TabName | null {
   if (typeof tab === 'string' && (VALID_TABS as readonly string[]).includes(tab)) {
@@ -73,15 +103,24 @@ onMounted(() => {
     const savedTab = resolveTab(saved)
     if (savedTab) activeTab.value = savedTab
   }
+  syncCategoryFromTab(activeTab.value)
 })
 
 watch(activeTab, (tab) => {
   localStorage.setItem(CODE_CONVERTER_TAB_STORAGE_KEY, tab)
+  syncCategoryFromTab(tab)
+})
+
+watch(activeCategory, () => {
+  ensureTabInCategory()
 })
 
 watch(() => route.query.tab, (tab) => {
   const resolved = resolveTab(tab)
-  if (resolved) activeTab.value = resolved
+  if (resolved) {
+    activeTab.value = resolved
+    syncCategoryFromTab(resolved)
+  }
 })
 
 const base64Input = ref('')
@@ -385,10 +424,16 @@ useKeyboardShortcut((event) => {
   <PageLayout
     :title="page.title"
     :description="page.description"
-    container-class="code-converter-view"
+    container-class="code-converter-view page-container--wide"
   >
+    <NRadioGroup v-model:value="activeCategory" class="category-tabs">
+      <NRadioButton value="encode">{{ page.t('categories.encode') }}</NRadioButton>
+      <NRadioButton value="structure">{{ page.t('categories.structure') }}</NRadioButton>
+      <NRadioButton value="utility">{{ page.t('categories.utility') }}</NRadioButton>
+    </NRadioGroup>
+
     <NTabs v-model:value="activeTab" type="line" animated class="converter-tabs">
-      <NTabPane name="base64" :tab="page.t('tabs.base64')">
+      <NTabPane v-if="showTab('base64')" name="base64" :tab="page.t('tabs.base64')">
         <ToolDualPanel
           v-model:input="base64Input"
           v-model:output="base64Output"
@@ -403,7 +448,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="url" :tab="page.t('tabs.url')">
+      <NTabPane v-if="showTab('url')" name="url" :tab="page.t('tabs.url')">
         <ToolDualPanel
           v-model:input="urlInput"
           v-model:output="urlOutput"
@@ -418,7 +463,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="json" :tab="page.t('tabs.json')">
+      <NTabPane v-if="showTab('json')" name="json" :tab="page.t('tabs.json')">
         <ToolDualPanel
           v-model:input="jsonInput"
           v-model:output="jsonOutput"
@@ -432,47 +477,49 @@ useKeyboardShortcut((event) => {
           <NButton @click="handleJsonMinify">{{ page.t('actions.minify') }}</NButton>
         </div>
 
-        <NCard v-if="jsonParsedValue !== null" class="editor-card json-tree-card" :bordered="false">
-          <template #header>
-            <span class="card-title">{{ page.t('labels.jsonTree') }}</span>
-          </template>
-          <JsonTreeView :value="jsonParsedValue" />
-        </NCard>
+        <div class="json-extras-grid">
+          <NCard v-if="jsonParsedValue !== null" class="editor-card json-tree-card" :bordered="false">
+            <template #header>
+              <span class="card-title">{{ page.t('labels.jsonTree') }}</span>
+            </template>
+            <JsonTreeView :value="jsonParsedValue" />
+          </NCard>
 
-        <NCard class="editor-card json-schema-card" :bordered="false">
-          <template #header>
-            <div class="card-header-flex">
-              <span class="card-title">{{ page.t('labels.jsonSchema') }}</span>
-              <NTag v-if="schemaValidationValid === true" type="success" size="small">
-                {{ page.t('messages.schemaValid') }}
-              </NTag>
-              <NTag v-else-if="schemaValidationValid === false" type="error" size="small">
-                {{ page.t('messages.schemaInvalid') }}
-              </NTag>
-            </div>
-          </template>
-          <NInput
-            v-model:value="jsonSchemaInput"
-            type="textarea"
-            :rows="4"
-            :placeholder="page.t('placeholders.jsonSchema')"
-            class="code-input"
-          />
-          <NAlert
-            v-if="schemaValidationError"
-            type="warning"
-            :show-icon="false"
-            class="schema-alert"
-          >
-            {{ schemaValidationError }}
-          </NAlert>
-          <ul v-else-if="schemaErrorLines.length" class="schema-errors">
-            <li v-for="(line, index) in schemaErrorLines" :key="index">{{ line }}</li>
-          </ul>
-        </NCard>
+          <NCard class="editor-card json-schema-card" :bordered="false">
+            <template #header>
+              <div class="card-header-flex">
+                <span class="card-title">{{ page.t('labels.jsonSchema') }}</span>
+                <NTag v-if="schemaValidationValid === true" type="success" size="small">
+                  {{ page.t('messages.schemaValid') }}
+                </NTag>
+                <NTag v-else-if="schemaValidationValid === false" type="error" size="small">
+                  {{ page.t('messages.schemaInvalid') }}
+                </NTag>
+              </div>
+            </template>
+            <NInput
+              v-model:value="jsonSchemaInput"
+              type="textarea"
+              :rows="4"
+              :placeholder="page.t('placeholders.jsonSchema')"
+              class="code-input"
+            />
+            <NAlert
+              v-if="schemaValidationError"
+              type="warning"
+              :show-icon="false"
+              class="schema-alert"
+            >
+              {{ schemaValidationError }}
+            </NAlert>
+            <ul v-else-if="schemaErrorLines.length" class="schema-errors">
+              <li v-for="(line, index) in schemaErrorLines" :key="index">{{ line }}</li>
+            </ul>
+          </NCard>
+        </div>
       </NTabPane>
 
-      <NTabPane name="timestamp" :tab="page.t('tabs.timestamp')">
+      <NTabPane v-if="showTab('timestamp')" name="timestamp" :tab="page.t('tabs.timestamp')">
         <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
           <NGridItem>
             <NCard class="editor-card" :bordered="false">
@@ -510,7 +557,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="number" :tab="page.t('tabs.radix')">
+      <NTabPane v-if="showTab('number')" name="number" :tab="page.t('tabs.radix')">
         <NCard class="editor-card" :bordered="false">
           <div class="number-converter">
             <div class="number-input-section">
@@ -549,7 +596,7 @@ useKeyboardShortcut((event) => {
         </NCard>
       </NTabPane>
 
-      <NTabPane name="case" :tab="page.t('tabs.naming')">
+      <NTabPane v-if="showTab('case')" name="case" :tab="page.t('tabs.naming')">
         <NCard class="editor-card" :bordered="false">
           <template #header>
             <span class="card-title">{{ page.t('labels.input') }}</span>
@@ -577,7 +624,7 @@ useKeyboardShortcut((event) => {
         <div v-else-if="caseInput.trim()" class="result-placeholder case-empty">{{ page.t('placeholders.namingEmpty') }}</div>
       </NTabPane>
 
-      <NTabPane name="html" :tab="page.t('tabs.html')">
+      <NTabPane v-if="showTab('html')" name="html" :tab="page.t('tabs.html')">
         <ToolDualPanel
           v-model:input="htmlInput"
           v-model:output="htmlOutput"
@@ -592,7 +639,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="yaml" :tab="page.t('tabs.yaml')">
+      <NTabPane v-if="showTab('yaml')" name="yaml" :tab="page.t('tabs.yaml')">
         <ToolDualPanel
           v-model:input="yamlInput"
           v-model:output="yamlOutput"
@@ -609,7 +656,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="toml" :tab="page.t('tabs.toml')">
+      <NTabPane v-if="showTab('toml')" name="toml" :tab="page.t('tabs.toml')">
         <ToolDualPanel
           v-model:input="tomlInput"
           v-model:output="tomlOutput"
@@ -625,7 +672,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="xml" :tab="page.t('tabs.xml')">
+      <NTabPane v-if="showTab('xml')" name="xml" :tab="page.t('tabs.xml')">
         <ToolDualPanel
           v-model:input="xmlInput"
           v-model:output="xmlOutput"
@@ -640,7 +687,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="sql" :tab="page.t('tabs.sql')">
+      <NTabPane v-if="showTab('sql')" name="sql" :tab="page.t('tabs.sql')">
         <ToolDualPanel
           v-model:input="sqlInput"
           v-model:output="sqlOutput"
@@ -655,7 +702,7 @@ useKeyboardShortcut((event) => {
         </div>
       </NTabPane>
 
-      <NTabPane name="image" :tab="page.t('tabs.image')">
+      <NTabPane v-if="showTab('image')" name="image" :tab="page.t('tabs.image')">
         <div class="image-base64-panel">
           <NCard class="editor-card" :bordered="false">
             <template #header>
@@ -715,14 +762,12 @@ useKeyboardShortcut((event) => {
 </template>
 
 <style scoped>
-.code-converter-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 24px;
+.category-tabs {
+  margin-bottom: var(--space-4);
 }
 
 .converter-tabs {
-  margin-top: 24px;
+  margin-top: var(--space-2);
 }
 
 .editor-card {
@@ -873,11 +918,6 @@ useKeyboardShortcut((event) => {
 
 .json-action-bar {
   margin-bottom: 0;
-}
-
-.json-tree-card,
-.json-schema-card {
-  margin-top: 16px;
 }
 
 .card-header-flex {

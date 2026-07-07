@@ -363,8 +363,16 @@ html, body, #app {
 
 /* Page Container - 页面容器 */
 .page-container {
-  max-width: 960px;
+  max-width: var(--content-max-width-medium);
   margin: 0 auto;
+}
+
+.page-container--wide {
+  max-width: var(--content-max-width);
+}
+
+.page-container--narrow {
+  max-width: var(--content-max-width-narrow);
 }
 
 /* Page Header - 页面标题区 */
@@ -393,8 +401,64 @@ html, body, #app {
 .page-actions {
   margin-bottom: var(--page-actions-margin-bottom);
   display: flex;
+  flex-wrap: wrap;
   gap: var(--page-actions-gap);
   align-items: center;
+}
+
+.page-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.page-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Responsive layout grids */
+.json-extras-grid,
+.sign-bottom-grid,
+.verify-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.json-extras-grid {
+  margin-top: var(--space-4);
+}
+
+.sign-bottom-grid,
+.verify-grid {
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .json-extras-grid,
+  .sign-bottom-grid,
+  .verify-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.port-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.port-filter-bar .port-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 /* Page Content - 页面内容区 */

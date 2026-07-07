@@ -20,6 +20,7 @@ export default {
       addField: '添加字段',
       delete: '删除',
       copyJson: '复制 JSON',
+      exportMenu: '导出',
       exportJson: '导出 JSON',
       exportCsv: '导出 CSV',
       exportSql: '导出 SQL'
