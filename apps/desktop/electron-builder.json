@@ -1,6 +1,8 @@
 {
   "appId": "com.devtoolkit.app",
   "productName": "DevToolkit",
+  "asar": true,
+  "publish": null,
   "directories": {
     "buildResources": "resources",
     "output": "dist"
@@ -16,6 +18,8 @@
         "arch": ["x64"]
       }
     ],
+    "icon": "resources/icon.png",
+    "signAndEditExecutable": false,
     "artifactName": "${productName}-${version}-Setup.${ext}"
   },
   "nsis": {
@@ -26,10 +30,15 @@
   },
   "mac": {
     "target": ["dmg"],
+    "icon": "resources/icon.png",
+    "identity": null,
+    "gatekeeperAssess": false,
+    "hardenedRuntime": false,
     "artifactName": "${productName}-${version}.${ext}"
   },
   "linux": {
     "target": ["AppImage"],
+    "icon": "resources/icon.png",
     "artifactName": "${productName}-${version}.${ext}"
   }
 }

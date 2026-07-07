@@ -144,7 +144,7 @@
 
 ### 环境要求
 
-- Node.js >= 18.0.0（CI 使用 Node 20+）
+- Node.js >= 18.0.0（CI 使用 Node 24）
 - pnpm >= 9.0.0
 
 ### 安装依赖
@@ -161,9 +161,45 @@ pnpm dev
 
 ### 构建应用
 
+开发构建（编译到 `apps/desktop/out`，不生成安装包）：
+
 ```bash
 pnpm build
 ```
+
+### 构建安装包
+
+在本地打包当前平台的未签名安装包（需先安装依赖）：
+
+```bash
+pnpm install
+pnpm dist          # 当前平台完整安装包（Windows NSIS / macOS DMG / Linux AppImage）
+pnpm dist:dir      # 仅解压目录，用于快速验证打包配置
+pnpm dist:win      # 仅 Windows（可在任意平台交叉构建时指定）
+pnpm dist:mac      # 仅 macOS（需在 macOS 上运行，或 CI 构建）
+pnpm dist:linux    # 仅 Linux
+```
+
+产物输出至 `apps/desktop/dist/`。
+
+**未签名发布说明：**
+
+- **Windows** — 安装包未经代码签名，首次运行可能触发 SmartScreen「未知发布者」提示，选择「仍要运行」即可。
+- **macOS** — 应用未经公证，首次打开请右键 →「打开」，或在「系统设置 → 隐私与安全性」中允许。
+- **Linux** — AppImage 赋予执行权限后直接运行：`chmod +x DevToolkit-*.AppImage && ./DevToolkit-*.AppImage`
+
+预编译安装包请前往 [GitHub Releases](https://github.com/blueWhalei/dev-tool-kit/releases) 下载。
+
+### 发布新版本
+
+维护者通过 Git 标签触发 CI 自动构建三平台安装包并发布到 GitHub Releases（无需代码签名证书）：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+也可在 GitHub Actions 中手动运行 **Release** 工作流并填写版本号。
 
 ### 代码检查
 

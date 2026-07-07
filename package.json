@@ -12,7 +12,12 @@
     "test": "vitest run",
     "check:locales": "vitest run scripts/check-locale-keys.test.ts",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "dist": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack",
+    "dist:dir": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:dir",
+    "dist:win": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:win",
+    "dist:mac": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:mac",
+    "dist:linux": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:linux"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",

@@ -144,7 +144,7 @@ Full keyboard shortcuts list available in the app's **About** page.
 
 ### Prerequisites
 
-- Node.js >= 18.0.0 (CI uses Node 20+)
+- Node.js >= 18.0.0 (CI uses Node 24)
 - pnpm >= 9.0.0
 
 ### Install Dependencies
@@ -161,9 +161,45 @@ pnpm dev
 
 ### Build Application
 
+Development build (outputs to `apps/desktop/out`, no installer):
+
 ```bash
 pnpm build
 ```
+
+### Building Installers
+
+Package unsigned installers for the current platform locally (install dependencies first):
+
+```bash
+pnpm install
+pnpm dist          # Full installer for current OS (Windows NSIS / macOS DMG / Linux AppImage)
+pnpm dist:dir      # Unpacked directory only — quick packaging smoke test
+pnpm dist:win      # Windows only
+pnpm dist:mac      # macOS only (requires macOS host, or use CI)
+pnpm dist:linux    # Linux only
+```
+
+Artifacts are written to `apps/desktop/dist/`.
+
+**Unsigned release notes:**
+
+- **Windows** — Installers are not code-signed. SmartScreen may warn about an unknown publisher on first run; choose "Run anyway".
+- **macOS** — The app is not notarized. On first launch, right-click → Open, or allow it under System Settings → Privacy & Security.
+- **Linux** — Make the AppImage executable and run: `chmod +x DevToolkit-*.AppImage && ./DevToolkit-*.AppImage`
+
+Pre-built installers are available on [GitHub Releases](https://github.com/blueWhalei/dev-tool-kit/releases).
+
+### Cutting a Release
+
+Maintainers trigger CI to build all three platforms and publish to GitHub Releases (no signing certificates required):
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+You can also run the **Release** workflow manually from GitHub Actions and provide a version tag.
 
 ### Code Quality
 
