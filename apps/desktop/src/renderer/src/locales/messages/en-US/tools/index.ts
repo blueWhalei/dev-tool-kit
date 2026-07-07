@@ -16,6 +16,7 @@ import cronParser from './cronParser'
 import chmodCalculator from './chmodCalculator'
 import httpStatusCodes from './httpStatusCodes'
 import certificateParser from './certificateParser'
+import connectionStringParser from './connectionStringParser'
 import qrCodeGenerator from './qrCodeGenerator'
 
 export default {
@@ -37,5 +38,6 @@ export default {
   chmodCalculator,
   httpStatusCodes,
   certificateParser,
+  connectionStringParser,
   qrCodeGenerator
 }

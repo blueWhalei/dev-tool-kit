@@ -12,7 +12,9 @@ export default {
       copyCommand: 'Copy command'
     },
     placeholders: {
-      search: 'Search port / PID / process name'
+      searchPort: 'Port',
+      searchProcess: 'Process name',
+      searchPid: 'PID'
     },
     filters: {
       all: 'All',

@@ -158,6 +158,10 @@ const routes: RouteRecordRaw[] = [
     redirect: { path: '/code-converter', query: { tab: 'sql' } }
   },
   {
+    path: '/image-base64',
+    redirect: { path: '/code-converter', query: { tab: 'image' } }
+  },
+  {
     path: '/text-diff',
     name: 'TextDiff',
     component: () => import('../views/TextDiffView.vue'),
@@ -168,6 +172,18 @@ const routes: RouteRecordRaw[] = [
     name: 'MockData',
     component: () => import('../views/MockDataView.vue'),
     meta: { titleKey: 'nav.routes.mockData', icon: 'mock', category: 'data', order: 3, keywords: ['mock', '数据', '测试', 'fake', '生成'] }
+  },
+  {
+    path: '/connection-string-parser',
+    name: 'ConnectionStringParser',
+    component: () => import('../views/ConnectionStringParserView.vue'),
+    meta: {
+      titleKey: 'nav.routes.connectionStringParser',
+      icon: 'database',
+      category: 'data',
+      order: 6,
+      keywords: ['connection', '连接', '字符串', 'mysql', 'postgresql', 'redis', 'mongodb', 'uri', 'dsn', 'parser']
+    }
   },
   {
     path: '/subnet-calculator',

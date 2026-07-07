@@ -167,6 +167,30 @@ onMounted(() => {
     }
     message.info(page.t('messages.uuidFieldReady'))
   }
+
+  if (route.query.fromConn === '1') {
+    activePreset.value = null
+    const connFields: MockField[] = [{ name: 'id', type: 'increment' }]
+    if (typeof route.query.protocol === 'string' && route.query.protocol) {
+      connFields.push({ name: 'protocol', type: 'text' })
+    }
+    if (typeof route.query.host === 'string' && route.query.host) {
+      connFields.push({ name: 'host', type: 'ip' })
+    }
+    if (typeof route.query.port === 'string' && route.query.port) {
+      connFields.push({ name: 'port', type: 'number' })
+    }
+    if (typeof route.query.database === 'string' && route.query.database) {
+      connFields.push({ name: 'database', type: 'text' })
+      sqlTableName.value = sanitizeSqlTableName(route.query.database)
+    }
+    if (typeof route.query.user === 'string' && route.query.user) {
+      connFields.push({ name: 'user', type: 'name' })
+    }
+    fields.value = connFields
+    message.info(page.t('messages.connFieldsReady'))
+    generate()
+  }
 })
 
 generate()

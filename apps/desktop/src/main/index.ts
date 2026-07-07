@@ -10,6 +10,7 @@ import { setupHostsEditorIPC } from './modules/hosts-editor'
 import { setupFileRenamerIPC } from './modules/file-renamer'
 import { setupRegexTesterIPC } from './modules/regex-tester'
 import { setupHashGeneratorIPC } from './modules/hash-generator'
+import { setupImageBase64IPC } from './modules/image-base64'
 import { setupTextDiffIPC } from './modules/text-diff'
 import { setupCertParserIPC } from './modules/cert-parser'
 import { loadWindowState, saveWindowState } from './store/window-state'
@@ -158,6 +159,8 @@ app.whenReady().then(async () => {
 
   // Setup hash generator IPC
   setupHashGeneratorIPC()
+
+  setupImageBase64IPC()
 
   setupTextDiffIPC()
 

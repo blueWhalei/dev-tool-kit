@@ -112,6 +112,11 @@ function applyRouteQuery() {
     signSecret.value = secret
     activeTab.value = 'sign'
   }
+  const publicKey = route.query.publicKey
+  if (typeof publicKey === 'string' && publicKey.trim()) {
+    verifyPublicKey.value = publicKey
+    activeTab.value = 'decode'
+  }
 }
 
 onMounted(applyRouteQuery)
@@ -125,6 +130,13 @@ watch(() => route.query.secret, (secret) => {
   if (typeof secret === 'string' && secret.trim()) {
     signSecret.value = secret
     activeTab.value = 'sign'
+  }
+})
+
+watch(() => route.query.publicKey, (publicKey) => {
+  if (typeof publicKey === 'string' && publicKey.trim()) {
+    verifyPublicKey.value = publicKey
+    activeTab.value = 'decode'
   }
 })
 

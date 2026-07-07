@@ -149,6 +149,7 @@ function parseSingleCertificate(pem: string): ParsedCertificateInfo {
     subjectAltNames: parseSubjectAltNames(cert.subjectAltName ?? legacy.subjectaltname),
     signatureAlgorithm: detectSignatureAlgorithm(cert.raw),
     publicKey: getPublicKeyInfo(cert),
+    publicKeyPem: cert.publicKey.export({ type: 'spki', format: 'pem' }) as string,
     fingerprint: cert.fingerprint,
     fingerprint256: cert.fingerprint256
   }

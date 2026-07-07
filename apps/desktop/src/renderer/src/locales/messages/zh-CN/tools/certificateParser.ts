@@ -5,7 +5,8 @@ export default {
   inputPlaceholder: '粘贴 PEM 证书内容（-----BEGIN CERTIFICATE-----）...',
   buttons: {
     loadFile: '加载证书文件',
-    parse: '解析'
+    parse: '解析',
+    useInJwt: '用于 JWT 验签'
   },
   labels: {
     subject: '主题 (Subject)',
@@ -32,7 +33,8 @@ export default {
     loadFileFailed: '证书文件读取失败',
     parseFailed: '证书解析失败',
     noInput: '请输入或加载 PEM 证书',
-    copied: '已复制'
+    copied: '已复制',
+    noPublicKey: '无法导出公钥 PEM'
   },
   errors: {
     pemEmpty: '请输入 PEM 证书内容',

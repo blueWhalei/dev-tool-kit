@@ -10,6 +10,7 @@ import ToolDualPanel from '../components/ToolDualPanel.vue'
 import JsonTreeView from '../components/JsonTreeView.vue'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
+import { useIpc } from '../composables/useIpc'
 import { translateToolError } from '../utils/translateToolError'
 import {
   base64Encode,
@@ -39,6 +40,7 @@ import {
   sqlFormat,
   sqlMinify,
   CODE_CONVERTER_TAB_STORAGE_KEY,
+  formatBytes,
   type TimestampInfo,
   type CaseFormats
 } from '@dev-tool-kit/shared'
@@ -47,9 +49,10 @@ const message = useMessage()
 const { t } = useI18n()
 const page = useToolI18n('codeConverter')
 const { copy } = useCopyToClipboard()
+const { invoke } = useIpc()
 const route = useRoute()
 
-const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql'] as const
+const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql', 'image'] as const
 type TabName = (typeof VALID_TABS)[number]
 
 const activeTab = ref<TabName>('base64')
@@ -110,6 +113,69 @@ const xmlInput = ref('')
 const xmlOutput = ref('')
 const sqlInput = ref('')
 const sqlOutput = ref('')
+
+const imageFileName = ref('')
+const imageMimeType = ref('image/png')
+const imageBase64 = ref('')
+const imageDataUri = ref('')
+const imageSize = ref(0)
+const imageLoading = ref(false)
+const imageDecodeInput = ref('')
+const imageDecodeMime = ref('image/png')
+
+const imagePreviewUri = computed(() => {
+  const raw = imageDecodeInput.value.trim()
+  if (!raw) return ''
+  if (raw.startsWith('data:')) return raw
+  const mime = imageDecodeMime.value.trim() || 'image/png'
+  const base64 = raw.replace(/^data:[^;]+;base64,/, '')
+  return `data:${mime};base64,${base64}`
+})
+
+const imagePreviewVisible = computed(() => Boolean(imagePreviewUri.value))
+
+async function pickImageFile() {
+  imageLoading.value = true
+  try {
+    const data = await invoke<{
+      fileName: string
+      mimeType: string
+      base64: string
+      dataUri: string
+      size: number
+    } | null>('image-base64:pickImage')
+    if (!data) return
+    imageFileName.value = data.fileName
+    imageMimeType.value = data.mimeType
+    imageBase64.value = data.base64
+    imageDataUri.value = data.dataUri
+    imageSize.value = data.size
+    imageDecodeMime.value = data.mimeType
+    imageDecodeInput.value = data.base64
+    message.success(page.t('messages.imageLoaded'))
+  } catch {
+    message.error(page.t('messages.imageLoadFailed'))
+  } finally {
+    imageLoading.value = false
+  }
+}
+
+async function copyImageBase64() {
+  if (!imageBase64.value) return
+  await copy(imageBase64.value, page.t('messages.imageCopied'))
+}
+
+async function copyImageDataUri() {
+  if (!imageDataUri.value) return
+  await copy(imageDataUri.value, page.t('messages.imageCopied'))
+}
+
+function useImageBase64ForDecode() {
+  if (imageBase64.value) {
+    imageDecodeInput.value = imageBase64.value
+    imageDecodeMime.value = imageMimeType.value
+  }
+}
 
 const caseFormatRows = computed(() => {
   if (!caseFormats.value) return []
@@ -588,6 +654,62 @@ useKeyboardShortcut((event) => {
           <NButton @click="handleSqlMinify">{{ page.t('actions.minify') }}</NButton>
         </div>
       </NTabPane>
+
+      <NTabPane name="image" :tab="page.t('tabs.image')">
+        <div class="image-base64-panel">
+          <NCard class="editor-card" :bordered="false">
+            <template #header>
+              <div class="card-header-flex">
+                <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
+                <NTag v-if="imageFileName" size="small" :bordered="false">{{ imageFileName }}</NTag>
+              </div>
+            </template>
+            <div class="image-actions">
+              <NButton type="primary" :loading="imageLoading" @click="pickImageFile">
+                {{ page.t('actions.pickImage') }}
+              </NButton>
+              <NButton v-if="imageBase64" @click="copyImageBase64">{{ page.t('actions.copyBase64') }}</NButton>
+              <NButton v-if="imageDataUri" @click="copyImageDataUri">{{ page.t('actions.copyDataUri') }}</NButton>
+              <NButton v-if="imageBase64" quaternary @click="useImageBase64ForDecode">
+                {{ page.t('actions.useForDecode') }}
+              </NButton>
+            </div>
+            <div v-if="imageBase64" class="image-meta">
+              <span>{{ page.t('labels.mimeType') }}: {{ imageMimeType }}</span>
+              <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(imageSize) }}</span>
+            </div>
+            <NInput
+              v-if="imageBase64"
+              v-model:value="imageBase64"
+              type="textarea"
+              readonly
+              :rows="6"
+              class="code-input image-base64-output"
+            />
+          </NCard>
+
+          <NCard class="editor-card" :bordered="false">
+            <template #header>
+              <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
+            </template>
+            <div class="decode-mime-row">
+              <span class="section-label">{{ page.t('labels.mimeType') }}</span>
+              <NInput v-model:value="imageDecodeMime" :placeholder="page.t('placeholders.mimeType')" style="max-width: 220px" />
+            </div>
+            <NInput
+              v-model:value="imageDecodeInput"
+              type="textarea"
+              :rows="5"
+              :placeholder="page.t('placeholders.imageBase64')"
+              class="code-input"
+            />
+            <div v-if="imagePreviewVisible" class="image-preview-wrap">
+              <img :src="imagePreviewUri" :alt="page.t('labels.preview')" class="image-preview" />
+            </div>
+            <p v-else-if="imageDecodeInput.trim()" class="preview-hint">{{ page.t('messages.invalidImageBase64') }}</p>
+          </NCard>
+        </div>
+      </NTabPane>
     </NTabs>
   </PageLayout>
 </template>
@@ -786,5 +908,58 @@ useKeyboardShortcut((event) => {
 
 .schema-errors li + li {
   margin-top: 4px;
+}
+
+.image-base64-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.image-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.image-base64-output {
+  margin-top: 8px;
+}
+
+.decode-mime-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.image-preview-wrap {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.preview-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
 }
 </style>

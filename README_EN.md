@@ -14,7 +14,7 @@
 
 ## Screenshots
 
-Representative previews below (port manager, encoding converter, settings). The app includes **19 tools** in total — see [Features Overview](#features-overview) for the full list.
+Representative previews below (port manager, encoding converter, settings). The app includes **20 tools** in total — see [Features Overview](#features-overview) for the full list.
 
 ![Port Manager](./screenshots/en/port-manager.png)
 ![Encoding Converter](./screenshots/en/code-format-converter.png)
@@ -46,7 +46,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 
 | Tool | Description |
 |------|------|
-| Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML (unified entry with Tab memory) |
+| Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML, image Base64 (unified entry with Tab memory) |
 | Text Diff | Line/word-level diff, file import, ignore whitespace/case, unified/split view |
 
 ### Data Conversion
@@ -58,6 +58,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 | Mock Data | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT |
 | HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
 | QR Code Generator | Generate QR codes locally from text/URL with adjustable size and error correction |
+| Connection String Parser | Parse MySQL, PostgreSQL, Redis, MongoDB URIs into fields and JSON |
 
 ### Password & Keys
 
@@ -120,8 +121,10 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/timestamp` | Encoding Conversion · Timestamp Tab |
 | `/xml` | Encoding Conversion · XML Tab |
 | `/sql` | Encoding Conversion · SQL Tab |
+| `/image-base64` | Encoding Conversion · Image Base64 Tab |
 | `/chmod-calculator` | Chmod Calculator |
 | `/http-status-codes` | HTTP Status Codes Reference |
+| `/connection-string-parser` | Database Connection String Parser |
 | `/certificate-parser` | Certificate PEM Parser |
 | `/qr-code-generator` | QR Code Generator |
 

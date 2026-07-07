@@ -12,7 +12,8 @@ export default {
       naming: 'Naming',
       html: 'HTML',
       xml: 'XML',
-      sql: 'SQL'
+      sql: 'SQL',
+      image: 'Image Base64'
     },
     actions: {
       encode: 'Encode',
@@ -25,7 +26,11 @@ export default {
       yamlToJson: 'YAML → JSON',
       jsonToYaml: 'JSON → YAML',
       tomlToJson: 'TOML → JSON',
-      jsonToToml: 'JSON → TOML'
+      jsonToToml: 'JSON → TOML',
+      pickImage: 'Pick image',
+      copyBase64: 'Copy Base64',
+      copyDataUri: 'Copy Data URI',
+      useForDecode: 'Use for preview'
     },
     labels: {
       input: 'Input',
@@ -45,7 +50,12 @@ export default {
       kebabCase: 'kebab-case',
       titleCase: 'Title Case',
       jsonTree: 'Tree view',
-      jsonSchema: 'JSON Schema (optional)'
+      jsonSchema: 'JSON Schema (optional)',
+      imageToBase64: 'Image → Base64',
+      base64ToImage: 'Base64 → Image preview',
+      mimeType: 'MIME type',
+      fileSize: 'File size',
+      preview: 'Preview'
     },
     placeholders: {
       base64: 'Enter text to encode/decode...',
@@ -65,7 +75,9 @@ export default {
       naming: 'Enter text to convert naming, e.g. foo-bar, fooBar...',
       timestampResult: 'Conversion result...',
       namingEmpty: 'Enter valid text to see all naming formats',
-      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}'
+      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}',
+      mimeType: 'image/png',
+      imageBase64: 'Paste Base64 or Data URI...'
     },
     bases: {
       binary: 'Binary',
@@ -75,7 +87,11 @@ export default {
     },
     messages: {
       schemaValid: 'Valid',
-      schemaInvalid: 'Invalid'
+      schemaInvalid: 'Invalid',
+      imageLoaded: 'Image loaded',
+      imageLoadFailed: 'Failed to read image',
+      imageCopied: 'Copied',
+      invalidImageBase64: 'Cannot preview — check Base64 or MIME type'
     },
     errors: {
       jsonEmpty: 'Enter JSON content',

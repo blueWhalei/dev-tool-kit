@@ -16,6 +16,7 @@ describe('ipc channels smoke', () => {
     expect(IPC_INVOKE_CHANNELS).toContain('app:getRuntimeInfo')
     expect(IPC_INVOKE_CHANNELS).toContain('hosts:exportSchemes')
     expect(IPC_INVOKE_CHANNELS).toContain('file-renamer:listRules')
+    expect(IPC_INVOKE_CHANNELS).toContain('image-base64:pickImage')
   })
 })
 

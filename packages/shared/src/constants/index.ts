@@ -62,7 +62,8 @@ export const CODE_CONVERTER_TAB_KEYWORDS: { tab: string; keywords: string[] }[] 
   { tab: 'yaml', keywords: ['yaml', 'yml'] },
   { tab: 'toml', keywords: ['toml'] },
   { tab: 'xml', keywords: ['xml', '格式化'] },
-  { tab: 'sql', keywords: ['sql', '格式化', 'query'] }
+  { tab: 'sql', keywords: ['sql', '格式化', 'query'] },
+  { tab: 'image', keywords: ['image', '图片', 'base64', 'data uri', 'mime'] }
 ]
 
 /** localStorage key for code converter active tab */

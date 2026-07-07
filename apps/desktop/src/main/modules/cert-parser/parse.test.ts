@@ -17,6 +17,7 @@ describe('parseCertificatePem', () => {
     expect(cert.serialNumber).toBe('147D36C1C2F74206DE9FAB5F2226D78ADB00A426')
     expect(cert.publicKey.type).toBe('rsa')
     expect(cert.publicKey.bits).toBe(2048)
+    expect(cert.publicKeyPem).toContain('BEGIN PUBLIC KEY')
     expect(cert.signatureAlgorithm).toBe('sha256WithRSAEncryption')
     expect(cert.fingerprint256).toMatch(/^[0-9A-F]{2}(:[0-9A-F]{2}){31}$/)
     expect(cert.validFrom).toBeTruthy()

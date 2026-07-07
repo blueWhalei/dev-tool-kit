@@ -86,7 +86,8 @@ export default {
       exportedJson: 'JSON 已导出',
       exportedCsv: 'CSV 已导出',
       exportedSql: 'SQL 已导出',
-      uuidFieldReady: '已添加 id (uuid) 字段，可直接生成 Mock 数据'
+      uuidFieldReady: '已添加 id (uuid) 字段，可直接生成 Mock 数据',
+      connFieldsReady: '已根据连接字符串添加字段模板，可直接生成 Mock 数据'
     },
     hints: {
       previewLimit: '仅展示前 20 条，完整数据请导出 JSON / CSV / SQL',

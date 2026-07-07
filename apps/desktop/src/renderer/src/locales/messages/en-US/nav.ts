@@ -28,6 +28,7 @@ export default {
       chmodCalculator: 'Chmod Calculator',
       httpStatusCodes: 'HTTP Status Codes',
       certificateParser: 'Certificate Parser',
+      connectionStringParser: 'Connection String Parser',
       qrCodeGenerator: 'QR Code Generator',
       settings: 'Settings',
       about: 'About',

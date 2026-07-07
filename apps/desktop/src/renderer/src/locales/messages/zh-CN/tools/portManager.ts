@@ -12,7 +12,9 @@ export default {
       copyCommand: '复制命令'
     },
     placeholders: {
-      search: '搜索端口/PID/进程名'
+      searchPort: '端口',
+      searchProcess: '进程名',
+      searchPid: 'PID'
     },
     filters: {
       all: '全部',

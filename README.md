@@ -46,7 +46,7 @@
 
 | 工具 | 说明 |
 |------|------|
-| 编码与格式转换 | Base64、URL、JSON（树形 + Schema）、YAML、TOML、XML、SQL、时间戳、进制、命名、HTML（统一入口，Tab 记忆） |
+| 编码与格式转换 | Base64、URL、JSON（树形 + Schema）、YAML、TOML、XML、SQL、时间戳、进制、命名、HTML、图片 Base64（统一入口，Tab 记忆） |
 | 文本对比 | 逐行/逐词 Diff，文件导入，忽略空白/大小写，统一/并排视图 |
 
 ### 数据转换
@@ -58,6 +58,7 @@
 | Mock 数据 | 预设模板、丰富字段类型、按字段生成 JSON、导出 JSON/CSV/SQL INSERT |
 | HTTP 状态码 | 62 个常用状态码速查、搜索与分类 |
 | 二维码生成 | 文本/URL 本地生成二维码，可调尺寸与纠错级别 |
+| 连接字符串解析 | MySQL、PostgreSQL、Redis、MongoDB URI 解析，字段表与 JSON 导出 |
 
 ### 密码与密钥
 
@@ -120,8 +121,10 @@
 | `/timestamp` | 编码转换 · 时间戳 Tab |
 | `/xml` | 编码转换 · XML Tab |
 | `/sql` | 编码转换 · SQL Tab |
+| `/image-base64` | 编码转换 · 图片 Base64 Tab |
 | `/chmod-calculator` | Chmod 计算器 |
 | `/http-status-codes` | HTTP 状态码速查 |
+| `/connection-string-parser` | 数据库连接字符串解析 |
 | `/certificate-parser` | 证书 PEM 解析 |
 | `/qr-code-generator` | 二维码生成 |
 

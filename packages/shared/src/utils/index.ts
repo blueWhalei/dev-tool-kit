@@ -14,6 +14,7 @@ export * from './regex'
 export * from './chmod'
 export * from './http-status-codes'
 export * from './xml-sql'
+export * from './connection-string'
 
 // Formatting utilities
 export function formatBytes(bytes: number, decimals = 2): string {

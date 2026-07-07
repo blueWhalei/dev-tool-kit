@@ -5,7 +5,8 @@ export default {
   inputPlaceholder: 'Paste PEM certificate (-----BEGIN CERTIFICATE-----)...',
   buttons: {
     loadFile: 'Load Certificate File',
-    parse: 'Parse'
+    parse: 'Parse',
+    useInJwt: 'Use in JWT verify'
   },
   labels: {
     subject: 'Subject',
@@ -32,7 +33,8 @@ export default {
     loadFileFailed: 'Failed to read certificate file',
     parseFailed: 'Failed to parse certificate',
     noInput: 'Enter or load a PEM certificate',
-    copied: 'Copied'
+    copied: 'Copied',
+    noPublicKey: 'Cannot export public key PEM'
   },
   errors: {
     pemEmpty: 'Enter PEM certificate content',

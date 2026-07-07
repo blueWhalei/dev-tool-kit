@@ -31,6 +31,8 @@ const ports = ref<PortInfo[]>([])
 const commonPorts = ref<CommonPort[]>([])
 const loading = ref(false)
 const search = ref('')
+const processFilter = ref('')
+const pidFilter = ref('')
 const stateFilter = ref<'all' | 'LISTENING' | 'ESTABLISHED'>('all')
 
 const quickScanMode = ref<'all' | 'common'>('all')
@@ -40,14 +42,22 @@ const filteredPorts = computed(() => {
   if (stateFilter.value !== 'all') {
     list = list.filter(p => p.state === stateFilter.value)
   }
-  if (!search.value) return list
-  const keyword = search.value.toLowerCase()
-  return list.filter(p =>
-    p.port.toString().includes(keyword) ||
-    p.pid.toString().includes(keyword) ||
-    p.state.toLowerCase().includes(keyword) ||
-    (p.service && p.service.toLowerCase().includes(keyword))
-  )
+  if (search.value) {
+    const keyword = search.value.toLowerCase()
+    list = list.filter(p => p.port.toString().includes(keyword))
+  }
+  if (processFilter.value) {
+    const keyword = processFilter.value.toLowerCase()
+    list = list.filter(p =>
+      (p.service && p.service.toLowerCase().includes(keyword)) ||
+      p.pid.toString().includes(keyword)
+    )
+  }
+  if (pidFilter.value) {
+    const keyword = pidFilter.value.trim()
+    list = list.filter(p => p.pid.toString().includes(keyword))
+  }
+  return list
 })
 
 const portStats = computed(() => ({
@@ -210,6 +220,8 @@ async function handleKillProcess(pid: number) {
 
 function clearSearch() {
   search.value = ''
+  processFilter.value = ''
+  pidFilter.value = ''
 }
 
 onMounted(async () => {
@@ -237,18 +249,23 @@ useKeyboardShortcut((event) => {
     <template #actions>
       <NInput
         v-model:value="search"
-        :placeholder="page.t('placeholders.search')"
-        style="width: 220px"
+        :placeholder="page.t('placeholders.searchPort')"
+        style="width: 140px"
+        clearable
+      />
+      <NInput
+        v-model:value="processFilter"
+        :placeholder="page.t('placeholders.searchProcess')"
+        style="width: 160px"
+        clearable
+      />
+      <NInput
+        v-model:value="pidFilter"
+        :placeholder="page.t('placeholders.searchPid')"
+        style="width: 120px"
         clearable
         @clear="clearSearch"
-      >
-        <template #prefix>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M11 11L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </template>
-      </NInput>
+      />
       <NButtonGroup>
         <NButton :type="quickScanMode === 'all' ? 'primary' : 'default'" @click="fetchPorts('all')" :loading="loading && quickScanMode === 'all'">
           {{ page.t('buttons.scanAll') }}

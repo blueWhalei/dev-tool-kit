@@ -23,6 +23,7 @@ export interface ParsedCertificateInfo {
   subjectAltNames: string[]
   signatureAlgorithm: string
   publicKey: CertificatePublicKeyInfo
+  publicKeyPem: string
   fingerprint: string
   fingerprint256: string
 }

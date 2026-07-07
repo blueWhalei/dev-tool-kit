@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
 import {
@@ -11,6 +12,7 @@ import {
   NDescriptions,
   NDescriptionsItem,
   NSpin,
+  NSpace,
   useMessage
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
@@ -49,6 +51,7 @@ G1IJUv6oiGF/MvWCr84REVgc1j78xomGANJIu2hN7bnD1nEMON6em8IfnDOUtynV
 -----END CERTIFICATE-----`
 
 const message = useMessage()
+const router = useRouter()
 const { t } = useI18n()
 const page = useToolI18n('certificateParser')
 const { invoke } = useIpc()
@@ -151,6 +154,17 @@ async function copyValue(value: string) {
   await copy(value, page.t('messages.copied'))
 }
 
+function usePublicKeyInJwt(cert: ParsedCertificateInfo) {
+  if (!cert.publicKeyPem?.trim()) {
+    message.warning(page.t('messages.noPublicKey'))
+    return
+  }
+  void router.push({
+    name: 'JWTGenerator',
+    query: { tab: 'decode', publicKey: cert.publicKeyPem }
+  })
+}
+
 watchDebounced(pemText, parsePem, { debounce: 400 })
 </script>
 
@@ -193,7 +207,18 @@ watchDebounced(pemText, parsePem, { debounce: 400 })
           :title="`${page.t('labels.certificate')} ${certificates.length > 1 ? index + 1 : ''}`"
         >
           <template #header-extra>
-            <NTag :type="validityTagType(cert)" size="small">{{ validityLabel(cert) }}</NTag>
+            <NSpace :size="8">
+              <NButton
+                v-if="cert.publicKeyPem"
+                size="small"
+                quaternary
+                type="primary"
+                @click="usePublicKeyInJwt(cert)"
+              >
+                {{ page.t('buttons.useInJwt') }}
+              </NButton>
+              <NTag :type="validityTagType(cert)" size="small">{{ validityLabel(cert) }}</NTag>
+            </NSpace>
           </template>
 
           <NDescriptions :column="1" label-placement="left" bordered size="small">
