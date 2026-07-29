@@ -9,7 +9,6 @@ import { useToolI18n } from '../composables/useToolI18n'
 import ToolDualPanel from '../components/ToolDualPanel.vue'
 import JsonTreeView from '../components/JsonTreeView.vue'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
-import { useIpc } from '../composables/useIpc'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
 import { translateToolError } from '../utils/translateToolError'
 import {
@@ -48,7 +47,6 @@ const message = useMessage()
 const { t } = useI18n()
 const page = useToolI18n('codeConverter')
 const { copy } = useCopyToClipboard()
-const { invoke } = useIpc()
 const route = useRoute()
 const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql'] as const
 type TabName = (typeof VALID_TABS)[number]

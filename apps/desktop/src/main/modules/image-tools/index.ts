@@ -177,6 +177,7 @@ export function setupImageToolsIPC(): void {
       let pipeline = sharp(buffer)
 
       // Strip metadata for compression
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       pipeline = pipeline.withMetadata({ exif: undefined, xmp: undefined, icc: undefined } as any)
 
       switch (options.format) {
@@ -433,6 +434,7 @@ export function setupImageToolsIPC(): void {
       if (options.convertShapeToPath) plugins.push('convertShapeToPath')
       if (options.minifyStyles) plugins.push('minifyStyles')
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = optimize(svgText, { plugins: plugins as any })
 
       const originalSize = Buffer.byteLength(svgText, 'utf-8')
@@ -667,6 +669,7 @@ export function setupImageToolsIPC(): void {
         switch (config.operation) {
           case 'compress': {
             const opts = config.compressOptions!
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pipeline = pipeline.withMetadata({ exif: undefined, xmp: undefined, icc: undefined } as any)
             if (opts.format === 'jpeg') {
               pipeline = pipeline.jpeg({ quality: opts.quality, mozjpeg: true })

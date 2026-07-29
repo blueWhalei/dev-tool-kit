@@ -1353,1329 +1353,1723 @@ useKeyboardShortcut((event) => {
       @drop="handleDrop"
       @paste="handlePaste"
     >
-    <NRadioGroup
-      v-model:value="activeCategory"
-      class="category-tabs"
-    >
-      <NRadioButton value="basic">
-        {{ page.t('categories.basic') }}
-      </NRadioButton>
-      <NRadioButton value="optimize">
-        {{ page.t('categories.optimize') }}
-      </NRadioButton>
-      <NRadioButton value="convert">
-        {{ page.t('categories.convert') }}
-      </NRadioButton>
-      <NRadioButton value="batch">
-        {{ page.t('categories.batch') }}
-      </NRadioButton>
-    </NRadioGroup>
-
-    <NTabs
-      v-model:value="activeTab"
-      type="line"
-      animated
-      class="converter-tabs"
-    >
-      <!-- ─── Base64 Tab ──────────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('base64')"
-        name="base64"
-        :tab="page.t('tabs.base64')"
+      <NRadioGroup
+        v-model:value="activeCategory"
+        class="category-tabs"
       >
-        <div class="image-base64-panel">
-          <NCard
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
-                <NTag
-                  v-if="base64FileName"
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ base64FileName }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-actions">
-              <NButton
-                type="primary"
-                :loading="imageLoading"
-                @click="pickImageForBase64"
-              >
-                {{ page.t('actions.pickImage') }}
-              </NButton>
-              <NButton
-                v-if="base64Data"
-                @click="copyBase64"
-              >
-                {{ page.t('actions.copyBase64') }}
-              </NButton>
-              <NButton
-                v-if="base64DataUri"
-                @click="copyDataUri"
-              >
-                {{ page.t('actions.copyDataUri') }}
-              </NButton>
-              <NButton
-                v-if="base64Data"
-                quaternary
-                @click="useForDecode"
-              >
-                {{ page.t('actions.useForDecode') }}
-              </NButton>
-            </div>
-            <div
-              v-if="base64Data"
-              class="image-meta"
-            >
-              <span>{{ page.t('labels.mimeType') }}: {{ base64Mime }}</span>
-              <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(base64FileSize) }}</span>
-            </div>
-            <NInput
-              v-if="base64Data"
-              v-model:value="base64Data"
-              type="textarea"
-              readonly
-              :rows="6"
-              class="code-input image-base64-output"
-            />
-          </NCard>
+        <NRadioButton value="basic">
+          {{ page.t('categories.basic') }}
+        </NRadioButton>
+        <NRadioButton value="optimize">
+          {{ page.t('categories.optimize') }}
+        </NRadioButton>
+        <NRadioButton value="convert">
+          {{ page.t('categories.convert') }}
+        </NRadioButton>
+        <NRadioButton value="batch">
+          {{ page.t('categories.batch') }}
+        </NRadioButton>
+      </NRadioGroup>
 
-          <NCard
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
-            </template>
-            <div class="decode-mime-row">
-              <span class="section-label">{{ page.t('labels.mimeType') }}</span>
-              <NInput
-                v-model:value="decodeMime"
-                :placeholder="page.t('placeholders.mimeType')"
-                style="max-width: 220px"
-              />
-            </div>
-            <NInput
-              v-model:value="decodeInput"
-              type="textarea"
-              :rows="5"
-              :placeholder="page.t('placeholders.imageBase64')"
-              class="code-input"
-            />
-            <div
-              v-if="decodePreviewVisible"
-              class="image-preview-wrap"
-            >
-              <img
-                :src="decodePreviewUri"
-                :alt="page.t('labels.preview')"
-                class="image-preview"
-              >
-            </div>
-            <p
-              v-else-if="decodeInput.trim()"
-              class="preview-hint"
-            >
-              {{ page.t('messages.invalidImageBase64') }}
-            </p>
-          </NCard>
-        </div>
-      </NTabPane>
-
-      <!-- ─── Info / EXIF Tab ──────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('info')"
-        name="info"
-        :tab="page.t('tabs.info')"
+      <NTabs
+        v-model:value="activeTab"
+        type="line"
+        animated
+        class="converter-tabs"
       >
-        <div class="action-bar">
-          <NButton
-            type="primary"
-            :loading="imageLoading || infoLoading"
-            @click="pickImageForInfo"
-          >
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <div
-          v-if="infoPreviewUri"
-          class="image-preview-wrap"
-          style="margin-top: 16px"
+        <!-- ─── Base64 Tab ──────────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('base64')"
+          name="base64"
+          :tab="page.t('tabs.base64')"
         >
-          <img
-            :src="infoPreviewUri"
-            :alt="page.t('labels.preview')"
-            class="image-preview"
-          >
-        </div>
-
-        <NCard
-          v-if="infoData"
-          class="editor-card"
-          :bordered="false"
-          style="margin-top: 16px"
-        >
-          <template #header>
-            <span class="card-title">{{ page.t('labels.fileName') }}</span>
-          </template>
-          <NGrid
-            cols="1 640:2"
-            :x-gap="16"
-            :y-gap="12"
-          >
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.fileName') }}</span>
-                <span class="info-value">{{ infoData.fileName }}</span>
-              </div>
-            </NGridItem>
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.filePath') }}</span>
-                <span class="info-value info-path">{{ infoData.filePath }}</span>
-              </div>
-            </NGridItem>
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.dimensions') }}</span>
-                <span class="info-value">{{ infoData.width }}×{{ infoData.height }}</span>
-              </div>
-            </NGridItem>
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.format') }}</span>
-                <span class="info-value">{{ infoData.format }}</span>
-              </div>
-            </NGridItem>
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.fileSize') }}</span>
-                <span class="info-value">{{ formatBytes(infoData.size) }}</span>
-              </div>
-            </NGridItem>
-            <NGridItem>
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.hasAlpha') }}</span>
-                <NTag
-                  :type="infoData.hasAlpha ? 'success' : 'default'"
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ infoData.hasAlpha ? page.t('labels.yes') : page.t('labels.no') }}
-                </NTag>
-              </div>
-            </NGridItem>
-            <NGridItem v-if="infoData.density != null">
-              <div class="info-item">
-                <span class="result-label">{{ page.t('labels.density') }}</span>
-                <span class="info-value">{{ infoData.density }} DPI</span>
-              </div>
-            </NGridItem>
-          </NGrid>
-        </NCard>
-
-        <NCard
-          v-if="infoData"
-          class="editor-card"
-          :bordered="false"
-          style="margin-top: 16px"
-        >
-          <template #header>
-            <span class="card-title">{{ page.t('labels.exifData') }}</span>
-          </template>
-          <div
-            v-if="exifEntries.length"
-            class="exif-grid"
-          >
-            <div
-              v-for="(entry, index) in exifEntries"
-              :key="index"
-              class="exif-row"
+          <div class="image-base64-panel">
+            <NCard
+              class="editor-card"
+              :bordered="false"
             >
-              <span class="exif-key">{{ entry.key }}</span>
-              <span class="exif-val">{{ entry.value }}</span>
-              <NButton
-                size="tiny"
-                quaternary
-                @click="copy(entry.value, page.t('messages.imageCopied'))"
-              >
-                {{ page.t('actions.copyValue') }}
-              </NButton>
-            </div>
-          </div>
-          <div
-            v-else
-            class="result-placeholder"
-          >
-            {{ page.t('labels.noExif') }}
-          </div>
-        </NCard>
-
-        <NAlert
-          v-if="infoData"
-          type="info"
-          :show-icon="true"
-          style="margin-top: 16px"
-        >
-          {{ page.t('messages.exifStripped') }}
-        </NAlert>
-      </NTabPane>
-
-      <!-- ─── Compress Tab ─────────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('compress')"
-        name="compress"
-        :tab="page.t('tabs.compress')"
-      >
-        <div class="action-bar">
-          <NButton
-            type="primary"
-            :loading="imageLoading"
-            @click="pickImageForCompress"
-          >
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NGrid
-            cols="1 768:2"
-            :x-gap="16"
-            :y-gap="16"
-            style="margin-top: 16px"
-          >
-            <NGridItem>
-              <NCard
-                class="editor-card"
-                :bordered="false"
-              >
-                <template #header>
-                  <span class="card-title">{{ page.t('labels.original') }}</span>
-                </template>
-                <div class="image-preview-wrap">
-                  <img
-                    :src="compressOriginalPreviewUri"
-                    :alt="page.t('labels.original')"
-                    class="image-preview"
-                  >
-                </div>
-                <div class="image-meta" style="margin-top: 8px">
-                  <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(pickedImage.size) }}</span>
-                </div>
-              </NCard>
-            </NGridItem>
-            <NGridItem>
-              <NCard
-                v-if="compressResult"
-                class="editor-card"
-                :bordered="false"
-              >
-                <template #header>
-                  <span class="card-title">{{ page.t('labels.result') }}</span>
-                </template>
-                <div class="image-preview-wrap">
-                  <img
-                    :src="`data:${compressResult.mimeType};base64,${compressResult.data}`"
-                    :alt="page.t('labels.result')"
-                    class="image-preview"
-                  >
-                </div>
-                <div class="image-meta" style="margin-top: 8px">
-                  <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(compressResult.size) }}</span>
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
                   <NTag
-                    type="success"
+                    v-if="base64FileName"
                     size="small"
                     :bordered="false"
                   >
-                    {{ page.t('labels.compressionRatio') }}: {{ compressRatio }}
+                    {{ base64FileName }}
                   </NTag>
                 </div>
-              </NCard>
-              <NCard
-                v-else
-                class="editor-card"
-                :bordered="false"
-              >
-                <div class="result-placeholder">
-                  {{ page.t('labels.result') }}
-                </div>
-              </NCard>
-            </NGridItem>
-          </NGrid>
-
-          <NCard
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.outputFormat') }}</span>
-            </template>
-            <div class="compress-options">
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
-                <NSelect
-                  v-model:value="compressFormat"
-                  :options="compressFormatOptions"
-                  style="width: 160px"
-                />
-              </div>
-              <div
-                v-if="compressFormat !== 'png'"
-                class="option-row"
-              >
-                <span class="section-label">{{ page.t('labels.quality') }}: {{ compressQuality }}</span>
-                <NSlider
-                  v-model:value="compressQuality"
-                  :min="1"
-                  :max="100"
-                  :step="1"
-                  style="width: 260px"
-                />
-              </div>
-              <div
-                v-if="compressFormat === 'png'"
-                class="option-row"
-              >
-                <span class="section-label">{{ page.t('labels.palette') }}</span>
-                <NRadioGroup v-model:value="compressPalette" size="small">
-                  <NRadioButton :value="false">
-                    {{ page.t('labels.no') }}
-                  </NRadioButton>
-                  <NRadioButton :value="true">
-                    {{ page.t('labels.yes') }}
-                  </NRadioButton>
-                </NRadioGroup>
-              </div>
-            </div>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton
-              type="primary"
-              :loading="compressLoading"
-              @click="handleCompress"
-            >
-              {{ page.t('actions.compress') }}
-            </NButton>
-            <NButton
-              v-if="compressResult"
-              @click="saveCompressed"
-            >
-              {{ page.t('actions.save') }}
-            </NButton>
-          </div>
-        </template>
-      </NTabPane>
-
-      <!-- ─── Resize Tab ──────────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('resize')"
-        name="resize"
-        :tab="page.t('tabs.resize')"
-      >
-        <div class="action-bar">
-          <NButton
-            type="primary"
-            :loading="imageLoading"
-            @click="pickImageForResize"
-          >
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NCard
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.original') }}</span>
-                <NTag
-                  v-if="infoData"
-                  size="small"
-                  :bordered="false"
+              </template>
+              <div class="image-actions">
+                <NButton
+                  type="primary"
+                  :loading="imageLoading"
+                  @click="pickImageForBase64"
                 >
-                  {{ infoData.width }}×{{ infoData.height }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="resizeOriginalPreviewUri"
-                :alt="page.t('labels.original')"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-
-          <NCard
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.resizeMode') }}</span>
-            </template>
-            <div class="resize-options">
-              <div class="option-row">
-                <NRadioGroup
-                  v-model:value="resizeMode"
-                  size="small"
+                  {{ page.t('actions.pickImage') }}
+                </NButton>
+                <NButton
+                  v-if="base64Data"
+                  @click="copyBase64"
                 >
-                  <NRadioButton value="preset">
-                    {{ page.t('labels.presetSizes') }}
-                  </NRadioButton>
-                  <NRadioButton value="custom">
-                    {{ page.t('labels.customSize') }}
-                  </NRadioButton>
-                </NRadioGroup>
-              </div>
-
-              <div
-                v-if="resizeMode === 'preset'"
-                class="option-row"
-              >
-                <span class="section-label">{{ page.t('labels.presetSizes') }}</span>
-                <NSelect
-                  v-model:value="resizePreset"
-                  :options="presetSizeOptions"
-                  style="min-width: 220px"
-                />
-              </div>
-
-              <div
-                v-if="resizeMode === 'custom'"
-                class="custom-size-row"
-              >
-                <div class="custom-size-field">
-                  <span class="section-label">{{ page.t('labels.width') }}</span>
-                  <NInput
-                    :value="resizeCustomWidth != null ? String(resizeCustomWidth) : ''"
-                    :placeholder="page.t('placeholders.width')"
-                    style="width: 120px"
-                    @update:value="handleResizeWidthInput"
-                  />
-                </div>
-                <div class="lock-toggle">
-                  <NButton
-                    size="small"
-                    :type="resizeLockAspect ? 'primary' : 'default'"
-                    quaternary
-                    @click="resizeLockAspect = !resizeLockAspect"
-                  >
-                    {{ resizeLockAspect ? '🔗' : '🔗' }}
-                  </NButton>
-                </div>
-                <div class="custom-size-field">
-                  <span class="section-label">{{ page.t('labels.height') }}</span>
-                  <NInput
-                    :value="resizeCustomHeight != null ? String(resizeCustomHeight) : ''"
-                    :placeholder="page.t('placeholders.height')"
-                    style="width: 120px"
-                    @update:value="handleResizeHeightInput"
-                  />
-                </div>
-              </div>
-
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.fit') }}</span>
-                <NSelect
-                  v-model:value="resizeFit"
-                  :options="fitOptions"
-                  style="width: 160px"
-                />
-              </div>
-
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.withoutEnlargement') }}</span>
-                <NRadioGroup v-model:value="resizeWithoutEnlargement" size="small">
-                  <NRadioButton :value="false">
-                    {{ page.t('labels.no') }}
-                  </NRadioButton>
-                  <NRadioButton :value="true">
-                    {{ page.t('labels.yes') }}
-                  </NRadioButton>
-                </NRadioGroup>
-              </div>
-            </div>
-          </NCard>
-
-          <NCard
-            v-if="resizeResult"
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.result') }}</span>
-                <NTag
-                  size="small"
-                  :bordered="false"
+                  {{ page.t('actions.copyBase64') }}
+                </NButton>
+                <NButton
+                  v-if="base64DataUri"
+                  @click="copyDataUri"
                 >
-                  {{ resizeResult.width }}×{{ resizeResult.height }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="`data:${resizeResult.mimeType};base64,${resizeResult.data}`"
-                :alt="page.t('labels.result')"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton
-              type="primary"
-              :loading="resizeLoading"
-              @click="handleResize"
-            >
-              {{ page.t('actions.resize') }}
-            </NButton>
-            <NButton
-              v-if="resizeResult"
-              @click="saveResized"
-            >
-              {{ page.t('actions.save') }}
-            </NButton>
-          </div>
-        </template>
-      </NTabPane>
-
-      <!-- ─── Convert Tab ──────────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('convert')"
-        name="convert"
-        :tab="page.t('tabs.convert')"
-      >
-        <div class="action-bar">
-          <NButton
-            type="primary"
-            :loading="imageLoading"
-            @click="pickImageForConvert"
-          >
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NGrid
-            cols="1 768:2"
-            :x-gap="16"
-            :y-gap="16"
-            style="margin-top: 16px"
-          >
-            <NGridItem>
-              <NCard
-                class="editor-card"
-                :bordered="false"
-              >
-                <template #header>
-                  <div class="card-header-flex">
-                    <span class="card-title">{{ page.t('labels.original') }}</span>
-                    <NTag
-                      size="small"
-                      :bordered="false"
-                    >
-                      {{ pickedImage.mimeType }}
-                    </NTag>
-                  </div>
-                </template>
-                <div class="image-preview-wrap">
-                  <img
-                    :src="convertOriginalPreviewUri"
-                    :alt="page.t('labels.original')"
-                    class="image-preview"
-                  >
-                </div>
-              </NCard>
-            </NGridItem>
-            <NGridItem>
-              <NCard
-                v-if="convertResult"
-                class="editor-card"
-                :bordered="false"
-              >
-                <template #header>
-                  <div class="card-header-flex">
-                    <span class="card-title">{{ page.t('labels.result') }}</span>
-                    <NTag
-                      size="small"
-                      :bordered="false"
-                    >
-                      {{ convertResult.mimeType }}
-                    </NTag>
-                  </div>
-                </template>
-                <div class="image-preview-wrap">
-                  <img
-                    :src="`data:${convertResult.mimeType};base64,${convertResult.data}`"
-                    :alt="page.t('labels.result')"
-                    class="image-preview"
-                  >
-                </div>
-              </NCard>
-              <NCard
-                v-else
-                class="editor-card"
-                :bordered="false"
-              >
-                <div class="result-placeholder">
-                  {{ page.t('labels.result') }}
-                </div>
-              </NCard>
-            </NGridItem>
-          </NGrid>
-
-          <NCard
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.targetFormat') }}</span>
-            </template>
-            <div class="convert-options">
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.targetFormat') }}</span>
-                <NSelect
-                  v-model:value="convertTargetFormat"
-                  :options="convertFormatOptions"
-                  style="width: 160px"
-                />
-              </div>
-              <div
-                v-if="convertTargetFormat !== 'png'"
-                class="option-row"
-              >
-                <span class="section-label">{{ page.t('labels.quality') }}: {{ convertQuality }}</span>
-                <NSlider
-                  v-model:value="convertQuality"
-                  :min="1"
-                  :max="100"
-                  :step="1"
-                  style="width: 260px"
-                />
-              </div>
-              <div
-                v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha"
-                class="option-row"
-              >
-                <span class="section-label">{{ page.t('labels.background') }}</span>
-                <NInput
-                  v-model:value="convertBackground"
-                  :placeholder="page.t('placeholders.backgroundColor')"
-                  style="width: 160px"
-                />
-                <span
-                  class="color-swatch"
-                  :style="{ backgroundColor: convertBackground }"
-                />
-              </div>
-            </div>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton
-              type="primary"
-              :loading="convertLoading"
-              @click="handleConvert"
-            >
-              {{ page.t('actions.convert') }}
-            </NButton>
-            <NButton
-              v-if="convertResult"
-              @click="saveConverted"
-            >
-              {{ page.t('actions.save') }}
-            </NButton>
-          </div>
-        </template>
-      </NTabPane>
-
-      <!-- ─── Data URL Tab ────────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('dataUrl')"
-        name="dataUrl"
-        :tab="page.t('tabs.dataUrl')"
-      >
-        <div class="image-base64-panel">
-          <NCard class="editor-card" :bordered="false">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
-            </template>
-            <NInput
-              v-model:value="dataUrlInput"
-              type="textarea"
-              :rows="4"
-              :placeholder="page.t('placeholders.dataUrlInput')"
-              class="code-input"
-            />
-            <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
-              <NButton type="primary" @click="handleParseDataUrl">
-                {{ page.t('actions.parseDataUrl') }}
-              </NButton>
-              <NButton @click="pickImageForDataUrl">
-                {{ page.t('actions.pickImage') }}
-              </NButton>
-            </div>
-          </NCard>
-
-          <NCard v-if="dataUrlParseResult" class="editor-card" :bordered="false">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.parseResult') }}</span>
-            </template>
-            <NGrid cols="1 640:2" :x-gap="16" :y-gap="12">
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.mimeType') }}</span>
-                  <NTag size="small" :bordered="false">{{ dataUrlParseResult.mimeType }}</NTag>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.charset') }}</span>
-                  <span class="info-value">{{ dataUrlParseResult.charset || '—' }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.encoding') }}</span>
-                  <NTag size="small" :bordered="false" :type="dataUrlParseResult.isBase64 ? 'info' : 'default'">
-                    {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
-                  </NTag>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.estimatedSize') }}</span>
-                  <span class="info-value">{{ formatBytes(dataUrlParseResult.size) }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.decodedSize') }}</span>
-                  <span class="info-value">{{ formatBytes(dataUrlParseResult.decodedSize) }}</span>
-                </div>
-              </NGridItem>
-            </NGrid>
-
-            <div v-if="dataUrlParseResult.rawText && dataUrlParseResult.mimeType.startsWith('text/')" style="margin-top: 12px">
-              <span class="section-label">{{ page.t('labels.decodedText') }}</span>
-              <NInput
-                :value="dataUrlParseResult.rawText"
-                type="textarea"
-                readonly
-                :rows="3"
-                class="code-input"
-                style="margin-top: 4px"
-              />
-            </div>
-
-            <div v-if="dataUrlParseResult.mimeType.startsWith('image/')" style="margin-top: 12px">
-              <span class="section-label">{{ page.t('labels.preview') }}</span>
-              <div class="image-preview-wrap" style="margin-top: 4px">
-                <img :src="dataUrlInput" :alt="page.t('labels.preview')" class="image-preview">
-              </div>
-            </div>
-
-            <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
-              <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
-                {{ page.t('actions.copyDataUri') }}
-              </NButton>
-            </div>
-          </NCard>
-        </div>
-      </NTabPane>
-
-      <!-- ─── SVG Optimize Tab ────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('svg')"
-        name="svg"
-        :tab="page.t('tabs.svg')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" :loading="svgLoading" @click="pickSvgFile">
-            {{ page.t('actions.pickSvg') }}
-          </NButton>
-        </div>
-
-        <template v-if="svgFile">
-          <NGrid cols="1 768:2" :x-gap="16" :y-gap="16" style="margin-top: 16px">
-            <NGridItem>
-              <NCard class="editor-card" :bordered="false">
-                <template #header>
-                  <div class="card-header-flex">
-                    <span class="card-title">{{ page.t('labels.svgInput') }}</span>
-                    <NTag size="small" :bordered="false">{{ formatBytes(svgFile.size) }}</NTag>
-                  </div>
-                </template>
-                <div class="image-preview-wrap">
-                  <img :src="svgOriginalBlobUrl" alt="SVG" class="image-preview">
-                </div>
-              </NCard>
-            </NGridItem>
-            <NGridItem>
-              <NCard v-if="svgOptimizeResult" class="editor-card" :bordered="false">
-                <template #header>
-                  <div class="card-header-flex">
-                    <span class="card-title">{{ page.t('labels.svgOutput') }}</span>
-                    <NTag type="success" size="small" :bordered="false">
-                      {{ page.t('labels.savings') }}: {{ svgOptimizeResult.savings }}%
-                    </NTag>
-                  </div>
-                </template>
-                <div class="image-meta">
-                  <span>{{ page.t('labels.sizeBefore') }}: {{ formatBytes(svgOptimizeResult.originalSize) }}</span>
-                  <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(svgOptimizeResult.optimizedSize) }}</span>
-                </div>
-                <div class="image-preview-wrap">
-                  <img :src="svgOptimizedBlobUrl" alt="Optimized SVG" class="image-preview">
-                </div>
-              </NCard>
-              <NCard v-else class="editor-card" :bordered="false">
-                <div class="result-placeholder">{{ page.t('labels.svgOutput') }}</div>
-              </NCard>
-            </NGridItem>
-          </NGrid>
-
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.svgOptions') }}</span>
-            </template>
-            <NGrid cols="1 640:2" :x-gap="16" :y-gap="8">
-              <NGridItem v-for="(val, key) in svgOptions" :key="key">
-                <div class="svg-option-row">
-                  <NSwitch
-                    :value="val"
-                    @update:value="(v: boolean) => { (svgOptions as any)[key] = v }"
-                  />
-                  <span class="svg-option-label">{{ page.t(`labels.${key}` as any) || key }}</span>
-                </div>
-              </NGridItem>
-            </NGrid>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton type="primary" :loading="svgOptimizing" @click="handleOptimizeSvg">
-              {{ page.t('actions.optimizeSvg') }}
-            </NButton>
-            <NButton v-if="svgOptimizeResult" @click="saveOptimizedSvg">
-              {{ page.t('actions.save') }}
-            </NButton>
-          </div>
-        </template>
-      </NTabPane>
-
-      <!-- ─── Color Picker Tab ────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('color')"
-        name="color"
-        :tab="page.t('tabs.color')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" :loading="imageLoading" @click="pickImageForColor">
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-          <NButton @click="loadFromClipboard">
-            {{ page.t('labels.clipboardImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.clickToPick') }}</span>
-            </template>
-            <div class="image-preview-wrap color-picker-preview">
-              <img
-                :src="pickedImage.dataUri"
-                :alt="page.t('labels.preview')"
-                class="image-preview"
-                crossorigin="anonymous"
-                @click="handleImageClick"
-                style="cursor: crosshair"
-              >
-            </div>
-          </NCard>
-
-          <NCard v-if="colorPickedHex" class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.pickedColor') }}</span>
-            </template>
-            <div class="picked-color-row">
-              <span class="color-swatch-large" :style="{ backgroundColor: colorPickedHex }" />
-              <div class="color-values">
-                <div class="color-value-row">
-                  <span class="result-label">HEX</span>
-                  <code class="color-code">{{ colorPickedHex }}</code>
-                  <NButton size="tiny" quaternary @click="copy(colorPickedHex, page.t('messages.imageCopied'))">
-                    {{ page.t('actions.copyValue') }}
-                  </NButton>
-                </div>
-                <div v-if="colorPickedRgb" class="color-value-row">
-                  <span class="result-label">RGB</span>
-                  <code class="color-code">rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code>
-                  <NButton size="tiny" quaternary @click="copy(`rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`, page.t('messages.imageCopied'))">
-                    {{ page.t('actions.copyValue') }}
-                  </NButton>
-                </div>
-                <div v-if="colorPickedHsl" class="color-value-row">
-                  <span class="result-label">HSL</span>
-                  <code class="color-code">hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code>
-                  <NButton size="tiny" quaternary @click="copy(`hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`, page.t('messages.imageCopied'))">
-                    {{ page.t('actions.copyValue') }}
-                  </NButton>
-                </div>
-              </div>
-            </div>
-          </NCard>
-
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.dominantColors') }}</span>
-                <NButton size="small" :loading="colorExtracting" @click="handleExtractColors">
-                  {{ page.t('actions.extractColors') }}
+                  {{ page.t('actions.copyDataUri') }}
+                </NButton>
+                <NButton
+                  v-if="base64Data"
+                  quaternary
+                  @click="useForDecode"
+                >
+                  {{ page.t('actions.useForDecode') }}
                 </NButton>
               </div>
+              <div
+                v-if="base64Data"
+                class="image-meta"
+              >
+                <span>{{ page.t('labels.mimeType') }}: {{ base64Mime }}</span>
+                <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(base64FileSize) }}</span>
+              </div>
+              <NInput
+                v-if="base64Data"
+                v-model:value="base64Data"
+                type="textarea"
+                readonly
+                :rows="6"
+                class="code-input image-base64-output"
+              />
+            </NCard>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
+              </template>
+              <div class="decode-mime-row">
+                <span class="section-label">{{ page.t('labels.mimeType') }}</span>
+                <NInput
+                  v-model:value="decodeMime"
+                  :placeholder="page.t('placeholders.mimeType')"
+                  style="max-width: 220px"
+                />
+              </div>
+              <NInput
+                v-model:value="decodeInput"
+                type="textarea"
+                :rows="5"
+                :placeholder="page.t('placeholders.imageBase64')"
+                class="code-input"
+              />
+              <div
+                v-if="decodePreviewVisible"
+                class="image-preview-wrap"
+              >
+                <img
+                  :src="decodePreviewUri"
+                  :alt="page.t('labels.preview')"
+                  class="image-preview"
+                >
+              </div>
+              <p
+                v-else-if="decodeInput.trim()"
+                class="preview-hint"
+              >
+                {{ page.t('messages.invalidImageBase64') }}
+              </p>
+            </NCard>
+          </div>
+        </NTabPane>
+
+        <!-- ─── Info / EXIF Tab ──────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('info')"
+          name="info"
+          :tab="page.t('tabs.info')"
+        >
+          <div class="action-bar">
+            <NButton
+              type="primary"
+              :loading="imageLoading || infoLoading"
+              @click="pickImageForInfo"
+            >
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+          </div>
+
+          <div
+            v-if="infoPreviewUri"
+            class="image-preview-wrap"
+            style="margin-top: 16px"
+          >
+            <img
+              :src="infoPreviewUri"
+              :alt="page.t('labels.preview')"
+              class="image-preview"
+            >
+          </div>
+
+          <NCard
+            v-if="infoData"
+            class="editor-card"
+            :bordered="false"
+            style="margin-top: 16px"
+          >
+            <template #header>
+              <span class="card-title">{{ page.t('labels.fileName') }}</span>
             </template>
-            <div v-if="colorExtractedColors.length" class="color-palette">
-              <div v-for="(c, i) in colorExtractedColors" :key="i" class="color-palette-item">
-                <span class="color-swatch" :style="{ backgroundColor: c.hex }" />
-                <span class="color-palette-info">
-                  <code class="color-code">{{ c.hex }}</code>
-                  <span class="color-ratio">{{ c.ratio }}%</span>
-                </span>
-                <NButton size="tiny" quaternary @click="copy(c.hex, page.t('messages.imageCopied'))">
+            <NGrid
+              cols="1 640:2"
+              :x-gap="16"
+              :y-gap="12"
+            >
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.fileName') }}</span>
+                  <span class="info-value">{{ infoData.fileName }}</span>
+                </div>
+              </NGridItem>
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.filePath') }}</span>
+                  <span class="info-value info-path">{{ infoData.filePath }}</span>
+                </div>
+              </NGridItem>
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.dimensions') }}</span>
+                  <span class="info-value">{{ infoData.width }}×{{ infoData.height }}</span>
+                </div>
+              </NGridItem>
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.format') }}</span>
+                  <span class="info-value">{{ infoData.format }}</span>
+                </div>
+              </NGridItem>
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.fileSize') }}</span>
+                  <span class="info-value">{{ formatBytes(infoData.size) }}</span>
+                </div>
+              </NGridItem>
+              <NGridItem>
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.hasAlpha') }}</span>
+                  <NTag
+                    :type="infoData.hasAlpha ? 'success' : 'default'"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ infoData.hasAlpha ? page.t('labels.yes') : page.t('labels.no') }}
+                  </NTag>
+                </div>
+              </NGridItem>
+              <NGridItem v-if="infoData.density != null">
+                <div class="info-item">
+                  <span class="result-label">{{ page.t('labels.density') }}</span>
+                  <span class="info-value">{{ infoData.density }} DPI</span>
+                </div>
+              </NGridItem>
+            </NGrid>
+          </NCard>
+
+          <NCard
+            v-if="infoData"
+            class="editor-card"
+            :bordered="false"
+            style="margin-top: 16px"
+          >
+            <template #header>
+              <span class="card-title">{{ page.t('labels.exifData') }}</span>
+            </template>
+            <div
+              v-if="exifEntries.length"
+              class="exif-grid"
+            >
+              <div
+                v-for="(entry, index) in exifEntries"
+                :key="index"
+                class="exif-row"
+              >
+                <span class="exif-key">{{ entry.key }}</span>
+                <span class="exif-val">{{ entry.value }}</span>
+                <NButton
+                  size="tiny"
+                  quaternary
+                  @click="copy(entry.value, page.t('messages.imageCopied'))"
+                >
                   {{ page.t('actions.copyValue') }}
                 </NButton>
               </div>
             </div>
-            <div v-else class="result-placeholder">
-              {{ page.t('labels.noColorsExtracted') }}
+            <div
+              v-else
+              class="result-placeholder"
+            >
+              {{ page.t('labels.noExif') }}
             </div>
           </NCard>
 
+          <NAlert
+            v-if="infoData"
+            type="info"
+            :show-icon="true"
+            style="margin-top: 16px"
+          >
+            {{ page.t('messages.exifStripped') }}
+          </NAlert>
+        </NTabPane>
+
+        <!-- ─── Compress Tab ─────────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('compress')"
+          name="compress"
+          :tab="page.t('tabs.compress')"
+        >
           <div class="action-bar">
-            <NButton @click="goToColorConverter">
-              {{ page.t('actions.goToColorConverter') }}
-            </NButton>
-          </div>
-        </template>
-      </NTabPane>
-
-      <!-- ─── Favicon Tab ──────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('favicon')"
-        name="favicon"
-        :tab="page.t('tabs.favicon')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" :loading="imageLoading" @click="pickImageForFavicon">
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.iconPreset') }}</span>
-            </template>
-            <div class="favicon-options">
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.iconPreset') }}</span>
-                <NSelect v-model:value="faviconPreset" :options="faviconPresetOptions" style="min-width: 200px" />
-              </div>
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.includeIco') }}</span>
-                <NSwitch v-model:value="faviconIncludeIco" />
-              </div>
-            </div>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton type="primary" :loading="faviconLoading" @click="handleGenerateIcons">
-              {{ page.t('actions.generateIcons') }}
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForCompress"
+            >
+              {{ page.t('actions.pickImage') }}
             </NButton>
           </div>
 
-          <template v-if="faviconResult">
-            <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-              <template #header>
-                <span class="card-title">{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span>
-              </template>
-              <div class="icon-grid">
-                <div v-for="(icon, i) in faviconResult.icons" :key="i" class="icon-item">
-                  <img
-                    :src="`data:image/png;base64,${icon.data}`"
-                    :alt="icon.fileName"
-                    class="icon-preview"
+          <template v-if="pickedImage">
+            <NGrid
+              cols="1 768:2"
+              :x-gap="16"
+              :y-gap="16"
+              style="margin-top: 16px"
+            >
+              <NGridItem>
+                <NCard
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <span class="card-title">{{ page.t('labels.original') }}</span>
+                  </template>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="compressOriginalPreviewUri"
+                      :alt="page.t('labels.original')"
+                      class="image-preview"
+                    >
+                  </div>
+                  <div
+                    class="image-meta"
+                    style="margin-top: 8px"
                   >
-                  <span class="icon-label">{{ icon.width }}×{{ icon.height }}</span>
-                  <span class="icon-filename">{{ icon.fileName }}</span>
-                </div>
-              </div>
+                    <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(pickedImage.size) }}</span>
+                  </div>
+                </NCard>
+              </NGridItem>
+              <NGridItem>
+                <NCard
+                  v-if="compressResult"
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <span class="card-title">{{ page.t('labels.result') }}</span>
+                  </template>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="`data:${compressResult.mimeType};base64,${compressResult.data}`"
+                      :alt="page.t('labels.result')"
+                      class="image-preview"
+                    >
+                  </div>
+                  <div
+                    class="image-meta"
+                    style="margin-top: 8px"
+                  >
+                    <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(compressResult.size) }}</span>
+                    <NTag
+                      type="success"
+                      size="small"
+                      :bordered="false"
+                    >
+                      {{ page.t('labels.compressionRatio') }}: {{ compressRatio }}
+                    </NTag>
+                  </div>
+                </NCard>
+                <NCard
+                  v-else
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <div class="result-placeholder">
+                    {{ page.t('labels.result') }}
+                  </div>
+                </NCard>
+              </NGridItem>
+            </NGrid>
 
-              <div v-if="faviconResult.ico" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border)">
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.icoFile') }}</span>
-                  <NTag size="small" :bordered="false">{{ faviconResult.ico.fileName }}</NTag>
-                  <span class="info-value">{{ formatBytes(faviconResult.ico.size) }}</span>
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.outputFormat') }}</span>
+              </template>
+              <div class="compress-options">
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
+                  <NSelect
+                    v-model:value="compressFormat"
+                    :options="compressFormatOptions"
+                    style="width: 160px"
+                  />
+                </div>
+                <div
+                  v-if="compressFormat !== 'png'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.quality') }}: {{ compressQuality }}</span>
+                  <NSlider
+                    v-model:value="compressQuality"
+                    :min="1"
+                    :max="100"
+                    :step="1"
+                    style="width: 260px"
+                  />
+                </div>
+                <div
+                  v-if="compressFormat === 'png'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.palette') }}</span>
+                  <NRadioGroup
+                    v-model:value="compressPalette"
+                    size="small"
+                  >
+                    <NRadioButton :value="false">
+                      {{ page.t('labels.no') }}
+                    </NRadioButton>
+                    <NRadioButton :value="true">
+                      {{ page.t('labels.yes') }}
+                    </NRadioButton>
+                  </NRadioGroup>
                 </div>
               </div>
             </NCard>
 
             <div class="action-bar">
-              <NButton @click="saveFaviconIcons">
+              <NButton
+                type="primary"
+                :loading="compressLoading"
+                @click="handleCompress"
+              >
+                {{ page.t('actions.compress') }}
+              </NButton>
+              <NButton
+                v-if="compressResult"
+                @click="saveCompressed"
+              >
+                {{ page.t('actions.save') }}
+              </NButton>
+            </div>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Resize Tab ──────────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('resize')"
+          name="resize"
+          :tab="page.t('tabs.resize')"
+        >
+          <div class="action-bar">
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForResize"
+            >
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+          </div>
+
+          <template v-if="pickedImage">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.original') }}</span>
+                  <NTag
+                    v-if="infoData"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ infoData.width }}×{{ infoData.height }}
+                  </NTag>
+                </div>
+              </template>
+              <div class="image-preview-wrap">
+                <img
+                  :src="resizeOriginalPreviewUri"
+                  :alt="page.t('labels.original')"
+                  class="image-preview"
+                >
+              </div>
+            </NCard>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.resizeMode') }}</span>
+              </template>
+              <div class="resize-options">
+                <div class="option-row">
+                  <NRadioGroup
+                    v-model:value="resizeMode"
+                    size="small"
+                  >
+                    <NRadioButton value="preset">
+                      {{ page.t('labels.presetSizes') }}
+                    </NRadioButton>
+                    <NRadioButton value="custom">
+                      {{ page.t('labels.customSize') }}
+                    </NRadioButton>
+                  </NRadioGroup>
+                </div>
+
+                <div
+                  v-if="resizeMode === 'preset'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.presetSizes') }}</span>
+                  <NSelect
+                    v-model:value="resizePreset"
+                    :options="presetSizeOptions"
+                    style="min-width: 220px"
+                  />
+                </div>
+
+                <div
+                  v-if="resizeMode === 'custom'"
+                  class="custom-size-row"
+                >
+                  <div class="custom-size-field">
+                    <span class="section-label">{{ page.t('labels.width') }}</span>
+                    <NInput
+                      :value="resizeCustomWidth != null ? String(resizeCustomWidth) : ''"
+                      :placeholder="page.t('placeholders.width')"
+                      style="width: 120px"
+                      @update:value="handleResizeWidthInput"
+                    />
+                  </div>
+                  <div class="lock-toggle">
+                    <NButton
+                      size="small"
+                      :type="resizeLockAspect ? 'primary' : 'default'"
+                      quaternary
+                      @click="resizeLockAspect = !resizeLockAspect"
+                    >
+                      {{ resizeLockAspect ? '🔗' : '🔗' }}
+                    </NButton>
+                  </div>
+                  <div class="custom-size-field">
+                    <span class="section-label">{{ page.t('labels.height') }}</span>
+                    <NInput
+                      :value="resizeCustomHeight != null ? String(resizeCustomHeight) : ''"
+                      :placeholder="page.t('placeholders.height')"
+                      style="width: 120px"
+                      @update:value="handleResizeHeightInput"
+                    />
+                  </div>
+                </div>
+
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.fit') }}</span>
+                  <NSelect
+                    v-model:value="resizeFit"
+                    :options="fitOptions"
+                    style="width: 160px"
+                  />
+                </div>
+
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.withoutEnlargement') }}</span>
+                  <NRadioGroup
+                    v-model:value="resizeWithoutEnlargement"
+                    size="small"
+                  >
+                    <NRadioButton :value="false">
+                      {{ page.t('labels.no') }}
+                    </NRadioButton>
+                    <NRadioButton :value="true">
+                      {{ page.t('labels.yes') }}
+                    </NRadioButton>
+                  </NRadioGroup>
+                </div>
+              </div>
+            </NCard>
+
+            <NCard
+              v-if="resizeResult"
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.result') }}</span>
+                  <NTag
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ resizeResult.width }}×{{ resizeResult.height }}
+                  </NTag>
+                </div>
+              </template>
+              <div class="image-preview-wrap">
+                <img
+                  :src="`data:${resizeResult.mimeType};base64,${resizeResult.data}`"
+                  :alt="page.t('labels.result')"
+                  class="image-preview"
+                >
+              </div>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton
+                type="primary"
+                :loading="resizeLoading"
+                @click="handleResize"
+              >
+                {{ page.t('actions.resize') }}
+              </NButton>
+              <NButton
+                v-if="resizeResult"
+                @click="saveResized"
+              >
+                {{ page.t('actions.save') }}
+              </NButton>
+            </div>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Convert Tab ──────────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('convert')"
+          name="convert"
+          :tab="page.t('tabs.convert')"
+        >
+          <div class="action-bar">
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForConvert"
+            >
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+          </div>
+
+          <template v-if="pickedImage">
+            <NGrid
+              cols="1 768:2"
+              :x-gap="16"
+              :y-gap="16"
+              style="margin-top: 16px"
+            >
+              <NGridItem>
+                <NCard
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <div class="card-header-flex">
+                      <span class="card-title">{{ page.t('labels.original') }}</span>
+                      <NTag
+                        size="small"
+                        :bordered="false"
+                      >
+                        {{ pickedImage.mimeType }}
+                      </NTag>
+                    </div>
+                  </template>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="convertOriginalPreviewUri"
+                      :alt="page.t('labels.original')"
+                      class="image-preview"
+                    >
+                  </div>
+                </NCard>
+              </NGridItem>
+              <NGridItem>
+                <NCard
+                  v-if="convertResult"
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <div class="card-header-flex">
+                      <span class="card-title">{{ page.t('labels.result') }}</span>
+                      <NTag
+                        size="small"
+                        :bordered="false"
+                      >
+                        {{ convertResult.mimeType }}
+                      </NTag>
+                    </div>
+                  </template>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="`data:${convertResult.mimeType};base64,${convertResult.data}`"
+                      :alt="page.t('labels.result')"
+                      class="image-preview"
+                    >
+                  </div>
+                </NCard>
+                <NCard
+                  v-else
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <div class="result-placeholder">
+                    {{ page.t('labels.result') }}
+                  </div>
+                </NCard>
+              </NGridItem>
+            </NGrid>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.targetFormat') }}</span>
+              </template>
+              <div class="convert-options">
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.targetFormat') }}</span>
+                  <NSelect
+                    v-model:value="convertTargetFormat"
+                    :options="convertFormatOptions"
+                    style="width: 160px"
+                  />
+                </div>
+                <div
+                  v-if="convertTargetFormat !== 'png'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.quality') }}: {{ convertQuality }}</span>
+                  <NSlider
+                    v-model:value="convertQuality"
+                    :min="1"
+                    :max="100"
+                    :step="1"
+                    style="width: 260px"
+                  />
+                </div>
+                <div
+                  v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.background') }}</span>
+                  <NInput
+                    v-model:value="convertBackground"
+                    :placeholder="page.t('placeholders.backgroundColor')"
+                    style="width: 160px"
+                  />
+                  <span
+                    class="color-swatch"
+                    :style="{ backgroundColor: convertBackground }"
+                  />
+                </div>
+              </div>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton
+                type="primary"
+                :loading="convertLoading"
+                @click="handleConvert"
+              >
+                {{ page.t('actions.convert') }}
+              </NButton>
+              <NButton
+                v-if="convertResult"
+                @click="saveConverted"
+              >
+                {{ page.t('actions.save') }}
+              </NButton>
+            </div>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Data URL Tab ────────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('dataUrl')"
+          name="dataUrl"
+          :tab="page.t('tabs.dataUrl')"
+        >
+          <div class="image-base64-panel">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
+              </template>
+              <NInput
+                v-model:value="dataUrlInput"
+                type="textarea"
+                :rows="4"
+                :placeholder="page.t('placeholders.dataUrlInput')"
+                class="code-input"
+              />
+              <div
+                class="action-bar"
+                style="margin-top: 12px; border-top: none; padding-top: 0"
+              >
+                <NButton
+                  type="primary"
+                  @click="handleParseDataUrl"
+                >
+                  {{ page.t('actions.parseDataUrl') }}
+                </NButton>
+                <NButton @click="pickImageForDataUrl">
+                  {{ page.t('actions.pickImage') }}
+                </NButton>
+              </div>
+            </NCard>
+
+            <NCard
+              v-if="dataUrlParseResult"
+              class="editor-card"
+              :bordered="false"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.parseResult') }}</span>
+              </template>
+              <NGrid
+                cols="1 640:2"
+                :x-gap="16"
+                :y-gap="12"
+              >
+                <NGridItem>
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.mimeType') }}</span>
+                    <NTag
+                      size="small"
+                      :bordered="false"
+                    >
+                      {{ dataUrlParseResult.mimeType }}
+                    </NTag>
+                  </div>
+                </NGridItem>
+                <NGridItem>
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.charset') }}</span>
+                    <span class="info-value">{{ dataUrlParseResult.charset || '—' }}</span>
+                  </div>
+                </NGridItem>
+                <NGridItem>
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.encoding') }}</span>
+                    <NTag
+                      size="small"
+                      :bordered="false"
+                      :type="dataUrlParseResult.isBase64 ? 'info' : 'default'"
+                    >
+                      {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
+                    </NTag>
+                  </div>
+                </NGridItem>
+                <NGridItem>
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.estimatedSize') }}</span>
+                    <span class="info-value">{{ formatBytes(dataUrlParseResult.size) }}</span>
+                  </div>
+                </NGridItem>
+                <NGridItem>
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.decodedSize') }}</span>
+                    <span class="info-value">{{ formatBytes(dataUrlParseResult.decodedSize) }}</span>
+                  </div>
+                </NGridItem>
+              </NGrid>
+
+              <div
+                v-if="dataUrlParseResult.rawText && dataUrlParseResult.mimeType.startsWith('text/')"
+                style="margin-top: 12px"
+              >
+                <span class="section-label">{{ page.t('labels.decodedText') }}</span>
+                <NInput
+                  :value="dataUrlParseResult.rawText"
+                  type="textarea"
+                  readonly
+                  :rows="3"
+                  class="code-input"
+                  style="margin-top: 4px"
+                />
+              </div>
+
+              <div
+                v-if="dataUrlParseResult.mimeType.startsWith('image/')"
+                style="margin-top: 12px"
+              >
+                <span class="section-label">{{ page.t('labels.preview') }}</span>
+                <div
+                  class="image-preview-wrap"
+                  style="margin-top: 4px"
+                >
+                  <img
+                    :src="dataUrlInput"
+                    :alt="page.t('labels.preview')"
+                    class="image-preview"
+                  >
+                </div>
+              </div>
+
+              <div
+                class="action-bar"
+                style="margin-top: 12px; border-top: none; padding-top: 0"
+              >
+                <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
+                  {{ page.t('actions.copyDataUri') }}
+                </NButton>
+              </div>
+            </NCard>
+          </div>
+        </NTabPane>
+
+        <!-- ─── SVG Optimize Tab ────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('svg')"
+          name="svg"
+          :tab="page.t('tabs.svg')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              :loading="svgLoading"
+              @click="pickSvgFile"
+            >
+              {{ page.t('actions.pickSvg') }}
+            </NButton>
+          </div>
+
+          <template v-if="svgFile">
+            <NGrid
+              cols="1 768:2"
+              :x-gap="16"
+              :y-gap="16"
+              style="margin-top: 16px"
+            >
+              <NGridItem>
+                <NCard
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <div class="card-header-flex">
+                      <span class="card-title">{{ page.t('labels.svgInput') }}</span>
+                      <NTag
+                        size="small"
+                        :bordered="false"
+                      >
+                        {{ formatBytes(svgFile.size) }}
+                      </NTag>
+                    </div>
+                  </template>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="svgOriginalBlobUrl"
+                      alt="SVG"
+                      class="image-preview"
+                    >
+                  </div>
+                </NCard>
+              </NGridItem>
+              <NGridItem>
+                <NCard
+                  v-if="svgOptimizeResult"
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <template #header>
+                    <div class="card-header-flex">
+                      <span class="card-title">{{ page.t('labels.svgOutput') }}</span>
+                      <NTag
+                        type="success"
+                        size="small"
+                        :bordered="false"
+                      >
+                        {{ page.t('labels.savings') }}: {{ svgOptimizeResult.savings }}%
+                      </NTag>
+                    </div>
+                  </template>
+                  <div class="image-meta">
+                    <span>{{ page.t('labels.sizeBefore') }}: {{ formatBytes(svgOptimizeResult.originalSize) }}</span>
+                    <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(svgOptimizeResult.optimizedSize) }}</span>
+                  </div>
+                  <div class="image-preview-wrap">
+                    <img
+                      :src="svgOptimizedBlobUrl"
+                      alt="Optimized SVG"
+                      class="image-preview"
+                    >
+                  </div>
+                </NCard>
+                <NCard
+                  v-else
+                  class="editor-card"
+                  :bordered="false"
+                >
+                  <div class="result-placeholder">
+                    {{ page.t('labels.svgOutput') }}
+                  </div>
+                </NCard>
+              </NGridItem>
+            </NGrid>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.svgOptions') }}</span>
+              </template>
+              <NGrid
+                cols="1 640:2"
+                :x-gap="16"
+                :y-gap="8"
+              >
+                <NGridItem
+                  v-for="(val, key) in svgOptions"
+                  :key="key"
+                >
+                  <div class="svg-option-row">
+                    <NSwitch
+                      :value="val"
+                      @update:value="(v: boolean) => { (svgOptions as any)[key] = v }"
+                    />
+                    <span class="svg-option-label">{{ page.t(`labels.${key}` as any) || key }}</span>
+                  </div>
+                </NGridItem>
+              </NGrid>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton
+                type="primary"
+                :loading="svgOptimizing"
+                @click="handleOptimizeSvg"
+              >
+                {{ page.t('actions.optimizeSvg') }}
+              </NButton>
+              <NButton
+                v-if="svgOptimizeResult"
+                @click="saveOptimizedSvg"
+              >
+                {{ page.t('actions.save') }}
+              </NButton>
+            </div>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Color Picker Tab ────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('color')"
+          name="color"
+          :tab="page.t('tabs.color')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForColor"
+            >
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+            <NButton @click="loadFromClipboard">
+              {{ page.t('labels.clipboardImage') }}
+            </NButton>
+          </div>
+
+          <template v-if="pickedImage">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.clickToPick') }}</span>
+              </template>
+              <div class="image-preview-wrap color-picker-preview">
+                <img
+                  :src="pickedImage.dataUri"
+                  :alt="page.t('labels.preview')"
+                  class="image-preview"
+                  crossorigin="anonymous"
+                  style="cursor: crosshair"
+                  @click="handleImageClick"
+                >
+              </div>
+            </NCard>
+
+            <NCard
+              v-if="colorPickedHex"
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.pickedColor') }}</span>
+              </template>
+              <div class="picked-color-row">
+                <span
+                  class="color-swatch-large"
+                  :style="{ backgroundColor: colorPickedHex }"
+                />
+                <div class="color-values">
+                  <div class="color-value-row">
+                    <span class="result-label">HEX</span>
+                    <code class="color-code">{{ colorPickedHex }}</code>
+                    <NButton
+                      size="tiny"
+                      quaternary
+                      @click="copy(colorPickedHex, page.t('messages.imageCopied'))"
+                    >
+                      {{ page.t('actions.copyValue') }}
+                    </NButton>
+                  </div>
+                  <div
+                    v-if="colorPickedRgb"
+                    class="color-value-row"
+                  >
+                    <span class="result-label">RGB</span>
+                    <code class="color-code">rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code>
+                    <NButton
+                      size="tiny"
+                      quaternary
+                      @click="copy(`rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`, page.t('messages.imageCopied'))"
+                    >
+                      {{ page.t('actions.copyValue') }}
+                    </NButton>
+                  </div>
+                  <div
+                    v-if="colorPickedHsl"
+                    class="color-value-row"
+                  >
+                    <span class="result-label">HSL</span>
+                    <code class="color-code">hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code>
+                    <NButton
+                      size="tiny"
+                      quaternary
+                      @click="copy(`hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`, page.t('messages.imageCopied'))"
+                    >
+                      {{ page.t('actions.copyValue') }}
+                    </NButton>
+                  </div>
+                </div>
+              </div>
+            </NCard>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.dominantColors') }}</span>
+                  <NButton
+                    size="small"
+                    :loading="colorExtracting"
+                    @click="handleExtractColors"
+                  >
+                    {{ page.t('actions.extractColors') }}
+                  </NButton>
+                </div>
+              </template>
+              <div
+                v-if="colorExtractedColors.length"
+                class="color-palette"
+              >
+                <div
+                  v-for="(c, i) in colorExtractedColors"
+                  :key="i"
+                  class="color-palette-item"
+                >
+                  <span
+                    class="color-swatch"
+                    :style="{ backgroundColor: c.hex }"
+                  />
+                  <span class="color-palette-info">
+                    <code class="color-code">{{ c.hex }}</code>
+                    <span class="color-ratio">{{ c.ratio }}%</span>
+                  </span>
+                  <NButton
+                    size="tiny"
+                    quaternary
+                    @click="copy(c.hex, page.t('messages.imageCopied'))"
+                  >
+                    {{ page.t('actions.copyValue') }}
+                  </NButton>
+                </div>
+              </div>
+              <div
+                v-else
+                class="result-placeholder"
+              >
+                {{ page.t('labels.noColorsExtracted') }}
+              </div>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton @click="goToColorConverter">
+                {{ page.t('actions.goToColorConverter') }}
+              </NButton>
+            </div>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Favicon Tab ──────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('favicon')"
+          name="favicon"
+          :tab="page.t('tabs.favicon')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForFavicon"
+            >
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+          </div>
+
+          <template v-if="pickedImage">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.iconPreset') }}</span>
+              </template>
+              <div class="favicon-options">
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.iconPreset') }}</span>
+                  <NSelect
+                    v-model:value="faviconPreset"
+                    :options="faviconPresetOptions"
+                    style="min-width: 200px"
+                  />
+                </div>
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.includeIco') }}</span>
+                  <NSwitch v-model:value="faviconIncludeIco" />
+                </div>
+              </div>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton
+                type="primary"
+                :loading="faviconLoading"
+                @click="handleGenerateIcons"
+              >
+                {{ page.t('actions.generateIcons') }}
+              </NButton>
+            </div>
+
+            <template v-if="faviconResult">
+              <NCard
+                class="editor-card"
+                :bordered="false"
+                style="margin-top: 16px"
+              >
+                <template #header>
+                  <span class="card-title">{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span>
+                </template>
+                <div class="icon-grid">
+                  <div
+                    v-for="(icon, i) in faviconResult.icons"
+                    :key="i"
+                    class="icon-item"
+                  >
+                    <img
+                      :src="`data:image/png;base64,${icon.data}`"
+                      :alt="icon.fileName"
+                      class="icon-preview"
+                    >
+                    <span class="icon-label">{{ icon.width }}×{{ icon.height }}</span>
+                    <span class="icon-filename">{{ icon.fileName }}</span>
+                  </div>
+                </div>
+
+                <div
+                  v-if="faviconResult.ico"
+                  style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border)"
+                >
+                  <div class="info-item">
+                    <span class="result-label">{{ page.t('labels.icoFile') }}</span>
+                    <NTag
+                      size="small"
+                      :bordered="false"
+                    >
+                      {{ faviconResult.ico.fileName }}
+                    </NTag>
+                    <span class="info-value">{{ formatBytes(faviconResult.ico.size) }}</span>
+                  </div>
+                </div>
+              </NCard>
+
+              <div class="action-bar">
+                <NButton @click="saveFaviconIcons">
+                  {{ page.t('actions.saveAll') }}
+                </NButton>
+              </div>
+            </template>
+          </template>
+        </NTabPane>
+
+        <!-- ─── Batch Tab ──────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('batch')"
+          name="batch"
+          :tab="page.t('tabs.batch')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              @click="pickBatchImages"
+            >
+              {{ page.t('actions.pickImages') }}
+            </NButton>
+          </div>
+
+          <template v-if="batchImages.length > 0">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.batchImages') }} ({{ batchImages.length }})</span>
+              </template>
+              <div class="batch-image-list">
+                <div
+                  v-for="(img, i) in batchImages"
+                  :key="i"
+                  class="batch-image-item"
+                >
+                  <span class="batch-image-name">{{ img.fileName }}</span>
+                  <span class="batch-image-size">{{ formatBytes(img.size) }}</span>
+                  <NButton
+                    size="tiny"
+                    quaternary
+                    @click="removeBatchImage(i)"
+                  >
+                    ✕
+                  </NButton>
+                </div>
+              </div>
+            </NCard>
+
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.batchOperation') }}</span>
+              </template>
+              <div class="batch-options">
+                <div class="option-row">
+                  <span class="section-label">{{ page.t('labels.batchOperation') }}</span>
+                  <NSelect
+                    v-model:value="batchOperation"
+                    :options="batchOperationOptions"
+                    style="width: 160px"
+                  />
+                </div>
+                <div
+                  v-if="batchOperation === 'compress' || batchOperation === 'convert'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
+                  <NSelect
+                    v-model:value="batchFormat"
+                    :options="batchFormatOptions"
+                    style="width: 120px"
+                  />
+                </div>
+                <div
+                  v-if="batchOperation === 'compress' || batchOperation === 'convert'"
+                  class="option-row"
+                >
+                  <span class="section-label">{{ page.t('labels.quality') }}: {{ batchQuality }}</span>
+                  <NSlider
+                    v-model:value="batchQuality"
+                    :min="1"
+                    :max="100"
+                    :step="1"
+                    style="width: 260px"
+                  />
+                </div>
+              </div>
+            </NCard>
+
+            <div class="action-bar">
+              <NButton
+                type="primary"
+                :loading="batchLoading"
+                @click="handleBatchProcess"
+              >
+                {{ page.t('actions.startBatch') }}
+              </NButton>
+              <NButton
+                v-if="batchDoneCount > 0"
+                @click="saveBatchResults"
+              >
                 {{ page.t('actions.saveAll') }}
               </NButton>
             </div>
           </template>
-        </template>
-      </NTabPane>
 
-      <!-- ─── Batch Tab ──────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('batch')"
-        name="batch"
-        :tab="page.t('tabs.batch')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" @click="pickBatchImages">
-            {{ page.t('actions.pickImages') }}
-          </NButton>
-        </div>
+          <template v-if="batchItems.length > 0">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.batchResults') }}</span>
+                  <NTag
+                    v-if="batchDoneCount > 0"
+                    type="success"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ batchDoneCount }}/{{ batchItems.length }}
+                  </NTag>
+                  <NTag
+                    v-if="batchErrorCount > 0"
+                    type="error"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ batchErrorCount }}
+                  </NTag>
+                </div>
+              </template>
+              <div class="batch-result-list">
+                <div
+                  v-for="(item, i) in batchItems"
+                  :key="i"
+                  class="batch-result-item"
+                >
+                  <span class="batch-result-name">{{ item.fileName }}</span>
+                  <NTag
+                    :type="item.status === 'done' ? 'success' : item.status === 'error' ? 'error' : 'default'"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ item.status === 'done' ? page.t('labels.result') : item.status === 'error' ? page.t('messages.batchItemFailed') : item.status }}
+                  </NTag>
+                  <span
+                    v-if="item.result"
+                    class="batch-result-meta"
+                  >
+                    {{ formatBytes(item.result.size) }}
+                  </span>
+                  <span
+                    v-if="item.error"
+                    class="batch-result-error"
+                  >{{ item.error }}</span>
+                </div>
+              </div>
+            </NCard>
+          </template>
+        </NTabPane>
 
-        <template v-if="batchImages.length > 0">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.batchImages') }} ({{ batchImages.length }})</span>
-            </template>
-            <div class="batch-image-list">
-              <div v-for="(img, i) in batchImages" :key="i" class="batch-image-item">
-                <span class="batch-image-name">{{ img.fileName }}</span>
-                <span class="batch-image-size">{{ formatBytes(img.size) }}</span>
-                <NButton size="tiny" quaternary @click="removeBatchImage(i)">
-                  ✕
-                </NButton>
-              </div>
-            </div>
-          </NCard>
-
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.batchOperation') }}</span>
-            </template>
-            <div class="batch-options">
-              <div class="option-row">
-                <span class="section-label">{{ page.t('labels.batchOperation') }}</span>
-                <NSelect v-model:value="batchOperation" :options="batchOperationOptions" style="width: 160px" />
-              </div>
-              <div v-if="batchOperation === 'compress' || batchOperation === 'convert'" class="option-row">
-                <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
-                <NSelect v-model:value="batchFormat" :options="batchFormatOptions" style="width: 120px" />
-              </div>
-              <div v-if="batchOperation === 'compress' || batchOperation === 'convert'" class="option-row">
-                <span class="section-label">{{ page.t('labels.quality') }}: {{ batchQuality }}</span>
-                <NSlider v-model:value="batchQuality" :min="1" :max="100" :step="1" style="width: 260px" />
-              </div>
-            </div>
-          </NCard>
-
-          <div class="action-bar">
-            <NButton type="primary" :loading="batchLoading" @click="handleBatchProcess">
-              {{ page.t('actions.startBatch') }}
+        <!-- ─── Compare Tab ──────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('compare')"
+          name="compare"
+          :tab="page.t('tabs.compare')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              :loading="compareLoadingA"
+              @click="pickCompareImage('A')"
+            >
+              {{ page.t('actions.pickImageA') }}
             </NButton>
-            <NButton v-if="batchDoneCount > 0" @click="saveBatchResults">
-              {{ page.t('actions.saveAll') }}
+            <NButton
+              type="primary"
+              :loading="compareLoadingB"
+              @click="pickCompareImage('B')"
+            >
+              {{ page.t('actions.pickImageB') }}
+            </NButton>
+            <NButton
+              v-if="compareImageA && compareImageB"
+              @click="swapCompareImages"
+            >
+              {{ page.t('actions.swapImages') }}
             </NButton>
           </div>
-        </template>
 
-        <template v-if="batchItems.length > 0">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.batchResults') }}</span>
-                <NTag v-if="batchDoneCount > 0" type="success" size="small" :bordered="false">
-                  {{ batchDoneCount }}/{{ batchItems.length }}
-                </NTag>
-                <NTag v-if="batchErrorCount > 0" type="error" size="small" :bordered="false">
-                  {{ batchErrorCount }}
-                </NTag>
+          <template v-if="compareImageA && compareImageB">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.compareMode') }}</span>
+                  <NRadioGroup
+                    v-model:value="compareMode"
+                    size="small"
+                  >
+                    <NRadioButton value="sideBySide">
+                      {{ page.t('labels.sideBySide') }}
+                    </NRadioButton>
+                    <NRadioButton value="slider">
+                      {{ page.t('labels.slider') }}
+                    </NRadioButton>
+                    <NRadioButton value="diffOverlay">
+                      {{ page.t('labels.diffOverlay') }}
+                    </NRadioButton>
+                  </NRadioGroup>
+                </div>
+              </template>
+
+              <!-- Side by side -->
+              <div
+                v-if="compareMode === 'sideBySide'"
+                class="compare-side-by-side"
+              >
+                <div class="compare-image-panel">
+                  <span class="compare-label">{{ page.t('labels.imageA') }}</span>
+                  <img
+                    :src="compareImageA.dataUri"
+                    alt="A"
+                    class="compare-image"
+                  >
+                  <span class="compare-meta">{{ compareImageA.width }}×{{ compareImageA.height }} · {{ formatBytes(compareImageA.size) }}</span>
+                </div>
+                <div class="compare-image-panel">
+                  <span class="compare-label">{{ page.t('labels.imageB') }}</span>
+                  <img
+                    :src="compareImageB.dataUri"
+                    alt="B"
+                    class="compare-image"
+                  >
+                  <span class="compare-meta">{{ compareImageB.width }}×{{ compareImageB.height }} · {{ formatBytes(compareImageB.size) }}</span>
+                </div>
               </div>
-            </template>
-            <div class="batch-result-list">
-              <div v-for="(item, i) in batchItems" :key="i" class="batch-result-item">
-                <span class="batch-result-name">{{ item.fileName }}</span>
-                <NTag
-                  :type="item.status === 'done' ? 'success' : item.status === 'error' ? 'error' : 'default'"
-                  size="small"
+
+              <!-- Slider -->
+              <div
+                v-else-if="compareMode === 'slider'"
+                class="compare-slider-container"
+                @mousedown="onSliderMouseDown"
+                @mousemove="onSliderMouseMove"
+                @mouseup="onSliderMouseUp"
+                @mouseleave="onSliderMouseUp"
+              >
+                <img
+                  :src="compareImageB.dataUri"
+                  alt="B"
+                  class="compare-slider-img"
+                >
+                <div
+                  class="compare-slider-clip"
+                  :style="{ width: sliderPos + '%' }"
+                >
+                  <img
+                    :src="compareImageA.dataUri"
+                    alt="A"
+                    class="compare-slider-img"
+                  >
+                </div>
+                <div
+                  class="compare-slider-handle"
+                  :style="{ left: sliderPos + '%' }"
+                />
+                <div class="compare-slider-labels">
+                  <span class="compare-label-a">A</span>
+                  <span class="compare-label-b">B</span>
+                </div>
+              </div>
+
+              <!-- Diff overlay -->
+              <div
+                v-else-if="compareMode === 'diffOverlay'"
+                class="compare-diff-overlay"
+              >
+                <img
+                  v-if="diffOverlayDataUri"
+                  :src="diffOverlayDataUri"
+                  alt="Diff"
+                  class="compare-image"
+                >
+                <NAlert
+                  v-else
+                  type="info"
                   :bordered="false"
                 >
-                  {{ item.status === 'done' ? page.t('labels.result') : item.status === 'error' ? page.t('messages.batchItemFailed') : item.status }}
-                </NTag>
-                <span v-if="item.result" class="batch-result-meta">
-                  {{ formatBytes(item.result.size) }}
-                </span>
-                <span v-if="item.error" class="batch-result-error">{{ item.error }}</span>
+                  {{ page.t('labels.diffOverlay') }}
+                </NAlert>
+                <div class="compare-diff-legend">
+                  <span class="diff-legend-item"><span
+                    class="diff-legend-color"
+                    style="background: rgba(255, 200, 0, 0.8)"
+                  /> {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span>
+                  <span class="diff-legend-item"><span
+                    class="diff-legend-color"
+                    style="background: rgba(128, 128, 128, 0.3)"
+                  /> {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span>
+                </div>
               </div>
+            </NCard>
+          </template>
+
+          <NCard
+            v-else
+            class="editor-card"
+            :bordered="false"
+            style="margin-top: 16px"
+          >
+            <div class="result-placeholder">
+              {{ page.t('messages.compareNeedTwoImages') }}
             </div>
           </NCard>
-        </template>
-      </NTabPane>
+        </NTabPane>
 
-      <!-- ─── Compare Tab ──────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('compare')"
-        name="compare"
-        :tab="page.t('tabs.compare')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" :loading="compareLoadingA" @click="pickCompareImage('A')">
-            {{ page.t('actions.pickImageA') }}
-          </NButton>
-          <NButton type="primary" :loading="compareLoadingB" @click="pickCompareImage('B')">
-            {{ page.t('actions.pickImageB') }}
-          </NButton>
-          <NButton v-if="compareImageA && compareImageB" @click="swapCompareImages">
-            {{ page.t('actions.swapImages') }}
-          </NButton>
-        </div>
-
-        <template v-if="compareImageA && compareImageB">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.compareMode') }}</span>
-                <NRadioGroup v-model:value="compareMode" size="small">
-                  <NRadioButton value="sideBySide">{{ page.t('labels.sideBySide') }}</NRadioButton>
-                  <NRadioButton value="slider">{{ page.t('labels.slider') }}</NRadioButton>
-                  <NRadioButton value="diffOverlay">{{ page.t('labels.diffOverlay') }}</NRadioButton>
-                </NRadioGroup>
-              </div>
-            </template>
-
-            <!-- Side by side -->
-            <div v-if="compareMode === 'sideBySide'" class="compare-side-by-side">
-              <div class="compare-image-panel">
-                <span class="compare-label">{{ page.t('labels.imageA') }}</span>
-                <img :src="compareImageA.dataUri" alt="A" class="compare-image">
-                <span class="compare-meta">{{ compareImageA.width }}×{{ compareImageA.height }} · {{ formatBytes(compareImageA.size) }}</span>
-              </div>
-              <div class="compare-image-panel">
-                <span class="compare-label">{{ page.t('labels.imageB') }}</span>
-                <img :src="compareImageB.dataUri" alt="B" class="compare-image">
-                <span class="compare-meta">{{ compareImageB.width }}×{{ compareImageB.height }} · {{ formatBytes(compareImageB.size) }}</span>
-              </div>
-            </div>
-
-            <!-- Slider -->
-            <div
-              v-else-if="compareMode === 'slider'"
-              class="compare-slider-container"
-              @mousedown="onSliderMouseDown"
-              @mousemove="onSliderMouseMove"
-              @mouseup="onSliderMouseUp"
-              @mouseleave="onSliderMouseUp"
+        <!-- ─── Preset Tab ──────────────────────────────────────────── -->
+        <NTabPane
+          v-if="showTab('preset')"
+          name="preset"
+          :tab="page.t('tabs.preset')"
+        >
+          <div
+            class="action-bar"
+            style="margin-top: 0; border-top: none; padding-top: 0"
+          >
+            <NButton
+              type="primary"
+              :loading="imageLoading"
+              @click="pickImageForPreset"
             >
-              <img :src="compareImageB.dataUri" alt="B" class="compare-slider-img">
-              <div class="compare-slider-clip" :style="{ width: sliderPos + '%' }">
-                <img :src="compareImageA.dataUri" alt="A" class="compare-slider-img">
+              {{ page.t('actions.pickImage') }}
+            </NButton>
+          </div>
+
+          <template v-if="pickedImage">
+            <NCard
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <span class="card-title">{{ page.t('labels.encodePreset') }}</span>
+              </template>
+              <p class="preset-description">
+                {{ page.t('labels.presetDescription') }}
+              </p>
+              <div class="preset-grid">
+                <div
+                  v-for="preset in ENCODE_PRESETS"
+                  :key="preset.key"
+                  class="preset-card"
+                  :class="{ 'preset-card--loading': presetLoading }"
+                  @click="applyPreset(preset)"
+                >
+                  <span class="preset-name">{{ page.t(`labels.${preset.key}` as any) }}</span>
+                  <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc` as any) }}</span>
+                </div>
               </div>
-              <div class="compare-slider-handle" :style="{ left: sliderPos + '%' }" />
-              <div class="compare-slider-labels">
-                <span class="compare-label-a">A</span>
-                <span class="compare-label-b">B</span>
+            </NCard>
+
+            <NCard
+              v-if="presetResult"
+              class="editor-card"
+              :bordered="false"
+              style="margin-top: 16px"
+            >
+              <template #header>
+                <div class="card-header-flex">
+                  <span class="card-title">{{ page.t('labels.result') }}</span>
+                  <NTag
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ presetResult.mimeType }}
+                  </NTag>
+                </div>
+              </template>
+              <div class="image-preview-wrap">
+                <img
+                  :src="`data:${presetResult.mimeType};base64,${presetResult.data}`"
+                  :alt="page.t('labels.result')"
+                  class="image-preview"
+                >
               </div>
-            </div>
-
-            <!-- Diff overlay -->
-            <div v-else-if="compareMode === 'diffOverlay'" class="compare-diff-overlay">
-              <img v-if="diffOverlayDataUri" :src="diffOverlayDataUri" alt="Diff" class="compare-image">
-              <NAlert v-else type="info" :bordered="false">{{ page.t('labels.diffOverlay') }}</NAlert>
-              <div class="compare-diff-legend">
-                <span class="diff-legend-item"><span class="diff-legend-color" style="background: rgba(255, 200, 0, 0.8)" /> {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span>
-                <span class="diff-legend-item"><span class="diff-legend-color" style="background: rgba(128, 128, 128, 0.3)" /> {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span>
-              </div>
-            </div>
-          </NCard>
-        </template>
-
-        <NCard v-else class="editor-card" :bordered="false" style="margin-top: 16px">
-          <div class="result-placeholder">{{ page.t('messages.compareNeedTwoImages') }}</div>
-        </NCard>
-      </NTabPane>
-
-      <!-- ─── Preset Tab ──────────────────────────────────────────── -->
-      <NTabPane
-        v-if="showTab('preset')"
-        name="preset"
-        :tab="page.t('tabs.preset')"
-      >
-        <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
-          <NButton type="primary" :loading="imageLoading" @click="pickImageForPreset">
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-
-        <template v-if="pickedImage">
-          <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <span class="card-title">{{ page.t('labels.encodePreset') }}</span>
-            </template>
-            <p class="preset-description">{{ page.t('labels.presetDescription') }}</p>
-            <div class="preset-grid">
               <div
-                v-for="preset in ENCODE_PRESETS"
-                :key="preset.key"
-                class="preset-card"
-                :class="{ 'preset-card--loading': presetLoading }"
-                @click="applyPreset(preset)"
+                class="image-meta"
+                style="margin-top: 8px"
               >
-                <span class="preset-name">{{ page.t(`labels.${preset.key}` as any) }}</span>
-                <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc` as any) }}</span>
+                <span>{{ presetResult.width }}×{{ presetResult.height }}</span>
+                <span>{{ formatBytes(presetResult.size) }}</span>
               </div>
-            </div>
-          </NCard>
-
-          <NCard v-if="presetResult" class="editor-card" :bordered="false" style="margin-top: 16px">
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.result') }}</span>
-                <NTag size="small" :bordered="false">{{ presetResult.mimeType }}</NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="`data:${presetResult.mimeType};base64,${presetResult.data}`"
-                :alt="page.t('labels.result')"
-                class="image-preview"
+              <div
+                class="action-bar"
+                style="margin-top: 12px; border-top: none; padding-top: 0"
               >
-            </div>
-            <div class="image-meta" style="margin-top: 8px">
-              <span>{{ presetResult.width }}×{{ presetResult.height }}</span>
-              <span>{{ formatBytes(presetResult.size) }}</span>
-            </div>
-            <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
-              <NButton @click="savePresetResult">{{ page.t('actions.save') }}</NButton>
-            </div>
-          </NCard>
-        </template>
-      </NTabPane>
-    </NTabs>
+                <NButton @click="savePresetResult">
+                  {{ page.t('actions.save') }}
+                </NButton>
+              </div>
+            </NCard>
+          </template>
+        </NTabPane>
+      </NTabs>
     </div>
   </PageLayout>
 </template>
