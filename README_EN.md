@@ -14,7 +14,7 @@
 
 ## Screenshots
 
-Representative previews below (port manager, encoding converter, settings). The app includes **22 tools** in total — see [Features Overview](#features-overview) for the full list.
+Representative previews below (port manager, encoding converter, settings). The app includes **23 tools** in total — see [Features Overview](#features-overview) for the full list.
 
 ![Port Manager](./screenshots/en/port-manager.png)
 ![Encoding Converter](./screenshots/en/code-format-converter.png)
@@ -46,7 +46,7 @@ Representative previews below (port manager, encoding converter, settings). The 
 
 | Tool | Description |
 |------|------|
-| Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML, image Base64 (unified entry with Tab memory) |
+| Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML (unified entry with Tab memory) |
 | Text Diff | Line/word-level diff, file import, ignore whitespace/case, unified/split view |
 
 ### Data Conversion
@@ -78,6 +78,12 @@ Representative previews below (port manager, encoding converter, settings). The 
 | Cron Parser | Visual field editor, local timezone, next 5 execution times with relative countdown |
 | Subnet Calculator | IPv4/IPv6 CIDR with VLSM splitting, network/broadcast/mask/host range |
 | Chmod Calculator | Octal/symbolic permission conversion with rwx bit visualization |
+
+### Image Tools
+
+| Tool | Description |
+|------|-------------|
+| Image Tools | Base64 conversion, info & EXIF, compress, resize & crop, format conversion, Data URL, SVG optimization, color picker & palette, favicon generator, batch process, image compare (side-by-side/slider/diff overlay), encoding presets (Web/Avatar/E-commerce/OG) |
 
 ## Keyboard Shortcuts
 
@@ -123,7 +129,8 @@ Full keyboard shortcuts list available in the app's **About** page.
 | `/timestamp` | Encoding Conversion · Timestamp Tab |
 | `/xml` | Encoding Conversion · XML Tab |
 | `/sql` | Encoding Conversion · SQL Tab |
-| `/image-base64` | Encoding Conversion · Image Base64 Tab |
+| `/image-base64` | Image Tools · Base64 Tab |
+| `/image-tools` | Image Tools (`?tab=base64` / `info` / `compress` / `resize` / `convert` / `dataUrl` / `svg` / `color` / `favicon` / `batch` / `compare` / `preset`) |
 | `/chmod-calculator` | Chmod Calculator |
 | `/http-status-codes` | HTTP Status Codes Reference |
 | `/connection-string-parser` | Connection string parse & build |

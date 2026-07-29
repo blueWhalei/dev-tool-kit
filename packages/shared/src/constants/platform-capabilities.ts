@@ -58,6 +58,13 @@ export const PLATFORM_CAPABILITIES: PlatformCapabilityRow[] = [
     darwin: 'local',
     linux: 'local',
     notes: '纯渲染进程计算，全平台一致'
+  },
+  {
+    feature: '图片工具',
+    win32: 'local',
+    darwin: 'local',
+    linux: 'local',
+    notes: '基于 sharp 本地处理，全平台一致'
   }
 ]
 

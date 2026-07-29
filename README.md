@@ -14,7 +14,7 @@
 
 ## 界面预览
 
-以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **22 个工具**，完整列表见下方 [功能概览](#功能概览)。
+以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **23 个工具**，完整列表见下方 [功能概览](#功能概览)。
 
 ![端口管理](./screenshots/zh/port-manager.png)
 ![编码转换](./screenshots/zh/code-format-converter.png)
@@ -46,7 +46,7 @@
 
 | 工具 | 说明 |
 |------|------|
-| 编码与格式转换 | Base64、URL、JSON（树形 + Schema）、YAML、TOML、XML、SQL、时间戳、进制、命名、HTML、图片 Base64（统一入口，Tab 记忆） |
+| 编码与格式转换 | Base64、URL、JSON（树形 + Schema）、YAML、TOML、XML、SQL、时间戳、进制、命名、HTML（统一入口，Tab 记忆） |
 | 文本对比 | 逐行/逐词 Diff，文件导入，忽略空白/大小写，统一/并排视图 |
 
 ### 数据转换
@@ -78,6 +78,12 @@
 | Cron 解析 | 可视化字段编辑、本地时区、接下来 5 次执行时间与相对倒计时 |
 | 子网计算 | IPv4/IPv6 CIDR，VLSM 子网拆分，输出网络/广播/掩码/主机范围 |
 | Chmod 计算 | 八进制/符号权限互转，rwx 位可视化 |
+
+### 图片工具
+
+| 工具 | 说明 |
+|------|------|
+| 图片工具 | Base64 互转、信息与 EXIF、压缩、尺寸调整与裁剪、格式转换、Data URL、SVG 优化、取色与调色板、网站图标生成、批处理、图片对比（并排/滑块/差异叠加）、转码预设（Web/头像/电商/OG） |
 
 ## 快捷操作
 
@@ -123,7 +129,8 @@
 | `/timestamp` | 编码转换 · 时间戳 Tab |
 | `/xml` | 编码转换 · XML Tab |
 | `/sql` | 编码转换 · SQL Tab |
-| `/image-base64` | 编码转换 · 图片 Base64 Tab |
+| `/image-base64` | 图片工具 · Base64 Tab |
+| `/image-tools` | 图片工具（`?tab=base64` / `info` / `compress` / `resize` / `convert` / `dataUrl` / `svg` / `color` / `favicon` / `batch` / `compare` / `preset`） |
 | `/chmod-calculator` | Chmod 计算器 |
 | `/http-status-codes` | HTTP 状态码速查 |
 | `/connection-string-parser` | 连接字符串解析与构建 |
