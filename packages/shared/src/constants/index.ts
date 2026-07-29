@@ -47,7 +47,8 @@ export const ROUTE_CATEGORIES: RouteCategoryConfig[] = [
   { key: 'encode', label: '编码解码', icon: 'category-encode', order: 2 },
   { key: 'data', label: '数据转换', icon: 'category-data', order: 3 },
   { key: 'security', label: '密码与密钥', icon: 'category-security', order: 4 },
-  { key: 'calculator', label: '计算器', icon: 'category-calculator', order: 5 }
+  { key: 'calculator', label: '计算器', icon: 'category-calculator', order: 5 },
+  { key: 'image', label: '图片工具', icon: 'category-image', order: 6 }
 ]
 
 /** CodeConverter sub-tab keywords for global search deep links */
@@ -62,8 +63,7 @@ export const CODE_CONVERTER_TAB_KEYWORDS: { tab: string; keywords: string[] }[] 
   { tab: 'yaml', keywords: ['yaml', 'yml'] },
   { tab: 'toml', keywords: ['toml'] },
   { tab: 'xml', keywords: ['xml', '格式化'] },
-  { tab: 'sql', keywords: ['sql', '格式化', 'query'] },
-  { tab: 'image', keywords: ['image', '图片', 'base64', 'data uri', 'mime'] }
+  { tab: 'sql', keywords: ['sql', '格式化', 'query'] }
 ]
 
 /** localStorage key for code converter active tab */
@@ -75,6 +75,25 @@ export const DEV_REFERENCE_TAB_KEYWORDS: { tab: string; keywords: string[] }[] =
   { tab: 'git', keywords: ['git', 'stash', 'cherry-pick', 'rebase', 'reset', '命令'] },
   { tab: 'http-methods', keywords: ['http', 'method', 'get', 'post', 'put', 'delete', '方法'] }
 ]
+
+/** Image Tools sub-tab keywords for global search deep links */
+export const IMAGE_TOOLS_TAB_KEYWORDS: { tab: string; keywords: string[] }[] = [
+  { tab: 'base64', keywords: ['base64', 'data uri', 'mime'] },
+  { tab: 'info', keywords: ['exif', '信息', 'info', '元数据', 'metadata', 'gps', '拍摄'] },
+  { tab: 'compress', keywords: ['压缩', 'compress', '质量', 'quality', '体积', 'webp'] },
+  { tab: 'resize', keywords: ['裁剪', 'resize', '缩放', '尺寸', 'crop', 'scale'] },
+  { tab: 'convert', keywords: ['转换', 'convert', '格式', 'format', 'png', 'jpeg', 'webp'] },
+  { tab: 'dataUrl', keywords: ['data url', 'datauri', 'mime', '字符集', 'charset', '编码'] },
+  { tab: 'svg', keywords: ['svg', '优化', 'optimize', 'svgo', '矢量', '元数据'] },
+  { tab: 'color', keywords: ['取色', '吸管', 'eyedropper', '颜色', 'color', '调色板', 'palette', '主色', 'dominant'] },
+  { tab: 'favicon', keywords: ['favicon', '图标', 'icon', 'ico', '应用图标', 'app icon'] },
+  { tab: 'batch', keywords: ['批处理', 'batch', '批量', '多文件', '队列', 'queue'] },
+  { tab: 'compare', keywords: ['对比', 'compare', '比较', 'diff', '差异', 'slider', '并排'] },
+  { tab: 'preset', keywords: ['预设', 'preset', '转码', '一键', 'webp', '头像', '电商'] }
+]
+
+/** localStorage key for image tools active tab */
+export const IMAGE_TOOLS_TAB_STORAGE_KEY = 'dev-toolkit-image-tools-tab'
 
 /** localStorage key for dev reference active tab */
 export const DEV_REFERENCE_TAB_STORAGE_KEY = 'dev-toolkit-dev-reference-tab'

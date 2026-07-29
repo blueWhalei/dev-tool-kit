@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { MaybeRef } from 'vue'
+
 defineProps<{
-  title: string
-  description?: string
+  title: MaybeRef<string>
+  description?: MaybeRef<string>
   containerClass?: string
 }>()
 </script>

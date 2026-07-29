@@ -20,6 +20,7 @@ import connectionStringParser from './connectionStringParser'
 import keyPairGenerator from './keyPairGenerator'
 import devReference from './devReference'
 import qrCodeGenerator from './qrCodeGenerator'
+import imageTools from './imageTools'
 
 export default {
   portManager,
@@ -43,5 +44,6 @@ export default {
   connectionStringParser,
   keyPairGenerator,
   devReference,
-  qrCodeGenerator
+  qrCodeGenerator,
+  imageTools
 }

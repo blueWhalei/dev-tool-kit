@@ -17,8 +17,7 @@ export default {
       naming: '命名转换',
       html: 'HTML',
       xml: 'XML',
-      sql: 'SQL',
-      image: '图片 Base64'
+      sql: 'SQL'
     },
     actions: {
       encode: '编码',
@@ -31,11 +30,7 @@ export default {
       yamlToJson: 'YAML → JSON',
       jsonToYaml: 'JSON → YAML',
       tomlToJson: 'TOML → JSON',
-      jsonToToml: 'JSON → TOML',
-      pickImage: '选择图片',
-      copyBase64: '复制 Base64',
-      copyDataUri: '复制 Data URI',
-      useForDecode: '用于解码预览'
+      jsonToToml: 'JSON → TOML'
     },
     labels: {
       input: '输入',
@@ -55,12 +50,7 @@ export default {
       kebabCase: 'kebab-case',
       titleCase: 'Title Case',
       jsonTree: '结构树',
-      jsonSchema: 'JSON Schema（可选）',
-      imageToBase64: '图片 → Base64',
-      base64ToImage: 'Base64 → 图片预览',
-      mimeType: 'MIME 类型',
-      fileSize: '文件大小',
-      preview: '预览'
+      jsonSchema: 'JSON Schema（可选）'
     },
     placeholders: {
       base64: '输入需要编码/解码的文本...',
@@ -80,9 +70,7 @@ export default {
       naming: '输入需要转换命名的文本，如 foo-bar、fooBar...',
       timestampResult: '转换结果...',
       namingEmpty: '输入有效文本后将显示全部命名格式',
-      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}',
-      mimeType: 'image/png',
-      imageBase64: '粘贴 Base64 或 Data URI...'
+      jsonSchema: '{"type":"object","properties":{"name":{"type":"string"}}}'
     },
     bases: {
       binary: '二进制',
@@ -92,11 +80,7 @@ export default {
     },
     messages: {
       schemaValid: '校验通过',
-      schemaInvalid: '校验失败',
-      imageLoaded: '图片已加载',
-      imageLoadFailed: '图片读取失败',
-      imageCopied: '已复制',
-      invalidImageBase64: '无法预览，请检查 Base64 或 MIME 类型'
+      schemaInvalid: '校验失败'
     },
     errors: {
       jsonEmpty: '请输入 JSON 内容',

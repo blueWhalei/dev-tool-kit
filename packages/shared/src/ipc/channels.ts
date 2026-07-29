@@ -84,8 +84,21 @@ export const IPC_INVOKE_CHANNELS = [
   // Hash Generator
   'hash-generator:selectFile',
   'hash-generator:computeFileHash',
-  // Image Base64
-  'image-base64:pickImage',
+  // Image Tools
+  'image-tools:pickImage',
+  'image-tools:pickImages',
+  'image-tools:getInfo',
+  'image-tools:compress',
+  'image-tools:resize',
+  'image-tools:convert',
+  'image-tools:saveImage',
+  'image-tools:saveImages',
+  'image-tools:pickSvgFile',
+  'image-tools:optimizeSvg',
+  'image-tools:extractColors',
+  'image-tools:readClipboardImage',
+  'image-tools:generateIcons',
+  'image-tools:batchProcess',
   // Text Diff
   'text-diff:readFile',
   // Certificate Parser

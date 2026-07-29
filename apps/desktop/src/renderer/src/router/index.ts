@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { ROUTE_CATEGORIES, CODE_CONVERTER_TAB_KEYWORDS, DEV_REFERENCE_TAB_KEYWORDS, type RouteCategoryConfig } from '@dev-tool-kit/shared/constants'
+import { ROUTE_CATEGORIES, CODE_CONVERTER_TAB_KEYWORDS, DEV_REFERENCE_TAB_KEYWORDS, IMAGE_TOOLS_TAB_KEYWORDS, type RouteCategoryConfig } from '@dev-tool-kit/shared/constants'
 
 export interface TabKeywordMapping {
   tab: string
@@ -171,7 +171,20 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/image-base64',
-    redirect: { path: '/code-converter', query: { tab: 'image' } }
+    redirect: { path: '/image-tools', query: { tab: 'base64' } }
+  },
+  {
+    path: '/image-tools',
+    name: 'ImageTools',
+    component: () => import('../views/ImageToolsView.vue'),
+    meta: {
+      titleKey: 'nav.routes.imageTools',
+      icon: 'image',
+      category: 'image',
+      order: 1,
+      keywords: ['图片', 'image', '压缩', 'compress', '裁剪', 'resize', 'EXIF', '转换', 'convert', 'Base64', '元数据', 'metadata'],
+      tabKeywords: IMAGE_TOOLS_TAB_KEYWORDS
+    }
   },
   {
     path: '/text-diff',

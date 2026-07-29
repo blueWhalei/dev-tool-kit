@@ -24,6 +24,7 @@ export type ToolI18nKey =
   | 'keyPairGenerator'
   | 'devReference'
   | 'qrCodeGenerator'
+  | 'imageTools'
 
 export function useToolI18n(tool: ToolI18nKey) {
   const { t, locale } = useI18n()

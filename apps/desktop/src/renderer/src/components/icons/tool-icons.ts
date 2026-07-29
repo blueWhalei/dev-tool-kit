@@ -22,6 +22,7 @@ export type ToolIconName =
   | 'category-data'
   | 'category-security'
   | 'category-calculator'
+  | 'category-image'
   | 'diff'
   | 'mock'
   | 'subnet'
@@ -29,6 +30,7 @@ export type ToolIconName =
   | 'cert'
   | 'database'
   | 'qr'
+  | 'image'
   | 'unknown'
 
 /** SVG path data (24x24 viewBox, stroke-based) */
@@ -63,6 +65,8 @@ export const TOOL_ICON_PATHS: Record<ToolIconName, string> = {
   cert: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
   database: 'M4 6c0 2 3.6 3 8 3s8-1 8-3-3.6-3-8-3-8 1-8 3z M4 12c0 2 3.6 3 8 3s8-1 8-3 M4 18c0 2 3.6 3 8 3s8-1 8-3',
   qr: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h4v4H3zM10 14h4v4h-4zM17 14h4v4h-4zM3 21h4v4H3zM10 21h4v4h-4zM17 21h4v4h-4z',
+  image: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+  'category-image': 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
   unknown: 'M12 16v-4M12 8h.01M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z'
 }
 
@@ -71,7 +75,8 @@ export const CATEGORY_ICON_MAP: Record<string, ToolIconName> = {
   encode: 'category-encode',
   data: 'category-data',
   security: 'category-security',
-  calculator: 'category-calculator'
+  calculator: 'category-calculator',
+  image: 'category-image'
 }
 
 export function resolveToolIcon(name: string): ToolIconName {

@@ -7,7 +7,8 @@ export default {
       encode: '编码解码',
       data: '数据转换',
       security: '密码与密钥',
-      calculator: '计算器'
+      calculator: '计算器',
+      image: '图片工具'
     },
     routes: {
       portManager: '端口管理',
@@ -32,6 +33,7 @@ export default {
       keyPairGenerator: '密钥对生成',
       devReference: '开发速查',
       qrCodeGenerator: '二维码生成',
+      imageTools: '图片工具',
       settings: '设置',
       about: '关于',
       notFound: '未找到'

@@ -17,7 +17,7 @@ describe('ipc channels smoke', () => {
     expect(IPC_INVOKE_CHANNELS).toContain('hosts:checkWriteAccess')
     expect(IPC_INVOKE_CHANNELS).toContain('hosts:exportSchemes')
     expect(IPC_INVOKE_CHANNELS).toContain('file-renamer:listRules')
-    expect(IPC_INVOKE_CHANNELS).toContain('image-base64:pickImage')
+    expect(IPC_INVOKE_CHANNELS).toContain('image-tools:pickImage')
     expect(IPC_INVOKE_CHANNELS).toContain('key-pair-generator:generate')
   })
 })

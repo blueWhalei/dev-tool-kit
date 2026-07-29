@@ -7,7 +7,8 @@ export default {
       encode: 'Encode & Decode',
       data: 'Data',
       security: 'Security',
-      calculator: 'Calculator'
+      calculator: 'Calculator',
+      image: 'Image'
     },
     routes: {
       portManager: 'Port Manager',
@@ -32,6 +33,7 @@ export default {
       keyPairGenerator: 'Key Pair Generator',
       devReference: 'Developer Reference',
       qrCodeGenerator: 'QR Code Generator',
+      imageTools: 'Image Tools',
       settings: 'Settings',
       about: 'About',
       notFound: 'Not Found'
