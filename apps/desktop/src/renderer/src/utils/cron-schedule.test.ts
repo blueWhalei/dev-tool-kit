@@ -113,8 +113,10 @@ describe('describeCronExpression', () => {
 
 describe('formatRelativeRunTime', () => {
   it('formats future time in minutes', () => {
-    const target = new Date(Date.now() + 5 * 60 * 1000)
-    expect(formatRelativeRunTime(target)).toBe('5 分钟后')
+    // 固定 now，避免执行延迟导致 floor 边界漂移（flaky）
+    const now = new Date('2024-01-01T00:00:00Z')
+    const target = new Date(now.getTime() + 5 * 60 * 1000)
+    expect(formatRelativeRunTime(target, now)).toBe('5 分钟后')
   })
 })
 
