@@ -405,6 +405,11 @@ img {
   color: #5ac8fa;
 }
 
+.feature-icon.image {
+  background: rgba(255, 55, 95, 0.1);
+  color: #ff375f;
+}
+
 .feature-card h3 {
   font-family: var(--font-display);
   font-size: 1.2rem;
