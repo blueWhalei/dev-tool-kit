@@ -1,4 +1,4 @@
-export type HttpStatusCategory = '1xx' | '2xx' | '3xx' | '4xx' | '5xx'
+export type HttpStatusCategory = '1xx' | '2xx' | '3xx' | '4xx' | '5xx' | 'other'
 
 export interface HttpStatusCode {
   code: number
@@ -83,7 +83,7 @@ export function getHttpStatusCategory(code: number): HttpStatusCategory {
   if (hundred >= 1 && hundred <= 5) {
     return `${hundred}xx` as HttpStatusCategory
   }
-  return '5xx'
+  return 'other'
 }
 
 export function formatHttpStatusLine(entry: HttpStatusCode): string {
@@ -136,7 +136,8 @@ export function groupHttpStatusCodes(
     '2xx': [],
     '3xx': [],
     '4xx': [],
-    '5xx': []
+    '5xx': [],
+    'other': []
   }
 
   for (const entry of codes) {

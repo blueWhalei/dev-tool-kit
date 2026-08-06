@@ -15,6 +15,13 @@ describe('getHttpStatusCategory', () => {
     expect(getHttpStatusCategory(404)).toBe('4xx')
     expect(getHttpStatusCategory(503)).toBe('5xx')
   })
+
+  it('maps out-of-range codes to other', () => {
+    expect(getHttpStatusCategory(0)).toBe('other')
+    expect(getHttpStatusCategory(99)).toBe('other')
+    expect(getHttpStatusCategory(600)).toBe('other')
+    expect(getHttpStatusCategory(NaN)).toBe('other')
+  })
 })
 
 describe('formatHttpStatusLine', () => {

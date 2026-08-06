@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { logError, showError } from '../utils/error-handler'
 
 /** Strip Vue reactive proxies before IPC (structured clone rejects proxies). */
-function serializeForIpc(value: unknown): unknown {
+export function serializeForIpc(value: unknown): unknown {
   if (value === undefined || value === null) return value
   const t = typeof value
   if (t === 'string' || t === 'number' || t === 'boolean' || t === 'bigint') {
@@ -12,7 +12,8 @@ function serializeForIpc(value: unknown): unknown {
   try {
     return JSON.parse(JSON.stringify(value))
   } catch {
-    return value
+    // 循环引用/不可序列化数据：明确报错而非把坏对象传给 ipcRenderer（会静默失败）
+    throw new Error('IPC 参数包含无法序列化的数据（循环引用或非结构化克隆类型）')
   }
 }
 
