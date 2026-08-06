@@ -39,6 +39,7 @@ coverage/
 *.swo
 .vscode-test
 .trae/
+.reasonix/
 
 # OS
 .DS_Store
@@ -97,6 +98,7 @@ vite.config.ts.timestamp-*
 # Package files
 *.tgz
 *.lock-wscript
+package-lock.json
 
 # Other
 bower_components/

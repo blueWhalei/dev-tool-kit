@@ -8,11 +8,9 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "format": "turbo run format",
     "test": "vitest run",
     "check:locales": "vitest run scripts/check-locale-keys.test.ts",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean",
     "dist": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack",
     "dist:dir": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:dir",
     "dist:win": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:win",
@@ -34,10 +32,6 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
-  },
-  "dependencies": {
-    "adm-zip": "^0.5.16",
-    "jszip": "^3.10.1"
   },
   "pnpm": {
     "overrides": {

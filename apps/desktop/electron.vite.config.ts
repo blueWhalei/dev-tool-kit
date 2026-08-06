@@ -15,7 +15,7 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '@shared': resolve('src/main/../../packages/shared/src')
+        '@shared': resolve(__dirname, '../../packages/shared/src')
       }
     }
   },
@@ -31,13 +31,14 @@ export default defineConfig({
   },
   renderer: {
     define: {
-      // Avoid vue-i18n runtime message compiler (new Function) under strict CSP
-      __INTLIFY_JIT_COMPILATION__: false
+      // vue-i18n AST JIT 编译。注意：渲染进程的 ajv（JSON Schema 校验）运行时
+      // 仍需 new Function 编译 schema，故 CSP 保留 'unsafe-eval'（见 index.html）。
+      __INTLIFY_JIT_COMPILATION__: true
     },
     resolve: {
       alias: {
-        '@renderer': resolve('src/renderer/src'),
-        '@shared': resolve('src/renderer/src/../../packages/shared/src')
+        '@renderer': resolve(__dirname, 'src/renderer/src'),
+        '@shared': resolve(__dirname, '../../packages/shared/src')
       }
     },
     plugins: [vue()]

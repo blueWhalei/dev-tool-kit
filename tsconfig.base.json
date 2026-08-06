@@ -22,10 +22,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@toolkit/shared/*": ["packages/shared/src/*"]
-    }
+    "baseUrl": "."
   },
   "exclude": ["node_modules", "dist", "**/dist"]
 }

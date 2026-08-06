@@ -60,7 +60,7 @@ function runRegexInWorker(
       resolve(msg)
     })
 
-    worker.on('error', (error) => {
+    worker.on('error', (error: Error) => {
       clearTimeout(timeout)
       worker.terminate()
       resolve({ isValid: false, error: error.message })

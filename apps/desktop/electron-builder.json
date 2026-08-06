@@ -2,6 +2,10 @@
   "appId": "com.devtoolkit.app",
   "productName": "DevToolkit",
   "asar": true,
+  "asarUnpack": [
+    "**/node_modules/sharp/**",
+    "**/node_modules/@img/**"
+  ],
   "publish": null,
   "directories": {
     "buildResources": "resources",
