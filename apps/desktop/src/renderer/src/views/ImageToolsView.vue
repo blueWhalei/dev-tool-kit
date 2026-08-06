@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NTabs, useMessage } from 'naive-ui'
+import { NTabs, NTabPane, NRadioGroup, NRadioButton, useMessage } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import ImageSvgPanel from '../components/image-tools/ImageSvgPanel.vue'
 import ImageBatchPanel from '../components/image-tools/ImageBatchPanel.vue'

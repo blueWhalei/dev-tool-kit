@@ -30,4 +30,12 @@ describe('ImageToolsView tab structure', () => {
       expect(content.match(/<NTabPane/g)?.length ?? 0, `${file} must not wrap NTabPane`).toBe(0)
     }
   })
+
+  it('registers every component used in the template', () => {
+    const script = source.slice(source.indexOf('<script'), source.indexOf('</script>'))
+    const used = [...template.matchAll(/<(N[A-Z]\w*)/g)].map(m => m[1])
+    for (const comp of [...new Set(used)]) {
+      expect(script.includes(comp), `${comp} is used in template but not imported`).toBe(true)
+    }
+  })
 })

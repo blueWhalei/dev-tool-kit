@@ -1,156 +1,156 @@
 <template>
-    <div
-      class="action-bar"
-      style="margin-top: 0; border-top: none; padding-top: 0"
+  <div
+    class="action-bar"
+    style="margin-top: 0; border-top: none; padding-top: 0"
+  >
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForColor"
     >
-      <NButton
-        type="primary"
-        :loading="imageLoading"
-        @click="pickImageForColor"
-      >
-        {{ page.t('actions.pickImage') }}
-      </NButton>
-      <NButton @click="loadFromClipboard">
-        {{ page.t('labels.clipboardImage') }}
-      </NButton>
-    </div>
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+    <NButton @click="loadFromClipboard">
+      {{ page.t('labels.clipboardImage') }}
+    </NButton>
+  </div>
 
-    <template v-if="pickedImage">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.clickToPick') }}</span>
-        </template>
-        <div class="image-preview-wrap color-picker-preview">
-          <img
-            :src="pickedImage.dataUri"
-            :alt="page.t('labels.preview')"
-            class="image-preview"
-            crossorigin="anonymous"
-            style="cursor: crosshair"
-            @click="handleImageClick"
-          >
-        </div>
-      </NCard>
-
-      <NCard
-        v-if="colorPickedHex"
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.pickedColor') }}</span>
-        </template>
-        <div class="picked-color-row">
-          <span
-            class="color-swatch-large"
-            :style="{ backgroundColor: colorPickedHex }"
-          />
-          <div class="color-values">
-            <div class="color-value-row">
-              <span class="result-label">HEX</span>
-              <code class="color-code">{{ colorPickedHex }}</code>
-              <NButton
-                size="tiny"
-                quaternary
-                @click="copy(colorPickedHex, page.t('messages.imageCopied'))"
-              >
-                {{ page.t('actions.copyValue') }}
-              </NButton>
-            </div>
-            <div
-              v-if="colorPickedRgb"
-              class="color-value-row"
-            >
-              <span class="result-label">RGB</span>
-              <code class="color-code">rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code>
-              <NButton
-                size="tiny"
-                quaternary
-                @click="copy(`rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`, page.t('messages.imageCopied'))"
-              >
-                {{ page.t('actions.copyValue') }}
-              </NButton>
-            </div>
-            <div
-              v-if="colorPickedHsl"
-              class="color-value-row"
-            >
-              <span class="result-label">HSL</span>
-              <code class="color-code">hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code>
-              <NButton
-                size="tiny"
-                quaternary
-                @click="copy(`hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`, page.t('messages.imageCopied'))"
-              >
-                {{ page.t('actions.copyValue') }}
-              </NButton>
-            </div>
-          </div>
-        </div>
-      </NCard>
-
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.dominantColors') }}</span>
-            <NButton
-              size="small"
-              :loading="colorExtracting"
-              @click="handleExtractColors"
-            >
-              {{ page.t('actions.extractColors') }}
-            </NButton>
-          </div>
-        </template>
-        <div
-          v-if="colorExtractedColors.length"
-          class="color-palette"
+  <template v-if="pickedImage">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.clickToPick') }}</span>
+      </template>
+      <div class="image-preview-wrap color-picker-preview">
+        <img
+          :src="pickedImage.dataUri"
+          :alt="page.t('labels.preview')"
+          class="image-preview"
+          crossorigin="anonymous"
+          style="cursor: crosshair"
+          @click="handleImageClick"
         >
-          <div
-            v-for="(c, i) in colorExtractedColors"
-            :key="i"
-            class="color-palette-item"
-          >
-            <span
-              class="color-swatch"
-              :style="{ backgroundColor: c.hex }"
-            />
-            <span class="color-palette-info">
-              <code class="color-code">{{ c.hex }}</code>
-              <span class="color-ratio">{{ c.ratio }}%</span>
-            </span>
+      </div>
+    </NCard>
+
+    <NCard
+      v-if="colorPickedHex"
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.pickedColor') }}</span>
+      </template>
+      <div class="picked-color-row">
+        <span
+          class="color-swatch-large"
+          :style="{ backgroundColor: colorPickedHex }"
+        />
+        <div class="color-values">
+          <div class="color-value-row">
+            <span class="result-label">HEX</span>
+            <code class="color-code">{{ colorPickedHex }}</code>
             <NButton
               size="tiny"
               quaternary
-              @click="copy(c.hex, page.t('messages.imageCopied'))"
+              @click="copy(colorPickedHex, page.t('messages.imageCopied'))"
+            >
+              {{ page.t('actions.copyValue') }}
+            </NButton>
+          </div>
+          <div
+            v-if="colorPickedRgb"
+            class="color-value-row"
+          >
+            <span class="result-label">RGB</span>
+            <code class="color-code">rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code>
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copy(`rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`, page.t('messages.imageCopied'))"
+            >
+              {{ page.t('actions.copyValue') }}
+            </NButton>
+          </div>
+          <div
+            v-if="colorPickedHsl"
+            class="color-value-row"
+          >
+            <span class="result-label">HSL</span>
+            <code class="color-code">hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code>
+            <NButton
+              size="tiny"
+              quaternary
+              @click="copy(`hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`, page.t('messages.imageCopied'))"
             >
               {{ page.t('actions.copyValue') }}
             </NButton>
           </div>
         </div>
-        <div
-          v-else
-          class="result-placeholder"
-        >
-          {{ page.t('labels.noColorsExtracted') }}
-        </div>
-      </NCard>
-
-      <div class="action-bar">
-        <NButton @click="goToColorConverter">
-          {{ page.t('actions.goToColorConverter') }}
-        </NButton>
       </div>
-    </template>
+    </NCard>
+
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.dominantColors') }}</span>
+          <NButton
+            size="small"
+            :loading="colorExtracting"
+            @click="handleExtractColors"
+          >
+            {{ page.t('actions.extractColors') }}
+          </NButton>
+        </div>
+      </template>
+      <div
+        v-if="colorExtractedColors.length"
+        class="color-palette"
+      >
+        <div
+          v-for="(c, i) in colorExtractedColors"
+          :key="i"
+          class="color-palette-item"
+        >
+          <span
+            class="color-swatch"
+            :style="{ backgroundColor: c.hex }"
+          />
+          <span class="color-palette-info">
+            <code class="color-code">{{ c.hex }}</code>
+            <span class="color-ratio">{{ c.ratio }}%</span>
+          </span>
+          <NButton
+            size="tiny"
+            quaternary
+            @click="copy(c.hex, page.t('messages.imageCopied'))"
+          >
+            {{ page.t('actions.copyValue') }}
+          </NButton>
+        </div>
+      </div>
+      <div
+        v-else
+        class="result-placeholder"
+      >
+        {{ page.t('labels.noColorsExtracted') }}
+      </div>
+    </NCard>
+
+    <div class="action-bar">
+      <NButton @click="goToColorConverter">
+        {{ page.t('actions.goToColorConverter') }}
+      </NButton>
+    </div>
+  </template>
 </template>
 
 <script setup lang="ts">

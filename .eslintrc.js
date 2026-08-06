@@ -31,6 +31,8 @@ module.exports = {
     'vue/require-explicit-emits': 'off',
     'vue/no-v-html': 'off',
     'vue/no-unused-vars': ['error', { ignorePattern: '^_' }],
+    // 模板中使用的组件必须已注册（防"用了未 import 的组件"类回归）
+    'vue/no-undef-components': ['error', { ignorePatterns: ['^N[A-Z]', 'RouterLink', 'RouterView'] }],
     
     // General
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

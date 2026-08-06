@@ -1,178 +1,178 @@
 <template>
+  <div class="action-bar">
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForResize"
+    >
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
+
+  <template v-if="pickedImage">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.original') }}</span>
+          <NTag
+            v-if="infoData"
+            size="small"
+            :bordered="false"
+          >
+            {{ infoData.width }}×{{ infoData.height }}
+          </NTag>
+        </div>
+      </template>
+      <div class="image-preview-wrap">
+        <img
+          :src="resizeOriginalPreviewUri"
+          :alt="page.t('labels.original')"
+          class="image-preview"
+        >
+      </div>
+    </NCard>
+
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.resizeMode') }}</span>
+      </template>
+      <div class="resize-options">
+        <div class="option-row">
+          <NRadioGroup
+            v-model:value="resizeMode"
+            size="small"
+          >
+            <NRadioButton value="preset">
+              {{ page.t('labels.presetSizes') }}
+            </NRadioButton>
+            <NRadioButton value="custom">
+              {{ page.t('labels.customSize') }}
+            </NRadioButton>
+          </NRadioGroup>
+        </div>
+
+        <div
+          v-if="resizeMode === 'preset'"
+          class="option-row"
+        >
+          <span class="section-label">{{ page.t('labels.presetSizes') }}</span>
+          <NSelect
+            v-model:value="resizePreset"
+            :options="presetSizeOptions"
+            style="min-width: 220px"
+          />
+        </div>
+
+        <div
+          v-if="resizeMode === 'custom'"
+          class="custom-size-row"
+        >
+          <div class="custom-size-field">
+            <span class="section-label">{{ page.t('labels.width') }}</span>
+            <NInput
+              :value="resizeCustomWidth != null ? String(resizeCustomWidth) : ''"
+              :placeholder="page.t('placeholders.width')"
+              style="width: 120px"
+              @update:value="handleResizeWidthInput"
+            />
+          </div>
+          <div class="lock-toggle">
+            <NButton
+              size="small"
+              :type="resizeLockAspect ? 'primary' : 'default'"
+              quaternary
+              @click="resizeLockAspect = !resizeLockAspect"
+            >
+              {{ resizeLockAspect ? '🔗' : '🔗' }}
+            </NButton>
+          </div>
+          <div class="custom-size-field">
+            <span class="section-label">{{ page.t('labels.height') }}</span>
+            <NInput
+              :value="resizeCustomHeight != null ? String(resizeCustomHeight) : ''"
+              :placeholder="page.t('placeholders.height')"
+              style="width: 120px"
+              @update:value="handleResizeHeightInput"
+            />
+          </div>
+        </div>
+
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.fit') }}</span>
+          <NSelect
+            v-model:value="resizeFit"
+            :options="fitOptions"
+            style="width: 160px"
+          />
+        </div>
+
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.withoutEnlargement') }}</span>
+          <NRadioGroup
+            v-model:value="resizeWithoutEnlargement"
+            size="small"
+          >
+            <NRadioButton :value="false">
+              {{ page.t('labels.no') }}
+            </NRadioButton>
+            <NRadioButton :value="true">
+              {{ page.t('labels.yes') }}
+            </NRadioButton>
+          </NRadioGroup>
+        </div>
+      </div>
+    </NCard>
+
+    <NCard
+      v-if="resizeResult"
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.result') }}</span>
+          <NTag
+            size="small"
+            :bordered="false"
+          >
+            {{ resizeResult.width }}×{{ resizeResult.height }}
+          </NTag>
+        </div>
+      </template>
+      <div class="image-preview-wrap">
+        <img
+          :src="`data:${resizeResult.mimeType};base64,${resizeResult.data}`"
+          :alt="page.t('labels.result')"
+          class="image-preview"
+        >
+      </div>
+    </NCard>
+
     <div class="action-bar">
       <NButton
         type="primary"
-        :loading="imageLoading"
-        @click="pickImageForResize"
+        :loading="resizeLoading"
+        @click="handleResize"
       >
-        {{ page.t('actions.pickImage') }}
+        {{ page.t('actions.resize') }}
+      </NButton>
+      <NButton
+        v-if="resizeResult"
+        @click="saveResized"
+      >
+        {{ page.t('actions.save') }}
       </NButton>
     </div>
-
-    <template v-if="pickedImage">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.original') }}</span>
-            <NTag
-              v-if="infoData"
-              size="small"
-              :bordered="false"
-            >
-              {{ infoData.width }}×{{ infoData.height }}
-            </NTag>
-          </div>
-        </template>
-        <div class="image-preview-wrap">
-          <img
-            :src="resizeOriginalPreviewUri"
-            :alt="page.t('labels.original')"
-            class="image-preview"
-          >
-        </div>
-      </NCard>
-
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.resizeMode') }}</span>
-        </template>
-        <div class="resize-options">
-          <div class="option-row">
-            <NRadioGroup
-              v-model:value="resizeMode"
-              size="small"
-            >
-              <NRadioButton value="preset">
-                {{ page.t('labels.presetSizes') }}
-              </NRadioButton>
-              <NRadioButton value="custom">
-                {{ page.t('labels.customSize') }}
-              </NRadioButton>
-            </NRadioGroup>
-          </div>
-
-          <div
-            v-if="resizeMode === 'preset'"
-            class="option-row"
-          >
-            <span class="section-label">{{ page.t('labels.presetSizes') }}</span>
-            <NSelect
-              v-model:value="resizePreset"
-              :options="presetSizeOptions"
-              style="min-width: 220px"
-            />
-          </div>
-
-          <div
-            v-if="resizeMode === 'custom'"
-            class="custom-size-row"
-          >
-            <div class="custom-size-field">
-              <span class="section-label">{{ page.t('labels.width') }}</span>
-              <NInput
-                :value="resizeCustomWidth != null ? String(resizeCustomWidth) : ''"
-                :placeholder="page.t('placeholders.width')"
-                style="width: 120px"
-                @update:value="handleResizeWidthInput"
-              />
-            </div>
-            <div class="lock-toggle">
-              <NButton
-                size="small"
-                :type="resizeLockAspect ? 'primary' : 'default'"
-                quaternary
-                @click="resizeLockAspect = !resizeLockAspect"
-              >
-                {{ resizeLockAspect ? '🔗' : '🔗' }}
-              </NButton>
-            </div>
-            <div class="custom-size-field">
-              <span class="section-label">{{ page.t('labels.height') }}</span>
-              <NInput
-                :value="resizeCustomHeight != null ? String(resizeCustomHeight) : ''"
-                :placeholder="page.t('placeholders.height')"
-                style="width: 120px"
-                @update:value="handleResizeHeightInput"
-              />
-            </div>
-          </div>
-
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.fit') }}</span>
-            <NSelect
-              v-model:value="resizeFit"
-              :options="fitOptions"
-              style="width: 160px"
-            />
-          </div>
-
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.withoutEnlargement') }}</span>
-            <NRadioGroup
-              v-model:value="resizeWithoutEnlargement"
-              size="small"
-            >
-              <NRadioButton :value="false">
-                {{ page.t('labels.no') }}
-              </NRadioButton>
-              <NRadioButton :value="true">
-                {{ page.t('labels.yes') }}
-              </NRadioButton>
-            </NRadioGroup>
-          </div>
-        </div>
-      </NCard>
-
-      <NCard
-        v-if="resizeResult"
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.result') }}</span>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
-              {{ resizeResult.width }}×{{ resizeResult.height }}
-            </NTag>
-          </div>
-        </template>
-        <div class="image-preview-wrap">
-          <img
-            :src="`data:${resizeResult.mimeType};base64,${resizeResult.data}`"
-            :alt="page.t('labels.result')"
-            class="image-preview"
-          >
-        </div>
-      </NCard>
-
-      <div class="action-bar">
-        <NButton
-          type="primary"
-          :loading="resizeLoading"
-          @click="handleResize"
-        >
-          {{ page.t('actions.resize') }}
-        </NButton>
-        <NButton
-          v-if="resizeResult"
-          @click="saveResized"
-        >
-          {{ page.t('actions.save') }}
-        </NButton>
-      </div>
-    </template>
+  </template>
 </template>
 
 <script setup lang="ts">

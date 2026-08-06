@@ -1,101 +1,101 @@
 <template>
-    <div
-      class="action-bar"
-      style="margin-top: 0; border-top: none; padding-top: 0"
+  <div
+    class="action-bar"
+    style="margin-top: 0; border-top: none; padding-top: 0"
+  >
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForFavicon"
     >
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
+
+  <template v-if="pickedImage">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.iconPreset') }}</span>
+      </template>
+      <div class="favicon-options">
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.iconPreset') }}</span>
+          <NSelect
+            v-model:value="faviconPreset"
+            :options="faviconPresetOptions"
+            style="min-width: 200px"
+          />
+        </div>
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.includeIco') }}</span>
+          <NSwitch v-model:value="faviconIncludeIco" />
+        </div>
+      </div>
+    </NCard>
+
+    <div class="action-bar">
       <NButton
         type="primary"
-        :loading="imageLoading"
-        @click="pickImageForFavicon"
+        :loading="faviconLoading"
+        @click="handleGenerateIcons"
       >
-        {{ page.t('actions.pickImage') }}
+        {{ page.t('actions.generateIcons') }}
       </NButton>
     </div>
 
-    <template v-if="pickedImage">
+    <template v-if="faviconResult">
       <NCard
         class="editor-card"
         :bordered="false"
         style="margin-top: 16px"
       >
         <template #header>
-          <span class="card-title">{{ page.t('labels.iconPreset') }}</span>
+          <span class="card-title">{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span>
         </template>
-        <div class="favicon-options">
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.iconPreset') }}</span>
-            <NSelect
-              v-model:value="faviconPreset"
-              :options="faviconPresetOptions"
-              style="min-width: 200px"
-            />
+        <div class="icon-grid">
+          <div
+            v-for="(icon, i) in faviconResult.icons"
+            :key="i"
+            class="icon-item"
+          >
+            <img
+              :src="`data:image/png;base64,${icon.data}`"
+              :alt="icon.fileName"
+              class="icon-preview"
+            >
+            <span class="icon-label">{{ icon.width }}×{{ icon.height }}</span>
+            <span class="icon-filename">{{ icon.fileName }}</span>
           </div>
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.includeIco') }}</span>
-            <NSwitch v-model:value="faviconIncludeIco" />
+        </div>
+
+        <div
+          v-if="faviconResult.ico"
+          style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border)"
+        >
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.icoFile') }}</span>
+            <NTag
+              size="small"
+              :bordered="false"
+            >
+              {{ faviconResult.ico.fileName }}
+            </NTag>
+            <span class="info-value">{{ formatBytes(faviconResult.ico.size) }}</span>
           </div>
         </div>
       </NCard>
 
       <div class="action-bar">
-        <NButton
-          type="primary"
-          :loading="faviconLoading"
-          @click="handleGenerateIcons"
-        >
-          {{ page.t('actions.generateIcons') }}
+        <NButton @click="saveFaviconIcons">
+          {{ page.t('actions.saveAll') }}
         </NButton>
       </div>
-
-      <template v-if="faviconResult">
-        <NCard
-          class="editor-card"
-          :bordered="false"
-          style="margin-top: 16px"
-        >
-          <template #header>
-            <span class="card-title">{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span>
-          </template>
-          <div class="icon-grid">
-            <div
-              v-for="(icon, i) in faviconResult.icons"
-              :key="i"
-              class="icon-item"
-            >
-              <img
-                :src="`data:image/png;base64,${icon.data}`"
-                :alt="icon.fileName"
-                class="icon-preview"
-              >
-              <span class="icon-label">{{ icon.width }}×{{ icon.height }}</span>
-              <span class="icon-filename">{{ icon.fileName }}</span>
-            </div>
-          </div>
-
-          <div
-            v-if="faviconResult.ico"
-            style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border)"
-          >
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.icoFile') }}</span>
-              <NTag
-                size="small"
-                :bordered="false"
-              >
-                {{ faviconResult.ico.fileName }}
-              </NTag>
-              <span class="info-value">{{ formatBytes(faviconResult.ico.size) }}</span>
-            </div>
-          </div>
-        </NCard>
-
-        <div class="action-bar">
-          <NButton @click="saveFaviconIcons">
-            {{ page.t('actions.saveAll') }}
-          </NButton>
-        </div>
-      </template>
     </template>
+  </template>
 </template>
 
 <script setup lang="ts">

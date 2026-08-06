@@ -1,106 +1,106 @@
 <template>
-    <div class="image-base64-panel">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
-            <NTag
-              v-if="base64FileName"
-              size="small"
-              :bordered="false"
-            >
-              {{ base64FileName }}
-            </NTag>
-          </div>
-        </template>
-        <div class="image-actions">
-          <NButton
-            type="primary"
-            :loading="imageLoading"
-            @click="pickImageForBase64"
+  <div class="image-base64-panel">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+    >
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
+          <NTag
+            v-if="base64FileName"
+            size="small"
+            :bordered="false"
           >
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-          <NButton
-            v-if="base64Data"
-            @click="copyBase64"
-          >
-            {{ page.t('actions.copyBase64') }}
-          </NButton>
-          <NButton
-            v-if="base64DataUri"
-            @click="copyDataUri"
-          >
-            {{ page.t('actions.copyDataUri') }}
-          </NButton>
-          <NButton
-            v-if="base64Data"
-            quaternary
-            @click="useForDecode"
-          >
-            {{ page.t('actions.useForDecode') }}
-          </NButton>
+            {{ base64FileName }}
+          </NTag>
         </div>
-        <div
-          v-if="base64Data"
-          class="image-meta"
+      </template>
+      <div class="image-actions">
+        <NButton
+          type="primary"
+          :loading="imageLoading"
+          @click="pickImageForBase64"
         >
-          <span>{{ page.t('labels.mimeType') }}: {{ base64Mime }}</span>
-          <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(base64FileSize) }}</span>
-        </div>
-        <NInput
+          {{ page.t('actions.pickImage') }}
+        </NButton>
+        <NButton
           v-if="base64Data"
-          v-model:value="base64Data"
-          type="textarea"
-          readonly
-          :rows="6"
-          class="code-input image-base64-output"
-        />
-      </NCard>
+          @click="copyBase64"
+        >
+          {{ page.t('actions.copyBase64') }}
+        </NButton>
+        <NButton
+          v-if="base64DataUri"
+          @click="copyDataUri"
+        >
+          {{ page.t('actions.copyDataUri') }}
+        </NButton>
+        <NButton
+          v-if="base64Data"
+          quaternary
+          @click="useForDecode"
+        >
+          {{ page.t('actions.useForDecode') }}
+        </NButton>
+      </div>
+      <div
+        v-if="base64Data"
+        class="image-meta"
+      >
+        <span>{{ page.t('labels.mimeType') }}: {{ base64Mime }}</span>
+        <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(base64FileSize) }}</span>
+      </div>
+      <NInput
+        v-if="base64Data"
+        v-model:value="base64Data"
+        type="textarea"
+        readonly
+        :rows="6"
+        class="code-input image-base64-output"
+      />
+    </NCard>
 
-      <NCard
-        class="editor-card"
-        :bordered="false"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
-        </template>
-        <div class="decode-mime-row">
-          <span class="section-label">{{ page.t('labels.mimeType') }}</span>
-          <NInput
-            v-model:value="decodeMime"
-            :placeholder="page.t('placeholders.mimeType')"
-            style="max-width: 220px"
-          />
-        </div>
+    <NCard
+      class="editor-card"
+      :bordered="false"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
+      </template>
+      <div class="decode-mime-row">
+        <span class="section-label">{{ page.t('labels.mimeType') }}</span>
         <NInput
-          v-model:value="decodeInput"
-          type="textarea"
-          :rows="5"
-          :placeholder="page.t('placeholders.imageBase64')"
-          class="code-input"
+          v-model:value="decodeMime"
+          :placeholder="page.t('placeholders.mimeType')"
+          style="max-width: 220px"
         />
-        <div
-          v-if="decodePreviewVisible"
-          class="image-preview-wrap"
+      </div>
+      <NInput
+        v-model:value="decodeInput"
+        type="textarea"
+        :rows="5"
+        :placeholder="page.t('placeholders.imageBase64')"
+        class="code-input"
+      />
+      <div
+        v-if="decodePreviewVisible"
+        class="image-preview-wrap"
+      >
+        <img
+          :src="decodePreviewUri"
+          :alt="page.t('labels.preview')"
+          class="image-preview"
         >
-          <img
-            :src="decodePreviewUri"
-            :alt="page.t('labels.preview')"
-            class="image-preview"
-          >
-        </div>
-        <p
-          v-else-if="decodeInput.trim()"
-          class="preview-hint"
-        >
-          {{ page.t('messages.invalidImageBase64') }}
-        </p>
-      </NCard>
-    </div>
+      </div>
+      <p
+        v-else-if="decodeInput.trim()"
+        class="preview-hint"
+      >
+        {{ page.t('messages.invalidImageBase64') }}
+      </p>
+    </NCard>
+  </div>
 </template>
 
 <script setup lang="ts">

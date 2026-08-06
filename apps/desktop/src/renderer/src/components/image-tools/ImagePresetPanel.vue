@@ -1,84 +1,84 @@
 <template>
-    <div
-      class="action-bar"
-      style="margin-top: 0; border-top: none; padding-top: 0"
+  <div
+    class="action-bar"
+    style="margin-top: 0; border-top: none; padding-top: 0"
+  >
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForPreset"
     >
-      <NButton
-        type="primary"
-        :loading="imageLoading"
-        @click="pickImageForPreset"
-      >
-        {{ page.t('actions.pickImage') }}
-      </NButton>
-    </div>
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
 
-    <template v-if="pickedImage">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.encodePreset') }}</span>
-        </template>
-        <p class="preset-description">
-          {{ page.t('labels.presetDescription') }}
-        </p>
-        <div class="preset-grid">
-          <div
-            v-for="preset in ENCODE_PRESETS"
-            :key="preset.key"
-            class="preset-card"
-            :class="{ 'preset-card--loading': presetLoading }"
-            @click="applyPreset(preset)"
-          >
-            <span class="preset-name">{{ page.t(`labels.${preset.key}` as any) }}</span>
-            <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc` as any) }}</span>
-          </div>
+  <template v-if="pickedImage">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.encodePreset') }}</span>
+      </template>
+      <p class="preset-description">
+        {{ page.t('labels.presetDescription') }}
+      </p>
+      <div class="preset-grid">
+        <div
+          v-for="preset in ENCODE_PRESETS"
+          :key="preset.key"
+          class="preset-card"
+          :class="{ 'preset-card--loading': presetLoading }"
+          @click="applyPreset(preset)"
+        >
+          <span class="preset-name">{{ page.t(`labels.${preset.key}` as any) }}</span>
+          <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc` as any) }}</span>
         </div>
-      </NCard>
+      </div>
+    </NCard>
 
-      <NCard
-        v-if="presetResult"
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.result') }}</span>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
-              {{ presetResult.mimeType }}
-            </NTag>
-          </div>
-        </template>
-        <div class="image-preview-wrap">
-          <img
-            :src="`data:${presetResult.mimeType};base64,${presetResult.data}`"
-            :alt="page.t('labels.result')"
-            class="image-preview"
+    <NCard
+      v-if="presetResult"
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.result') }}</span>
+          <NTag
+            size="small"
+            :bordered="false"
           >
+            {{ presetResult.mimeType }}
+          </NTag>
         </div>
-        <div
-          class="image-meta"
-          style="margin-top: 8px"
+      </template>
+      <div class="image-preview-wrap">
+        <img
+          :src="`data:${presetResult.mimeType};base64,${presetResult.data}`"
+          :alt="page.t('labels.result')"
+          class="image-preview"
         >
-          <span>{{ presetResult.width }}×{{ presetResult.height }}</span>
-          <span>{{ formatBytes(presetResult.size) }}</span>
-        </div>
-        <div
-          class="action-bar"
-          style="margin-top: 12px; border-top: none; padding-top: 0"
-        >
-          <NButton @click="savePresetResult">
-            {{ page.t('actions.save') }}
-          </NButton>
-        </div>
-      </NCard>
-    </template>
+      </div>
+      <div
+        class="image-meta"
+        style="margin-top: 8px"
+      >
+        <span>{{ presetResult.width }}×{{ presetResult.height }}</span>
+        <span>{{ formatBytes(presetResult.size) }}</span>
+      </div>
+      <div
+        class="action-bar"
+        style="margin-top: 12px; border-top: none; padding-top: 0"
+      >
+        <NButton @click="savePresetResult">
+          {{ page.t('actions.save') }}
+        </NButton>
+      </div>
+    </NCard>
+  </template>
 </template>
 
 <script setup lang="ts">

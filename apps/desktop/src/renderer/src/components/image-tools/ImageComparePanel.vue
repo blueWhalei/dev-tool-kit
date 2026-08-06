@@ -1,157 +1,157 @@
 <template>
-    <div
-      class="action-bar"
-      style="margin-top: 0; border-top: none; padding-top: 0"
+  <div
+    class="action-bar"
+    style="margin-top: 0; border-top: none; padding-top: 0"
+  >
+    <NButton
+      type="primary"
+      :loading="compareLoadingA"
+      @click="pickCompareImage('A')"
     >
-      <NButton
-        type="primary"
-        :loading="compareLoadingA"
-        @click="pickCompareImage('A')"
-      >
-        {{ page.t('actions.pickImageA') }}
-      </NButton>
-      <NButton
-        type="primary"
-        :loading="compareLoadingB"
-        @click="pickCompareImage('B')"
-      >
-        {{ page.t('actions.pickImageB') }}
-      </NButton>
-      <NButton
-        v-if="compareImageA && compareImageB"
-        @click="swapCompareImages"
-      >
-        {{ page.t('actions.swapImages') }}
-      </NButton>
-    </div>
+      {{ page.t('actions.pickImageA') }}
+    </NButton>
+    <NButton
+      type="primary"
+      :loading="compareLoadingB"
+      @click="pickCompareImage('B')"
+    >
+      {{ page.t('actions.pickImageB') }}
+    </NButton>
+    <NButton
+      v-if="compareImageA && compareImageB"
+      @click="swapCompareImages"
+    >
+      {{ page.t('actions.swapImages') }}
+    </NButton>
+  </div>
 
-    <template v-if="compareImageA && compareImageB">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <div class="card-header-flex">
-            <span class="card-title">{{ page.t('labels.compareMode') }}</span>
-            <NRadioGroup
-              v-model:value="compareMode"
-              size="small"
-            >
-              <NRadioButton value="sideBySide">
-                {{ page.t('labels.sideBySide') }}
-              </NRadioButton>
-              <NRadioButton value="slider">
-                {{ page.t('labels.slider') }}
-              </NRadioButton>
-              <NRadioButton value="diffOverlay">
-                {{ page.t('labels.diffOverlay') }}
-              </NRadioButton>
-            </NRadioGroup>
-          </div>
-        </template>
-
-        <!-- Side by side -->
-        <div
-          v-if="compareMode === 'sideBySide'"
-          class="compare-side-by-side"
-        >
-          <div class="compare-image-panel">
-            <span class="compare-label">{{ page.t('labels.imageA') }}</span>
-            <img
-              :src="compareImageA.dataUri"
-              alt="A"
-              class="compare-image"
-            >
-            <span class="compare-meta">{{ compareImageA.width }}×{{ compareImageA.height }} · {{ formatBytes(compareImageA.size) }}</span>
-          </div>
-          <div class="compare-image-panel">
-            <span class="compare-label">{{ page.t('labels.imageB') }}</span>
-            <img
-              :src="compareImageB.dataUri"
-              alt="B"
-              class="compare-image"
-            >
-            <span class="compare-meta">{{ compareImageB.width }}×{{ compareImageB.height }} · {{ formatBytes(compareImageB.size) }}</span>
-          </div>
-        </div>
-
-        <!-- Slider -->
-        <div
-          v-else-if="compareMode === 'slider'"
-          class="compare-slider-container"
-          @mousedown="onSliderMouseDown"
-          @mousemove="onSliderMouseMove"
-          @mouseup="onSliderMouseUp"
-          @mouseleave="onSliderMouseUp"
-        >
-          <img
-            :src="compareImageB.dataUri"
-            alt="B"
-            class="compare-slider-img"
-          >
-          <div
-            class="compare-slider-clip"
-            :style="{ width: sliderPos + '%' }"
-          >
-            <img
-              :src="compareImageA.dataUri"
-              alt="A"
-              class="compare-slider-img"
-            >
-          </div>
-          <div
-            class="compare-slider-handle"
-            :style="{ left: sliderPos + '%' }"
-          />
-          <div class="compare-slider-labels">
-            <span class="compare-label-a">A</span>
-            <span class="compare-label-b">B</span>
-          </div>
-        </div>
-
-        <!-- Diff overlay -->
-        <div
-          v-else-if="compareMode === 'diffOverlay'"
-          class="compare-diff-overlay"
-        >
-          <img
-            v-if="diffOverlayDataUri"
-            :src="diffOverlayDataUri"
-            alt="Diff"
-            class="compare-image"
-          >
-          <NAlert
-            v-else
-            type="info"
-            :bordered="false"
-          >
-            {{ page.t('labels.diffOverlay') }}
-          </NAlert>
-          <div class="compare-diff-legend">
-            <span class="diff-legend-item"><span
-              class="diff-legend-color"
-              style="background: rgba(255, 200, 0, 0.8)"
-            /> {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span>
-            <span class="diff-legend-item"><span
-              class="diff-legend-color"
-              style="background: rgba(128, 128, 128, 0.3)"
-            /> {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span>
-          </div>
-        </div>
-      </NCard>
-    </template>
-
+  <template v-if="compareImageA && compareImageB">
     <NCard
-      v-else
       class="editor-card"
       :bordered="false"
       style="margin-top: 16px"
     >
-      <div class="result-placeholder">
-        {{ page.t('messages.compareNeedTwoImages') }}
+      <template #header>
+        <div class="card-header-flex">
+          <span class="card-title">{{ page.t('labels.compareMode') }}</span>
+          <NRadioGroup
+            v-model:value="compareMode"
+            size="small"
+          >
+            <NRadioButton value="sideBySide">
+              {{ page.t('labels.sideBySide') }}
+            </NRadioButton>
+            <NRadioButton value="slider">
+              {{ page.t('labels.slider') }}
+            </NRadioButton>
+            <NRadioButton value="diffOverlay">
+              {{ page.t('labels.diffOverlay') }}
+            </NRadioButton>
+          </NRadioGroup>
+        </div>
+      </template>
+
+      <!-- Side by side -->
+      <div
+        v-if="compareMode === 'sideBySide'"
+        class="compare-side-by-side"
+      >
+        <div class="compare-image-panel">
+          <span class="compare-label">{{ page.t('labels.imageA') }}</span>
+          <img
+            :src="compareImageA.dataUri"
+            alt="A"
+            class="compare-image"
+          >
+          <span class="compare-meta">{{ compareImageA.width }}×{{ compareImageA.height }} · {{ formatBytes(compareImageA.size) }}</span>
+        </div>
+        <div class="compare-image-panel">
+          <span class="compare-label">{{ page.t('labels.imageB') }}</span>
+          <img
+            :src="compareImageB.dataUri"
+            alt="B"
+            class="compare-image"
+          >
+          <span class="compare-meta">{{ compareImageB.width }}×{{ compareImageB.height }} · {{ formatBytes(compareImageB.size) }}</span>
+        </div>
+      </div>
+
+      <!-- Slider -->
+      <div
+        v-else-if="compareMode === 'slider'"
+        class="compare-slider-container"
+        @mousedown="onSliderMouseDown"
+        @mousemove="onSliderMouseMove"
+        @mouseup="onSliderMouseUp"
+        @mouseleave="onSliderMouseUp"
+      >
+        <img
+          :src="compareImageB.dataUri"
+          alt="B"
+          class="compare-slider-img"
+        >
+        <div
+          class="compare-slider-clip"
+          :style="{ width: sliderPos + '%' }"
+        >
+          <img
+            :src="compareImageA.dataUri"
+            alt="A"
+            class="compare-slider-img"
+          >
+        </div>
+        <div
+          class="compare-slider-handle"
+          :style="{ left: sliderPos + '%' }"
+        />
+        <div class="compare-slider-labels">
+          <span class="compare-label-a">A</span>
+          <span class="compare-label-b">B</span>
+        </div>
+      </div>
+
+      <!-- Diff overlay -->
+      <div
+        v-else-if="compareMode === 'diffOverlay'"
+        class="compare-diff-overlay"
+      >
+        <img
+          v-if="diffOverlayDataUri"
+          :src="diffOverlayDataUri"
+          alt="Diff"
+          class="compare-image"
+        >
+        <NAlert
+          v-else
+          type="info"
+          :bordered="false"
+        >
+          {{ page.t('labels.diffOverlay') }}
+        </NAlert>
+        <div class="compare-diff-legend">
+          <span class="diff-legend-item"><span
+            class="diff-legend-color"
+            style="background: rgba(255, 200, 0, 0.8)"
+          /> {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span>
+          <span class="diff-legend-item"><span
+            class="diff-legend-color"
+            style="background: rgba(128, 128, 128, 0.3)"
+          /> {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span>
+        </div>
       </div>
     </NCard>
+  </template>
+
+  <NCard
+    v-else
+    class="editor-card"
+    :bordered="false"
+    style="margin-top: 16px"
+  >
+    <div class="result-placeholder">
+      {{ page.t('messages.compareNeedTwoImages') }}
+    </div>
+  </NCard>
 </template>
 
 <script setup lang="ts">

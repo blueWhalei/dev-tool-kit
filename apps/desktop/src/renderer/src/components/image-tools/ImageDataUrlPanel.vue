@@ -1,133 +1,133 @@
 <template>
-    <div class="image-base64-panel">
-      <NCard
-        class="editor-card"
-        :bordered="false"
+  <div class="image-base64-panel">
+    <NCard
+      class="editor-card"
+      :bordered="false"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
+      </template>
+      <NInput
+        v-model:value="dataUrlInput"
+        type="textarea"
+        :rows="4"
+        :placeholder="page.t('placeholders.dataUrlInput')"
+        class="code-input"
+      />
+      <div
+        class="action-bar"
+        style="margin-top: 12px; border-top: none; padding-top: 0"
       >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
-        </template>
-        <NInput
-          v-model:value="dataUrlInput"
-          type="textarea"
-          :rows="4"
-          :placeholder="page.t('placeholders.dataUrlInput')"
-          class="code-input"
-        />
-        <div
-          class="action-bar"
-          style="margin-top: 12px; border-top: none; padding-top: 0"
+        <NButton
+          type="primary"
+          @click="handleParseDataUrl"
         >
-          <NButton
-            type="primary"
-            @click="handleParseDataUrl"
-          >
-            {{ page.t('actions.parseDataUrl') }}
-          </NButton>
-          <NButton @click="pickImageForDataUrl">
-            {{ page.t('actions.pickImage') }}
-          </NButton>
-        </div>
-      </NCard>
+          {{ page.t('actions.parseDataUrl') }}
+        </NButton>
+        <NButton @click="pickImageForDataUrl">
+          {{ page.t('actions.pickImage') }}
+        </NButton>
+      </div>
+    </NCard>
 
-      <NCard
-        v-if="dataUrlParseResult"
-        class="editor-card"
-        :bordered="false"
+    <NCard
+      v-if="dataUrlParseResult"
+      class="editor-card"
+      :bordered="false"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.parseResult') }}</span>
+      </template>
+      <NGrid
+        cols="1 640:2"
+        :x-gap="16"
+        :y-gap="12"
       >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.parseResult') }}</span>
-        </template>
-        <NGrid
-          cols="1 640:2"
-          :x-gap="16"
-          :y-gap="12"
-        >
-          <NGridItem>
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.mimeType') }}</span>
-              <NTag
-                size="small"
-                :bordered="false"
-              >
-                {{ dataUrlParseResult.mimeType }}
-              </NTag>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.charset') }}</span>
-              <span class="info-value">{{ dataUrlParseResult.charset || '—' }}</span>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.encoding') }}</span>
-              <NTag
-                size="small"
-                :bordered="false"
-                :type="dataUrlParseResult.isBase64 ? 'info' : 'default'"
-              >
-                {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
-              </NTag>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.estimatedSize') }}</span>
-              <span class="info-value">{{ formatBytes(dataUrlParseResult.size) }}</span>
-            </div>
-          </NGridItem>
-          <NGridItem>
-            <div class="info-item">
-              <span class="result-label">{{ page.t('labels.decodedSize') }}</span>
-              <span class="info-value">{{ formatBytes(dataUrlParseResult.decodedSize) }}</span>
-            </div>
-          </NGridItem>
-        </NGrid>
-
-        <div
-          v-if="dataUrlParseResult.rawText && dataUrlParseResult.mimeType.startsWith('text/')"
-          style="margin-top: 12px"
-        >
-          <span class="section-label">{{ page.t('labels.decodedText') }}</span>
-          <NInput
-            :value="dataUrlParseResult.rawText"
-            type="textarea"
-            readonly
-            :rows="3"
-            class="code-input"
-            style="margin-top: 4px"
-          />
-        </div>
-
-        <div
-          v-if="dataUrlParseResult.mimeType.startsWith('image/')"
-          style="margin-top: 12px"
-        >
-          <span class="section-label">{{ page.t('labels.preview') }}</span>
-          <div
-            class="image-preview-wrap"
-            style="margin-top: 4px"
-          >
-            <img
-              :src="dataUrlInput"
-              :alt="page.t('labels.preview')"
-              class="image-preview"
+        <NGridItem>
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.mimeType') }}</span>
+            <NTag
+              size="small"
+              :bordered="false"
             >
+              {{ dataUrlParseResult.mimeType }}
+            </NTag>
           </div>
-        </div>
+        </NGridItem>
+        <NGridItem>
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.charset') }}</span>
+            <span class="info-value">{{ dataUrlParseResult.charset || '—' }}</span>
+          </div>
+        </NGridItem>
+        <NGridItem>
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.encoding') }}</span>
+            <NTag
+              size="small"
+              :bordered="false"
+              :type="dataUrlParseResult.isBase64 ? 'info' : 'default'"
+            >
+              {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
+            </NTag>
+          </div>
+        </NGridItem>
+        <NGridItem>
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.estimatedSize') }}</span>
+            <span class="info-value">{{ formatBytes(dataUrlParseResult.size) }}</span>
+          </div>
+        </NGridItem>
+        <NGridItem>
+          <div class="info-item">
+            <span class="result-label">{{ page.t('labels.decodedSize') }}</span>
+            <span class="info-value">{{ formatBytes(dataUrlParseResult.decodedSize) }}</span>
+          </div>
+        </NGridItem>
+      </NGrid>
 
+      <div
+        v-if="dataUrlParseResult.rawText && dataUrlParseResult.mimeType.startsWith('text/')"
+        style="margin-top: 12px"
+      >
+        <span class="section-label">{{ page.t('labels.decodedText') }}</span>
+        <NInput
+          :value="dataUrlParseResult.rawText"
+          type="textarea"
+          readonly
+          :rows="3"
+          class="code-input"
+          style="margin-top: 4px"
+        />
+      </div>
+
+      <div
+        v-if="dataUrlParseResult.mimeType.startsWith('image/')"
+        style="margin-top: 12px"
+      >
+        <span class="section-label">{{ page.t('labels.preview') }}</span>
         <div
-          class="action-bar"
-          style="margin-top: 12px; border-top: none; padding-top: 0"
+          class="image-preview-wrap"
+          style="margin-top: 4px"
         >
-          <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
-            {{ page.t('actions.copyDataUri') }}
-          </NButton>
+          <img
+            :src="dataUrlInput"
+            :alt="page.t('labels.preview')"
+            class="image-preview"
+          >
         </div>
-      </NCard>
-    </div>
+      </div>
+
+      <div
+        class="action-bar"
+        style="margin-top: 12px; border-top: none; padding-top: 0"
+      >
+        <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
+          {{ page.t('actions.copyDataUri') }}
+        </NButton>
+      </div>
+    </NCard>
+  </div>
 </template>
 
 <script setup lang="ts">

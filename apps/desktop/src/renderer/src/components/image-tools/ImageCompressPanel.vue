@@ -1,152 +1,152 @@
 <template>
+  <div class="action-bar">
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForCompress"
+    >
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
+
+  <template v-if="pickedImage">
+    <NGrid
+      cols="1 768:2"
+      :x-gap="16"
+      :y-gap="16"
+      style="margin-top: 16px"
+    >
+      <NGridItem>
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <span class="card-title">{{ page.t('labels.original') }}</span>
+          </template>
+          <div class="image-preview-wrap">
+            <img
+              :src="compressOriginalPreviewUri"
+              :alt="page.t('labels.original')"
+              class="image-preview"
+            >
+          </div>
+          <div
+            class="image-meta"
+            style="margin-top: 8px"
+          >
+            <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(pickedImage.size) }}</span>
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem>
+        <NCard
+          v-if="compressResult"
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <span class="card-title">{{ page.t('labels.result') }}</span>
+          </template>
+          <div class="image-preview-wrap">
+            <img
+              :src="`data:${compressResult.mimeType};base64,${compressResult.data}`"
+              :alt="page.t('labels.result')"
+              class="image-preview"
+            >
+          </div>
+          <div
+            class="image-meta"
+            style="margin-top: 8px"
+          >
+            <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(compressResult.size) }}</span>
+            <NTag
+              type="success"
+              size="small"
+              :bordered="false"
+            >
+              {{ page.t('labels.compressionRatio') }}: {{ compressRatio }}
+            </NTag>
+          </div>
+        </NCard>
+        <NCard
+          v-else
+          class="editor-card"
+          :bordered="false"
+        >
+          <div class="result-placeholder">
+            {{ page.t('labels.result') }}
+          </div>
+        </NCard>
+      </NGridItem>
+    </NGrid>
+
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.outputFormat') }}</span>
+      </template>
+      <div class="compress-options">
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
+          <NSelect
+            v-model:value="compressFormat"
+            :options="compressFormatOptions"
+            style="width: 160px"
+          />
+        </div>
+        <div
+          v-if="compressFormat !== 'png'"
+          class="option-row"
+        >
+          <span class="section-label">{{ page.t('labels.quality') }}: {{ compressQuality }}</span>
+          <NSlider
+            v-model:value="compressQuality"
+            :min="1"
+            :max="100"
+            :step="1"
+            style="width: 260px"
+          />
+        </div>
+        <div
+          v-if="compressFormat === 'png'"
+          class="option-row"
+        >
+          <span class="section-label">{{ page.t('labels.palette') }}</span>
+          <NRadioGroup
+            v-model:value="compressPalette"
+            size="small"
+          >
+            <NRadioButton :value="false">
+              {{ page.t('labels.no') }}
+            </NRadioButton>
+            <NRadioButton :value="true">
+              {{ page.t('labels.yes') }}
+            </NRadioButton>
+          </NRadioGroup>
+        </div>
+      </div>
+    </NCard>
+
     <div class="action-bar">
       <NButton
         type="primary"
-        :loading="imageLoading"
-        @click="pickImageForCompress"
+        :loading="compressLoading"
+        @click="handleCompress"
       >
-        {{ page.t('actions.pickImage') }}
+        {{ page.t('actions.compress') }}
+      </NButton>
+      <NButton
+        v-if="compressResult"
+        @click="saveCompressed"
+      >
+        {{ page.t('actions.save') }}
       </NButton>
     </div>
-
-    <template v-if="pickedImage">
-      <NGrid
-        cols="1 768:2"
-        :x-gap="16"
-        :y-gap="16"
-        style="margin-top: 16px"
-      >
-        <NGridItem>
-          <NCard
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.original') }}</span>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="compressOriginalPreviewUri"
-                :alt="page.t('labels.original')"
-                class="image-preview"
-              >
-            </div>
-            <div
-              class="image-meta"
-              style="margin-top: 8px"
-            >
-              <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(pickedImage.size) }}</span>
-            </div>
-          </NCard>
-        </NGridItem>
-        <NGridItem>
-          <NCard
-            v-if="compressResult"
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.result') }}</span>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="`data:${compressResult.mimeType};base64,${compressResult.data}`"
-                :alt="page.t('labels.result')"
-                class="image-preview"
-              >
-            </div>
-            <div
-              class="image-meta"
-              style="margin-top: 8px"
-            >
-              <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(compressResult.size) }}</span>
-              <NTag
-                type="success"
-                size="small"
-                :bordered="false"
-              >
-                {{ page.t('labels.compressionRatio') }}: {{ compressRatio }}
-              </NTag>
-            </div>
-          </NCard>
-          <NCard
-            v-else
-            class="editor-card"
-            :bordered="false"
-          >
-            <div class="result-placeholder">
-              {{ page.t('labels.result') }}
-            </div>
-          </NCard>
-        </NGridItem>
-      </NGrid>
-
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.outputFormat') }}</span>
-        </template>
-        <div class="compress-options">
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
-            <NSelect
-              v-model:value="compressFormat"
-              :options="compressFormatOptions"
-              style="width: 160px"
-            />
-          </div>
-          <div
-            v-if="compressFormat !== 'png'"
-            class="option-row"
-          >
-            <span class="section-label">{{ page.t('labels.quality') }}: {{ compressQuality }}</span>
-            <NSlider
-              v-model:value="compressQuality"
-              :min="1"
-              :max="100"
-              :step="1"
-              style="width: 260px"
-            />
-          </div>
-          <div
-            v-if="compressFormat === 'png'"
-            class="option-row"
-          >
-            <span class="section-label">{{ page.t('labels.palette') }}</span>
-            <NRadioGroup
-              v-model:value="compressPalette"
-              size="small"
-            >
-              <NRadioButton :value="false">
-                {{ page.t('labels.no') }}
-              </NRadioButton>
-              <NRadioButton :value="true">
-                {{ page.t('labels.yes') }}
-              </NRadioButton>
-            </NRadioGroup>
-          </div>
-        </div>
-      </NCard>
-
-      <div class="action-bar">
-        <NButton
-          type="primary"
-          :loading="compressLoading"
-          @click="handleCompress"
-        >
-          {{ page.t('actions.compress') }}
-        </NButton>
-        <NButton
-          v-if="compressResult"
-          @click="saveCompressed"
-        >
-          {{ page.t('actions.save') }}
-        </NButton>
-      </div>
-    </template>
+  </template>
 </template>
 
 <script setup lang="ts">

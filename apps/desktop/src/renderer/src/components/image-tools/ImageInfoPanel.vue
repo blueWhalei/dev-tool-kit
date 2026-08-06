@@ -1,136 +1,136 @@
 <template>
-    <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="imageLoading || infoLoading"
-        @click="pickImageForInfo"
-      >
-        {{ page.t('actions.pickImage') }}
-      </NButton>
-    </div>
-
-    <div
-      v-if="infoPreviewUri"
-      class="image-preview-wrap"
-      style="margin-top: 16px"
+  <div class="action-bar">
+    <NButton
+      type="primary"
+      :loading="imageLoading || infoLoading"
+      @click="pickImageForInfo"
     >
-      <img
-        :src="infoPreviewUri"
-        :alt="page.t('labels.preview')"
-        class="image-preview"
-      >
-    </div>
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
 
-    <NCard
-      v-if="infoData"
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
+  <div
+    v-if="infoPreviewUri"
+    class="image-preview-wrap"
+    style="margin-top: 16px"
+  >
+    <img
+      :src="infoPreviewUri"
+      :alt="page.t('labels.preview')"
+      class="image-preview"
     >
-      <template #header>
-        <span class="card-title">{{ page.t('labels.fileName') }}</span>
-      </template>
-      <NGrid
-        cols="1 640:2"
-        :x-gap="16"
-        :y-gap="12"
-      >
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.fileName') }}</span>
-            <span class="info-value">{{ infoData.fileName }}</span>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.filePath') }}</span>
-            <span class="info-value info-path">{{ infoData.filePath }}</span>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.dimensions') }}</span>
-            <span class="info-value">{{ infoData.width }}×{{ infoData.height }}</span>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.format') }}</span>
-            <span class="info-value">{{ infoData.format }}</span>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.fileSize') }}</span>
-            <span class="info-value">{{ formatBytes(infoData.size) }}</span>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.hasAlpha') }}</span>
-            <NTag
-              :type="infoData.hasAlpha ? 'success' : 'default'"
-              size="small"
-              :bordered="false"
-            >
-              {{ infoData.hasAlpha ? page.t('labels.yes') : page.t('labels.no') }}
-            </NTag>
-          </div>
-        </NGridItem>
-        <NGridItem v-if="infoData.density != null">
-          <div class="info-item">
-            <span class="result-label">{{ page.t('labels.density') }}</span>
-            <span class="info-value">{{ infoData.density }} DPI</span>
-          </div>
-        </NGridItem>
-      </NGrid>
-    </NCard>
+  </div>
 
-    <NCard
-      v-if="infoData"
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
+  <NCard
+    v-if="infoData"
+    class="editor-card"
+    :bordered="false"
+    style="margin-top: 16px"
+  >
+    <template #header>
+      <span class="card-title">{{ page.t('labels.fileName') }}</span>
+    </template>
+    <NGrid
+      cols="1 640:2"
+      :x-gap="16"
+      :y-gap="12"
     >
-      <template #header>
-        <span class="card-title">{{ page.t('labels.exifData') }}</span>
-      </template>
-      <div
-        v-if="exifEntries.length"
-        class="exif-grid"
-      >
-        <div
-          v-for="(entry, index) in exifEntries"
-          :key="index"
-          class="exif-row"
-        >
-          <span class="exif-key">{{ entry.key }}</span>
-          <span class="exif-val">{{ entry.value }}</span>
-          <NButton
-            size="tiny"
-            quaternary
-            @click="copy(entry.value, page.t('messages.imageCopied'))"
-          >
-            {{ page.t('actions.copyValue') }}
-          </NButton>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.fileName') }}</span>
+          <span class="info-value">{{ infoData.fileName }}</span>
         </div>
-      </div>
-      <div
-        v-else
-        class="result-placeholder"
-      >
-        {{ page.t('labels.noExif') }}
-      </div>
-    </NCard>
+      </NGridItem>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.filePath') }}</span>
+          <span class="info-value info-path">{{ infoData.filePath }}</span>
+        </div>
+      </NGridItem>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.dimensions') }}</span>
+          <span class="info-value">{{ infoData.width }}×{{ infoData.height }}</span>
+        </div>
+      </NGridItem>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.format') }}</span>
+          <span class="info-value">{{ infoData.format }}</span>
+        </div>
+      </NGridItem>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.fileSize') }}</span>
+          <span class="info-value">{{ formatBytes(infoData.size) }}</span>
+        </div>
+      </NGridItem>
+      <NGridItem>
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.hasAlpha') }}</span>
+          <NTag
+            :type="infoData.hasAlpha ? 'success' : 'default'"
+            size="small"
+            :bordered="false"
+          >
+            {{ infoData.hasAlpha ? page.t('labels.yes') : page.t('labels.no') }}
+          </NTag>
+        </div>
+      </NGridItem>
+      <NGridItem v-if="infoData.density != null">
+        <div class="info-item">
+          <span class="result-label">{{ page.t('labels.density') }}</span>
+          <span class="info-value">{{ infoData.density }} DPI</span>
+        </div>
+      </NGridItem>
+    </NGrid>
+  </NCard>
 
-    <NAlert
-      v-if="infoData"
-      type="info"
-      :show-icon="true"
-      style="margin-top: 16px"
+  <NCard
+    v-if="infoData"
+    class="editor-card"
+    :bordered="false"
+    style="margin-top: 16px"
+  >
+    <template #header>
+      <span class="card-title">{{ page.t('labels.exifData') }}</span>
+    </template>
+    <div
+      v-if="exifEntries.length"
+      class="exif-grid"
     >
-      {{ page.t('messages.exifStripped') }}
-    </NAlert>
+      <div
+        v-for="(entry, index) in exifEntries"
+        :key="index"
+        class="exif-row"
+      >
+        <span class="exif-key">{{ entry.key }}</span>
+        <span class="exif-val">{{ entry.value }}</span>
+        <NButton
+          size="tiny"
+          quaternary
+          @click="copy(entry.value, page.t('messages.imageCopied'))"
+        >
+          {{ page.t('actions.copyValue') }}
+        </NButton>
+      </div>
+    </div>
+    <div
+      v-else
+      class="result-placeholder"
+    >
+      {{ page.t('labels.noExif') }}
+    </div>
+  </NCard>
+
+  <NAlert
+    v-if="infoData"
+    type="info"
+    :show-icon="true"
+    style="margin-top: 16px"
+  >
+    {{ page.t('messages.exifStripped') }}
+  </NAlert>
 </template>
 
 <script setup lang="ts">

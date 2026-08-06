@@ -1,147 +1,147 @@
 <template>
+  <div class="action-bar">
+    <NButton
+      type="primary"
+      :loading="imageLoading"
+      @click="pickImageForConvert"
+    >
+      {{ page.t('actions.pickImage') }}
+    </NButton>
+  </div>
+
+  <template v-if="pickedImage">
+    <NGrid
+      cols="1 768:2"
+      :x-gap="16"
+      :y-gap="16"
+      style="margin-top: 16px"
+    >
+      <NGridItem>
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <div class="card-header-flex">
+              <span class="card-title">{{ page.t('labels.original') }}</span>
+              <NTag
+                size="small"
+                :bordered="false"
+              >
+                {{ pickedImage.mimeType }}
+              </NTag>
+            </div>
+          </template>
+          <div class="image-preview-wrap">
+            <img
+              :src="convertOriginalPreviewUri"
+              :alt="page.t('labels.original')"
+              class="image-preview"
+            >
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem>
+        <NCard
+          v-if="convertResult"
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <div class="card-header-flex">
+              <span class="card-title">{{ page.t('labels.result') }}</span>
+              <NTag
+                size="small"
+                :bordered="false"
+              >
+                {{ convertResult.mimeType }}
+              </NTag>
+            </div>
+          </template>
+          <div class="image-preview-wrap">
+            <img
+              :src="`data:${convertResult.mimeType};base64,${convertResult.data}`"
+              :alt="page.t('labels.result')"
+              class="image-preview"
+            >
+          </div>
+        </NCard>
+        <NCard
+          v-else
+          class="editor-card"
+          :bordered="false"
+        >
+          <div class="result-placeholder">
+            {{ page.t('labels.result') }}
+          </div>
+        </NCard>
+      </NGridItem>
+    </NGrid>
+
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.targetFormat') }}</span>
+      </template>
+      <div class="convert-options">
+        <div class="option-row">
+          <span class="section-label">{{ page.t('labels.targetFormat') }}</span>
+          <NSelect
+            v-model:value="convertTargetFormat"
+            :options="convertFormatOptions"
+            style="width: 160px"
+          />
+        </div>
+        <div
+          v-if="convertTargetFormat !== 'png'"
+          class="option-row"
+        >
+          <span class="section-label">{{ page.t('labels.quality') }}: {{ convertQuality }}</span>
+          <NSlider
+            v-model:value="convertQuality"
+            :min="1"
+            :max="100"
+            :step="1"
+            style="width: 260px"
+          />
+        </div>
+        <div
+          v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha"
+          class="option-row"
+        >
+          <span class="section-label">{{ page.t('labels.background') }}</span>
+          <NInput
+            v-model:value="convertBackground"
+            :placeholder="page.t('placeholders.backgroundColor')"
+            style="width: 160px"
+          />
+          <span
+            class="color-swatch"
+            :style="{ backgroundColor: convertBackground }"
+          />
+        </div>
+      </div>
+    </NCard>
+
     <div class="action-bar">
       <NButton
         type="primary"
-        :loading="imageLoading"
-        @click="pickImageForConvert"
+        :loading="convertLoading"
+        @click="handleConvert"
       >
-        {{ page.t('actions.pickImage') }}
+        {{ page.t('actions.convert') }}
+      </NButton>
+      <NButton
+        v-if="convertResult"
+        @click="saveConverted"
+      >
+        {{ page.t('actions.save') }}
       </NButton>
     </div>
-
-    <template v-if="pickedImage">
-      <NGrid
-        cols="1 768:2"
-        :x-gap="16"
-        :y-gap="16"
-        style="margin-top: 16px"
-      >
-        <NGridItem>
-          <NCard
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.original') }}</span>
-                <NTag
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ pickedImage.mimeType }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="convertOriginalPreviewUri"
-                :alt="page.t('labels.original')"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-        </NGridItem>
-        <NGridItem>
-          <NCard
-            v-if="convertResult"
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.result') }}</span>
-                <NTag
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ convertResult.mimeType }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="`data:${convertResult.mimeType};base64,${convertResult.data}`"
-                :alt="page.t('labels.result')"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-          <NCard
-            v-else
-            class="editor-card"
-            :bordered="false"
-          >
-            <div class="result-placeholder">
-              {{ page.t('labels.result') }}
-            </div>
-          </NCard>
-        </NGridItem>
-      </NGrid>
-
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.targetFormat') }}</span>
-        </template>
-        <div class="convert-options">
-          <div class="option-row">
-            <span class="section-label">{{ page.t('labels.targetFormat') }}</span>
-            <NSelect
-              v-model:value="convertTargetFormat"
-              :options="convertFormatOptions"
-              style="width: 160px"
-            />
-          </div>
-          <div
-            v-if="convertTargetFormat !== 'png'"
-            class="option-row"
-          >
-            <span class="section-label">{{ page.t('labels.quality') }}: {{ convertQuality }}</span>
-            <NSlider
-              v-model:value="convertQuality"
-              :min="1"
-              :max="100"
-              :step="1"
-              style="width: 260px"
-            />
-          </div>
-          <div
-            v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha"
-            class="option-row"
-          >
-            <span class="section-label">{{ page.t('labels.background') }}</span>
-            <NInput
-              v-model:value="convertBackground"
-              :placeholder="page.t('placeholders.backgroundColor')"
-              style="width: 160px"
-            />
-            <span
-              class="color-swatch"
-              :style="{ backgroundColor: convertBackground }"
-            />
-          </div>
-        </div>
-      </NCard>
-
-      <div class="action-bar">
-        <NButton
-          type="primary"
-          :loading="convertLoading"
-          @click="handleConvert"
-        >
-          {{ page.t('actions.convert') }}
-        </NButton>
-        <NButton
-          v-if="convertResult"
-          @click="saveConverted"
-        >
-          {{ page.t('actions.save') }}
-        </NButton>
-      </div>
-    </template>
+  </template>
 </template>
 
 <script setup lang="ts">

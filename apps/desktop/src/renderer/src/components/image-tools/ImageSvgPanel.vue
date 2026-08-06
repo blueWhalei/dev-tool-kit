@@ -1,135 +1,135 @@
 <template>
-    <div
-      class="action-bar"
-      style="margin-top: 0; border-top: none; padding-top: 0"
+  <div
+    class="action-bar"
+    style="margin-top: 0; border-top: none; padding-top: 0"
+  >
+    <NButton
+      type="primary"
+      :loading="svgLoading"
+      @click="pickSvgFile"
     >
-      <NButton
-        type="primary"
-        :loading="svgLoading"
-        @click="pickSvgFile"
-      >
-        {{ page.t('actions.pickSvg') }}
-      </NButton>
-    </div>
+      {{ page.t('actions.pickSvg') }}
+    </NButton>
+  </div>
 
-    <template v-if="svgFile">
+  <template v-if="svgFile">
+    <NGrid
+      cols="1 768:2"
+      :x-gap="16"
+      :y-gap="16"
+      style="margin-top: 16px"
+    >
+      <NGridItem>
+        <NCard
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <div class="card-header-flex">
+              <span class="card-title">{{ page.t('labels.svgInput') }}</span>
+              <NTag
+                size="small"
+                :bordered="false"
+              >
+                {{ formatBytes(svgFile.size) }}
+              </NTag>
+            </div>
+          </template>
+          <div class="image-preview-wrap">
+            <img
+              :src="svgOriginalBlobUrl"
+              alt="SVG"
+              class="image-preview"
+            >
+          </div>
+        </NCard>
+      </NGridItem>
+      <NGridItem>
+        <NCard
+          v-if="svgOptimizeResult"
+          class="editor-card"
+          :bordered="false"
+        >
+          <template #header>
+            <div class="card-header-flex">
+              <span class="card-title">{{ page.t('labels.svgOutput') }}</span>
+              <NTag
+                type="success"
+                size="small"
+                :bordered="false"
+              >
+                {{ page.t('labels.savings') }}: {{ svgOptimizeResult.savings }}%
+              </NTag>
+            </div>
+          </template>
+          <div class="image-meta">
+            <span>{{ page.t('labels.sizeBefore') }}: {{ formatBytes(svgOptimizeResult.originalSize) }}</span>
+            <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(svgOptimizeResult.optimizedSize) }}</span>
+          </div>
+          <div class="image-preview-wrap">
+            <img
+              :src="svgOptimizedBlobUrl"
+              alt="Optimized SVG"
+              class="image-preview"
+            >
+          </div>
+        </NCard>
+        <NCard
+          v-else
+          class="editor-card"
+          :bordered="false"
+        >
+          <div class="result-placeholder">
+            {{ page.t('labels.svgOutput') }}
+          </div>
+        </NCard>
+      </NGridItem>
+    </NGrid>
+
+    <NCard
+      class="editor-card"
+      :bordered="false"
+      style="margin-top: 16px"
+    >
+      <template #header>
+        <span class="card-title">{{ page.t('labels.svgOptions') }}</span>
+      </template>
       <NGrid
-        cols="1 768:2"
+        cols="1 640:2"
         :x-gap="16"
-        :y-gap="16"
-        style="margin-top: 16px"
+        :y-gap="8"
       >
-        <NGridItem>
-          <NCard
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.svgInput') }}</span>
-                <NTag
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ formatBytes(svgFile.size) }}
-                </NTag>
-              </div>
-            </template>
-            <div class="image-preview-wrap">
-              <img
-                :src="svgOriginalBlobUrl"
-                alt="SVG"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-        </NGridItem>
-        <NGridItem>
-          <NCard
-            v-if="svgOptimizeResult"
-            class="editor-card"
-            :bordered="false"
-          >
-            <template #header>
-              <div class="card-header-flex">
-                <span class="card-title">{{ page.t('labels.svgOutput') }}</span>
-                <NTag
-                  type="success"
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ page.t('labels.savings') }}: {{ svgOptimizeResult.savings }}%
-                </NTag>
-              </div>
-            </template>
-            <div class="image-meta">
-              <span>{{ page.t('labels.sizeBefore') }}: {{ formatBytes(svgOptimizeResult.originalSize) }}</span>
-              <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(svgOptimizeResult.optimizedSize) }}</span>
-            </div>
-            <div class="image-preview-wrap">
-              <img
-                :src="svgOptimizedBlobUrl"
-                alt="Optimized SVG"
-                class="image-preview"
-              >
-            </div>
-          </NCard>
-          <NCard
-            v-else
-            class="editor-card"
-            :bordered="false"
-          >
-            <div class="result-placeholder">
-              {{ page.t('labels.svgOutput') }}
-            </div>
-          </NCard>
+        <NGridItem
+          v-for="(val, key) in svgOptions"
+          :key="key"
+        >
+          <div class="svg-option-row">
+            <NSwitch
+              :value="val"
+              @update:value="(v: boolean) => { (svgOptions as any)[key] = v }"
+            />
+            <span class="svg-option-label">{{ page.t(`labels.${key}` as any) || key }}</span>
+          </div>
         </NGridItem>
       </NGrid>
+    </NCard>
 
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
+    <div class="action-bar">
+      <NButton
+        type="primary"
+        :loading="svgOptimizing"
+        @click="handleOptimizeSvg"
       >
-        <template #header>
-          <span class="card-title">{{ page.t('labels.svgOptions') }}</span>
-        </template>
-        <NGrid
-          cols="1 640:2"
-          :x-gap="16"
-          :y-gap="8"
-        >
-          <NGridItem
-            v-for="(val, key) in svgOptions"
-            :key="key"
-          >
-            <div class="svg-option-row">
-              <NSwitch
-                :value="val"
-                @update:value="(v: boolean) => { (svgOptions as any)[key] = v }"
-              />
-              <span class="svg-option-label">{{ page.t(`labels.${key}` as any) || key }}</span>
-            </div>
-          </NGridItem>
-        </NGrid>
-      </NCard>
-
-      <div class="action-bar">
-        <NButton
-          type="primary"
-          :loading="svgOptimizing"
-          @click="handleOptimizeSvg"
-        >
-          {{ page.t('actions.optimizeSvg') }}
-        </NButton>
-        <NButton
-          v-if="svgOptimizeResult"
-          @click="saveOptimizedSvg"
-        >
-          {{ page.t('actions.save') }}
-        </NButton>
-      </div>
-    </template>
+        {{ page.t('actions.optimizeSvg') }}
+      </NButton>
+      <NButton
+        v-if="svgOptimizeResult"
+        @click="saveOptimizedSvg"
+      >
+        {{ page.t('actions.save') }}
+      </NButton>
+    </div>
+  </template>
 </template>
 
 <script setup lang="ts">
