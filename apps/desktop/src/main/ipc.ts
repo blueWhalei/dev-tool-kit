@@ -10,6 +10,7 @@ import {
   sanitizeMessageBoxOptions,
   isSafeLocalPath
 } from './ipc-validation'
+import { authorizePath } from './modules/path-guard'
 
 export function setupIpcHandlers(): void {
   logger.info('Setting up IPC handlers')
@@ -95,13 +96,23 @@ export function setupIpcHandlers(): void {
   ipcMain.handle('dialog:showOpenDialog', async (event, options: unknown) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { canceled: true, filePaths: [] }
-    return await dialog.showOpenDialog(window, sanitizeOpenDialogOptions(options))
+    const result = await dialog.showOpenDialog(window, sanitizeOpenDialogOptions(options))
+    if (!result.canceled) {
+      for (const filePath of result.filePaths) {
+        authorizePath(filePath)
+      }
+    }
+    return result
   })
 
   ipcMain.handle('dialog:showSaveDialog', async (event, options: unknown) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { canceled: true, filePath: undefined }
-    return await dialog.showSaveDialog(window, sanitizeSaveDialogOptions(options))
+    const result = await dialog.showSaveDialog(window, sanitizeSaveDialogOptions(options))
+    if (!result.canceled) {
+      authorizePath(result.filePath)
+    }
+    return result
   })
 
   ipcMain.handle('dialog:showMessageBox', async (event, options: unknown) => {

@@ -14,6 +14,7 @@ import {
   stableEntryId,
   type ParsedHostsFile
 } from './hosts-parser'
+import { sanitizeHostsEntry, sanitizeHostsText } from './sanitize'
 
 const execFileAsync = promisify(execFile)
 
@@ -235,7 +236,10 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '主机名已存在' }
           return
         }
-        const writeResult = await writeEntriesAndFlush([...entries, { ...entry, id: stableEntryId(entry.ip, entry.hostname) }])
+        const writeResult = await writeEntriesAndFlush([
+          ...entries,
+          sanitizeHostsEntry({ ...entry, id: stableEntryId(entry.ip, entry.hostname) })
+        ])
         result = writeResult.success
           ? { success: true, backupPath: writeResult.backupPath }
           : writeResult
@@ -251,11 +255,30 @@ export function setupHostsEditorIPC(): void {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
-    if (updates.ip !== undefined && !isValidIP(updates.ip)) {
-      return { success: false, error: '无效的 IP 地址' }
+    if (!updates || typeof updates !== 'object') {
+      return { success: false, error: '无效的更新数据' }
     }
-    if (updates.hostname !== undefined && !isValidHostname(updates.hostname)) {
-      return { success: false, error: '无效的主机名' }
+    // 显式字段白名单：仅允许更新可编辑字段，防止任意字段/控制字符注入
+    const sanitized: Partial<HostsEntry> = {}
+    if (updates.ip !== undefined) {
+      if (!isValidIP(updates.ip)) return { success: false, error: '无效的 IP 地址' }
+      sanitized.ip = updates.ip
+    }
+    if (updates.hostname !== undefined) {
+      if (!isValidHostname(updates.hostname)) return { success: false, error: '无效的主机名' }
+      sanitized.hostname = updates.hostname
+    }
+    if (updates.comment !== undefined) {
+      if (typeof updates.comment !== 'string') return { success: false, error: '无效的备注' }
+      sanitized.comment = sanitizeHostsText(updates.comment, 500)
+    }
+    if (updates.enabled !== undefined) {
+      if (typeof updates.enabled !== 'boolean') return { success: false, error: '无效的启用状态' }
+      sanitized.enabled = updates.enabled
+    }
+    if (updates.group !== undefined) {
+      if (typeof updates.group !== 'string') return { success: false, error: '无效的分组' }
+      sanitized.group = sanitizeHostsText(updates.group, 200)
     }
     try {
       let result: HostsOperationResult = { success: false, error: '操作失败' }
@@ -266,7 +289,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        const updated = { ...entries[index], ...updates }
+        const updated = sanitizeHostsEntry({ ...entries[index], ...sanitized })
         updated.id = stableEntryId(updated.ip, updated.hostname)
         entries[index] = updated
         result = await writeEntriesAndFlush(entries)
@@ -328,6 +351,9 @@ export function setupHostsEditorIPC(): void {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
+    if (group !== undefined && typeof group !== 'string') {
+      return { success: false, error: '无效的分组' }
+    }
     try {
       let result: HostsOperationResult = { success: false, error: '操作失败' }
       await enqueueWrite(async () => {
@@ -337,7 +363,10 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        result = await writeEntriesAndFlush(entries.map((e, i) => i === index ? { ...e, group } : e))
+        const sanitizedGroup = group === undefined ? undefined : sanitizeHostsText(group, 200)
+        result = await writeEntriesAndFlush(
+          entries.map((e, i) => i === index ? { ...e, group: sanitizedGroup } : e)
+        )
       })
       return result
     } catch (error) {
@@ -350,11 +379,15 @@ export function setupHostsEditorIPC(): void {
     if (typeof name !== 'string' || !name.trim()) {
       return { success: false, error: '无效的方案名称' }
     }
+    const sanitizedName = sanitizeHostsText(name.trim(), 100)
+    if (!sanitizedName) {
+      return { success: false, error: '无效的方案名称' }
+    }
     try {
       const entries = await readHostsEntries()
       const scheme: HostsScheme = {
         id: generateId(),
-        name,
+        name: sanitizedName,
         timestamp: new Date().toISOString(),
         entries: entries.map(e => ({ ...e }))
       }
@@ -450,10 +483,16 @@ export function setupHostsEditorIPC(): void {
           id: typeof item.id === 'string' && item.id ? item.id : generateId(),
           name: item.name.trim(),
           timestamp: item.timestamp || new Date().toISOString(),
-          entries: item.entries.map(entry => ({
-            ...entry,
-            id: stableEntryId(entry.ip, entry.hostname)
-          }))
+          entries: item.entries
+            .filter(entry => entry && typeof entry.ip === 'string' && typeof entry.hostname === 'string')
+            .map(entry => sanitizeHostsEntry({
+              id: stableEntryId(entry.ip, entry.hostname),
+              ip: entry.ip,
+              hostname: entry.hostname,
+              comment: typeof entry.comment === 'string' ? entry.comment : undefined,
+              enabled: typeof entry.enabled === 'boolean' ? entry.enabled : true,
+              group: typeof entry.group === 'string' ? entry.group : undefined
+            }))
         }))
         .filter(item => item.name)
 

@@ -4,6 +4,7 @@ import { basename, extname, join } from 'path'
 import sharp from 'sharp'
 import exifr from 'exifr'
 import { logger } from '../../logger'
+import { authorizePath, isPathAuthorized } from '../path-guard'
 import type {
   ImageInfo,
   ExifData,
@@ -38,10 +39,19 @@ function getMimeType(format: string): string {
   return MIME_BY_FORMAT[format] || `image/${format}`
 }
 
+/** 仅保留最末路径段并拒绝危险字符，防止文件名路径穿越 */
+function sanitizeOutputFileName(name: unknown): string | null {
+  if (typeof name !== 'string') return null
+  const base = basename(name.trim())
+  if (!base || base === '.' || base === '..') return null
+  if (/[<>:"|?*]/.test(base) || /[\0\r\n]/.test(base)) return null
+  return base
+}
+
 async function parseExif(filePath: string): Promise<ExifData | null> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = await exifr.parse(filePath, true as any)
+    const data = await exifr.parse(filePath)
     if (!data) return null
 
     const exif: ExifData = {}
@@ -86,6 +96,7 @@ export function setupImageToolsIPC(): void {
       if (result.canceled || result.filePaths.length === 0) return null
 
       const filePath = result.filePaths[0]
+      authorizePath(filePath)
       const buffer = await readFile(filePath)
       const fileName = basename(filePath)
       const ext = extname(filePath).toLowerCase().slice(1)
@@ -116,6 +127,7 @@ export function setupImageToolsIPC(): void {
 
       const images = []
       for (const filePath of result.filePaths) {
+        authorizePath(filePath)
         const buffer = await readFile(filePath)
         const fileName = basename(filePath)
         const ext = extname(filePath).toLowerCase().slice(1)
@@ -137,6 +149,10 @@ export function setupImageToolsIPC(): void {
 
   // Get image info + EXIF
   ipcMain.handle('image-tools:getInfo', async (_event, filePath: string) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:getInfo for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       const fileName = basename(filePath)
@@ -171,6 +187,10 @@ export function setupImageToolsIPC(): void {
     filePath: string,
     options: CompressOptions
   ) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:compress for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       const fileName = basename(filePath)
@@ -227,6 +247,10 @@ export function setupImageToolsIPC(): void {
     filePath: string,
     options: ResizeOptions
   ) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:resize for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       const fileName = basename(filePath)
@@ -278,6 +302,10 @@ export function setupImageToolsIPC(): void {
     filePath: string,
     options: ImageConvertOptions
   ) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:convert for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       const fileName = basename(filePath, extname(filePath))
@@ -340,6 +368,7 @@ export function setupImageToolsIPC(): void {
       if (result.canceled || !result.filePath) return { success: false, error: 'Cancelled' }
 
       const buffer = Buffer.from(data, 'base64')
+      authorizePath(result.filePath)
       await writeFile(result.filePath, buffer)
       return { success: true, path: result.filePath }
     } catch (error) {
@@ -355,26 +384,38 @@ export function setupImageToolsIPC(): void {
     targetDir?: string
   ) => {
     try {
-      const outputDir = targetDir ?? await (async () => {
+      let outputDir = targetDir
+      if (outputDir !== undefined && !isPathAuthorized(outputDir)) {
+        logger.warn('Blocked image-tools:saveImages for unauthorized targetDir:', outputDir)
+        return { success: false, error: '未授权的保存目录' }
+      }
+      if (outputDir === undefined) {
         const win = BrowserWindow.getFocusedWindow()
-        if (!win) return null
+        if (!win) return { success: false, error: 'No active window' }
         const result = await dialog.showOpenDialog(win, {
           properties: ['openDirectory', 'createDirectory'],
           title: 'Select output directory'
         })
-        return result.canceled ? null : result.filePaths[0]
-      })()
-
-      if (!outputDir) return { success: false, error: 'Cancelled' }
+        if (result.canceled || result.filePaths.length === 0) {
+          return { success: false, error: 'Cancelled' }
+        }
+        outputDir = result.filePaths[0]
+        authorizePath(outputDir)
+      }
 
       await mkdir(outputDir, { recursive: true })
       const results = []
 
       for (const img of images) {
-        const filePath = join(outputDir, img.fileName)
+        const fileName = sanitizeOutputFileName(img.fileName)
+        if (!fileName) {
+          results.push({ fileName: img.fileName, path: '', success: false, error: '非法文件名' })
+          continue
+        }
+        const filePath = join(outputDir, fileName)
         const buffer = Buffer.from(img.data, 'base64')
         await writeFile(filePath, buffer)
-        results.push({ fileName: img.fileName, path: filePath, success: true })
+        results.push({ fileName, path: filePath, success: true })
       }
 
       return { success: true, results, outputDir }
@@ -394,6 +435,7 @@ export function setupImageToolsIPC(): void {
       if (result.canceled || result.filePaths.length === 0) return null
 
       const filePath = result.filePaths[0]
+      authorizePath(filePath)
       const content = await readFile(filePath, 'utf-8')
       const fileName = basename(filePath)
       const stats = await import('fs/promises').then(m => m.stat(filePath))
@@ -461,6 +503,10 @@ export function setupImageToolsIPC(): void {
     filePath: string,
     maxColors: number = 8
   ) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:extractColors for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       // Resize to small image for faster processing
@@ -569,6 +615,10 @@ export function setupImageToolsIPC(): void {
     sizes: number[],
     includeIco: boolean
   ) => {
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked image-tools:generateIcons for unauthorized path:', filePath)
+      return null
+    }
     try {
       const buffer = await readFile(filePath)
       const fileName = basename(filePath, extname(filePath))
@@ -662,6 +712,12 @@ export function setupImageToolsIPC(): void {
 
     for (let i = 0; i < items.length; i++) {
       results[i].status = 'processing'
+      if (!isPathAuthorized(items[i].filePath)) {
+        logger.warn('Blocked image-tools:batchProcess for unauthorized path:', items[i].filePath)
+        results[i].status = 'error'
+        results[i].error = 'Unauthorized path'
+        continue
+      }
       try {
         const buffer = await readFile(items[i].filePath)
         let pipeline = sharp(buffer)

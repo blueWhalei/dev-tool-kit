@@ -75,9 +75,21 @@ export function validateAgainstSchema(data: unknown, schemaText: string): Schema
     return { success: false, error: schemaResult.error }
   }
 
-  const ajv = new Ajv({ allErrors: true, strict: false })
-  const validate = ajv.compile(schemaResult.result!)
-  const valid = validate(data)
+  let validate: ReturnType<Ajv['compile']>
+  try {
+    const ajv = new Ajv({ allErrors: true, strict: false })
+    validate = ajv.compile(schemaResult.result!)
+  } catch {
+    // JSON 合法但 Schema 结构非法（如 {"type":123}）时 ajv.compile 会抛异常
+    return { success: false, error: 'Schema 结构无效' }
+  }
+
+  let valid: boolean
+  try {
+    valid = validate(data)
+  } catch {
+    return { success: false, error: 'Schema 校验失败' }
+  }
 
   if (valid) {
     return { success: true, valid: true }

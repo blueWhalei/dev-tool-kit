@@ -293,6 +293,16 @@ export function setupFileRenamerIPC(): void {
         continue
       }
 
+      if (!isAllowedFolder(dirname(preview.path))) {
+        results.push({
+          success: false,
+          original: preview.original,
+          renamed: preview.preview,
+          error: '路径未授权'
+        })
+        continue
+      }
+
       try {
         if (!isValidFilename(preview.preview)) {
           results.push({
@@ -354,6 +364,15 @@ export function setupFileRenamerIPC(): void {
 
     for (const op of ops) {
       if (!op?.oldPath || !op?.newPath) continue
+      if (!isAllowedFolder(dirname(op.oldPath)) || !isAllowedFolder(dirname(op.newPath))) {
+        results.push({
+          success: false,
+          original: basename(op.newPath),
+          renamed: basename(op.oldPath),
+          error: '路径未授权'
+        })
+        continue
+      }
       try {
         if (!existsSync(op.newPath)) {
           results.push({

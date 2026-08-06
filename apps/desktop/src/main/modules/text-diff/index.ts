@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { readFile } from 'fs/promises'
 import { basename } from 'path'
 import { logger } from '../../logger'
+import { isPathAuthorized } from '../path-guard'
 
 export interface TextFileReadResult {
   content: string
@@ -13,6 +14,10 @@ export function setupTextDiffIPC(): void {
 
   ipcMain.handle('text-diff:readFile', async (_, filePath: unknown) => {
     if (typeof filePath !== 'string' || !filePath.trim()) {
+      return null
+    }
+    if (!isPathAuthorized(filePath)) {
+      logger.warn('Blocked text-diff:readFile for unauthorized path:', filePath)
       return null
     }
     try {
