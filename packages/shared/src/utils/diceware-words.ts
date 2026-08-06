@@ -196,7 +196,7 @@ export const DICEWARE_WORDS: readonly string[] = [
   'dreamily', 'dreamland', 'dreamless', 'dreamlike', 'dreamt', 'dreamy', 'drearily', 'dreary', 'drench', 'dress',
   'drew', 'dribble', 'dried', 'drier', 'drift', 'driller', 'drilling', 'drinkable', 'drinking', 'dripping',
   'drippy', 'drivable', 'driven', 'driver', 'driveway', 'driving', 'drizzle', 'drizzly', 'drone', 'drool',
-  'droop', 'drop-down', 'dropbox', 'dropkick', 'droplet', 'dropout', 'dropper', 'drove', 'drown', 'drowsily',
+  'droop', 'drape', 'dropbox', 'dropkick', 'droplet', 'dropout', 'dropper', 'drove', 'drown', 'drowsily',
   'drudge', 'drum', 'dry', 'dubbed', 'dubiously', 'duchess', 'duckbill', 'ducking', 'duckling', 'ducktail',
   'ducky', 'duct', 'dude', 'duffel', 'dugout', 'duh', 'duke', 'duller', 'dullness', 'duly',
   'dumping', 'dumpling', 'dumpster', 'duo', 'dupe', 'duplex', 'duplicate', 'duplicity', 'durable', 'durably',
@@ -204,13 +204,30 @@ export const DICEWARE_WORDS: readonly string[] = [
   'dwelled', 'dweller', 'dwelling', 'dwindle', 'dwindling', 'dynamic', 'dynamite', 'dynasty', 'dyslexia', 'dyslexic'
 ]
 
+/** 安全随机数：优先全局 Web Crypto（渲染进程/Node 20+），回退 globalThis.webcrypto */
+function secureRandomValues(array: Uint32Array): Uint32Array {
+  const g = globalThis as { crypto?: Crypto; webcrypto?: Crypto }
+  const random = g.crypto ?? g.webcrypto
+  if (random && typeof random.getRandomValues === 'function') {
+    return random.getRandomValues(array)
+  }
+  throw new Error('当前环境不支持 Web Crypto，无法生成口令')
+}
+
 export function generatePassphrase(wordCount: number, separator = '-'): string {
-  const count = Math.max(3, Math.min(12, Math.floor(wordCount)))
+  const raw = Math.floor(wordCount)
+  const count = Number.isFinite(raw) ? Math.max(3, Math.min(12, raw)) : 6
   const words: string[] = []
-  const array = new Uint32Array(count)
-  crypto.getRandomValues(array)
+  // 拒绝采样消除模偏差（词表长度非 2 的幂）
+  const limit = Math.floor(0xFFFFFFFF / DICEWARE_WORDS.length) * DICEWARE_WORDS.length
+  const buf = new Uint32Array(1)
   for (let i = 0; i < count; i++) {
-    words.push(DICEWARE_WORDS[array[i] % DICEWARE_WORDS.length])
+    let value: number
+    do {
+      secureRandomValues(buf)
+      value = buf[0]
+    } while (value >= limit)
+    words.push(DICEWARE_WORDS[value % DICEWARE_WORDS.length])
   }
   return words.join(separator)
 }

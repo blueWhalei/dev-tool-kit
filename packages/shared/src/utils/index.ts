@@ -28,7 +28,10 @@ export function formatBytes(bytes: number, decimals = 2): string {
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1)
+  const i = Math.min(
+    Math.max(Math.floor(Math.log(bytes) / Math.log(k)), 0),
+    sizes.length - 1
+  )
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
@@ -90,9 +93,10 @@ export function isValidPath(path: string): boolean {
 
 // String utilities
 export function truncate(str: string, length: number, ellipsis = '...'): string {
-  if (str.length <= length) return str
-  if (length <= ellipsis.length) return str.slice(0, length)
-  return str.slice(0, length - ellipsis.length) + ellipsis
+  const len = Math.max(0, length)
+  if (str.length <= len) return str
+  if (len <= ellipsis.length) return str.slice(0, len)
+  return str.slice(0, len - ellipsis.length) + ellipsis
 }
 
 export function capitalize(str: string): string {
@@ -116,13 +120,13 @@ export function unique<T>(arr: T[]): T[] {
 }
 
 export function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
-  return arr.reduce((groups, item) => {
+  const groups: Record<string, T[]> = {}
+  for (const item of arr) {
     const groupKey = String(item[key])
-    return {
-      ...groups,
-      [groupKey]: [...(groups[groupKey] || []), item]
-    }
-  }, {} as Record<string, T[]>)
+    if (!groups[groupKey]) groups[groupKey] = []
+    groups[groupKey].push(item)
+  }
+  return groups
 }
 
 export function chunk<T>(arr: T[], size: number): T[][] {

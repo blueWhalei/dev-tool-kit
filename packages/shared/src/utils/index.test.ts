@@ -298,3 +298,14 @@ describe('throttle', () => {
     expect(fn).toHaveBeenCalledTimes(2)
   })
 })
+describe('formatBytes edge cases', () => {
+  it('handles sub-byte values', () => {
+    expect(formatBytes(0.5)).toBe('0.5 B')
+  })
+})
+
+describe('truncate edge cases', () => {
+  it('handles negative length', () => {
+    expect(truncate('hello', -2)).toBe('')
+  })
+})

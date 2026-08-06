@@ -321,10 +321,10 @@ export class PortScanner {
     try {
       if (this.platform === 'win32') {
         const args = force ? ['/F', '/PID', pidStr] : ['/PID', pidStr]
-        await execFileAsync('taskkill', args, { windowsHide: true })
+        await execFileAsync('taskkill', args, { windowsHide: true, timeout: 10000 })
       } else {
         const signal = force ? 'SIGKILL' : 'SIGTERM'
-        await execFileAsync('kill', [`-${signal}`, pidStr])
+        await execFileAsync('kill', [`-${signal}`, pidStr], { timeout: 10000 })
       }
 
       this.processNameCache.delete(pid)

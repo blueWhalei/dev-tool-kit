@@ -204,12 +204,12 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
 ]
 
 export function buildGitCommand(template: GitCommandTemplate, values: Record<string, string>): string {
-  let cmd = template.template
-  for (const param of template.params) {
-    const value = values[param.key] ?? param.defaultValue ?? ''
-    cmd = cmd.replaceAll(`{${param.key}}`, value)
-  }
-  return cmd
+  // 单次正则替换全部占位符，避免替换值内含 {param} 时被二次替换
+  return template.template.replace(/\{(\w+)\}/g, (match, key: string) => {
+    const param = template.params.find(p => p.key === key)
+    if (!param) return match
+    return values[key] ?? param.defaultValue ?? ''
+  })
 }
 
 export function filterGitCommands(query: string, category: GitCommandCategory | 'all', locale: 'zh' | 'en'): GitCommandTemplate[] {

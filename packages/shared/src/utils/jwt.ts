@@ -39,11 +39,11 @@ const RSA_ALGORITHMS: Record<JwtRsaAlgorithm, string> = {
 }
 
 function isHmacAlgorithm(alg: string): alg is JwtHmacAlgorithm {
-  return alg in HMAC_ALGORITHMS
+  return Object.hasOwn(HMAC_ALGORITHMS, alg)
 }
 
 function isRsaAlgorithm(alg: string): alg is JwtRsaAlgorithm {
-  return alg in RSA_ALGORITHMS
+  return Object.hasOwn(RSA_ALGORITHMS, alg)
 }
 
 function fail<T = never>(error: string): ConverterResult<T> {

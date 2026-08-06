@@ -551,27 +551,27 @@ async function flushDNS(): Promise<DnsFlushResult> {
   }
 
   if (platform === 'win32') {
-    await execFileAsync('ipconfig', ['/flushdns'], { windowsHide: true })
+    await execFileAsync('ipconfig', ['/flushdns'], { windowsHide: true, timeout: 10000 })
     return { success: true, method: 'ipconfig' }
   }
 
   if (platform === 'darwin') {
-    await execFileAsync('dscacheutil', ['-flushcache'], { windowsHide: true })
+    await execFileAsync('dscacheutil', ['-flushcache'], { windowsHide: true, timeout: 10000 })
     return { success: true, method: 'dscacheutil' }
   }
 
   const attempts: Array<{ method: DnsFlushResult['method']; run: () => Promise<unknown> }> = [
     {
       method: 'systemd-resolve',
-      run: async () => { await execFileAsync('systemd-resolve', ['--flush-caches'], { windowsHide: true }) }
+      run: async () => { await execFileAsync('systemd-resolve', ['--flush-caches'], { windowsHide: true, timeout: 10000 }) }
     },
     {
       method: 'resolvectl',
-      run: async () => { await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true }) }
+      run: async () => { await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true, timeout: 10000 }) }
     },
     {
       method: 'nscd',
-      run: async () => { await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true }) }
+      run: async () => { await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true, timeout: 10000 }) }
     }
   ]
 

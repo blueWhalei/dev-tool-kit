@@ -17,7 +17,7 @@ export function parseKillError(errorMsg: string, platform: string): ParsedKillEr
   }
 
   if (/Access is denied|access denied/i.test(msg)) {
-    return { code: 'access_denied', needSudo: false }
+    return { code: 'access_denied', needSudo: platform === 'win32' }
   }
 
   return { code: 'unknown', needSudo: false }
@@ -31,7 +31,7 @@ export function buildKillCommand(
   const pidStr = String(Math.floor(pid))
 
   if (platform === 'win32') {
-    return force ? `taskkill /F /PID ${pidStr}` : `taskkill /PID ${pidStr}`
+    return force ? `taskkill /F /T /PID ${pidStr}` : `taskkill /T /PID ${pidStr}`
   }
 
   const signal = force ? '-9' : '-15'

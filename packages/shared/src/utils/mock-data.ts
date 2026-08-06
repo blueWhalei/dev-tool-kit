@@ -89,7 +89,7 @@ function generatePhone(): string {
 }
 
 function generateDate(): string {
-  const start = new Date(2020, 0, 1).getTime()
+  const start = Date.UTC(2020, 0, 1)
   const end = Date.now()
   const date = new Date(start + Math.random() * (end - start))
   return date.toISOString().split('T')[0]
@@ -263,7 +263,7 @@ export function recordsToSqlInsert(
   if (records.length === 0) return ''
   const table = sanitizeSqlTableName(tableName)
   const headers = Object.keys(records[0])
-  const columns = headers.map(h => `\`${h}\``).join(', ')
+  const columns = headers.map(h => `\`${String(h).replace(/`/g, '``')}\``).join(', ')
   const lines = records.map(record => {
     const values = headers.map(header => sqlLiteral(record[header])).join(', ')
     return `INSERT INTO \`${table}\` (${columns}) VALUES (${values});`

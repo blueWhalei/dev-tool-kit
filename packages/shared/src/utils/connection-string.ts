@@ -90,7 +90,8 @@ function resolveHostPort(hostPort: string): { host: string; port: number | null 
   }
 
   const colonIndex = trimmed.lastIndexOf(':')
-  if (colonIndex > 0) {
+  if (colonIndex > 0 && trimmed.indexOf(':') === colonIndex) {
+    // 仅单个冒号才可能是 host:port；多个冒号视为裸 IPv6 地址（无端口）
     const maybePort = trimmed.slice(colonIndex + 1)
     if (/^\d+$/.test(maybePort)) {
       const port = Number.parseInt(maybePort, 10)

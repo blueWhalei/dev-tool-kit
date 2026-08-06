@@ -167,8 +167,17 @@ export function numberBaseConvert(
   if (![2, 8, 10, 16].includes(fromBase) || ![2, 8, 10, 16].includes(toBase)) {
     return fail('不支持的数据进制')
   }
+  const str = String(num).trim()
+  const validPattern =
+    fromBase === 2 ? /^-?[01]+$/
+      : fromBase === 8 ? /^-?[0-7]+$/
+        : fromBase === 10 ? /^-?\d+$/
+          : /^-?[0-9a-fA-F]+$/
+  if (!validPattern.test(str)) {
+    return fail('无效的数字')
+  }
   try {
-    const decimal = parseInt(String(num), fromBase)
+    const decimal = parseInt(str, fromBase)
     if (isNaN(decimal)) return fail('无效的数字')
 
     if (toBase === 16) return { success: true, result: decimal.toString(16).toUpperCase() }
@@ -234,14 +243,18 @@ export function htmlEncode(text: string): ConverterResult {
 }
 
 export function htmlDecode(text: string): ConverterResult {
+  // 码点超过 0x10FFFF 时 fromCodePoint 会抛 RangeError，保留原实体文本不回退
+  const decodeCodePoint = (cp: number, raw: string): string =>
+    cp > 0x10FFFF ? raw : String.fromCodePoint(cp)
+
   const result = text
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&apos;/g, "'")
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => decodeCodePoint(parseInt(hex, 16), `&#x${hex};`))
+    .replace(/&#(\d+);/g, (_, dec) => decodeCodePoint(parseInt(dec, 10), `&#${dec};`))
     .replace(/&amp;/g, '&')
   return { success: true, result }
 }

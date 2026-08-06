@@ -16,10 +16,10 @@ describe('parseKillError', () => {
     })
   })
 
-  it('detects permission denied on Windows without sudo hint', () => {
+  it('detects access denied on Windows with sudo hint', () => {
     expect(parseKillError('ERROR: Access is denied.', 'win32')).toEqual({
       code: 'access_denied',
-      needSudo: false
+      needSudo: true
     })
   })
 
@@ -43,7 +43,7 @@ describe('buildKillCommand', () => {
   })
 
   it('builds taskkill on Windows', () => {
-    expect(buildKillCommand(99, { force: true, platform: 'win32' })).toBe('taskkill /F /PID 99')
+    expect(buildKillCommand(99, { force: true, platform: 'win32' })).toBe('taskkill /F /T /PID 99')
   })
 })
 

@@ -164,8 +164,10 @@ function detectPreviewConflicts(previews: RenamePreview[]): RenamePreview[] {
       return { ...preview, conflict: '目标文件名已存在' }
     }
 
-    const count = targetNames.get(preview.preview) ?? 0
-    targetNames.set(preview.preview, count + 1)
+    // 按目录分组统计，避免跨目录批量重命名时误报重复
+    const key = `${dir}\u0000${preview.preview}`
+    const count = targetNames.get(key) ?? 0
+    targetNames.set(key, count + 1)
     if (count > 0) {
       return { ...preview, conflict: '批量重命名后文件名重复' }
     }

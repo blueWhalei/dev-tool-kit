@@ -196,3 +196,13 @@ describe('buildConnectionString', () => {
     expect(buildConnectionString({ protocol: 'ftp', host: 'localhost' }).error).toBe('unsupported_protocol')
   })
 })
+describe('parseConnectionString bare IPv6', () => {
+  it('does not treat bare IPv6 address as host:port', () => {
+    const result = parseConnectionString('postgresql://::1/mydb')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.result!.host).toBe('::1')
+      expect(result.result!.port).toBe(5432) // 未显式写端口时使用协议默认端口
+    }
+  })
+})

@@ -182,7 +182,11 @@ export function setupEnvManagerIPC(): void {
   })
 
   ipcMain.handle('env-manager:export', async (_, variables: EnvVariable[]) => {
-    const content = variables.map((v) => `${v.name}=${v.value}`).join('\n')
+    if (!Array.isArray(variables)) return ''
+    const content = variables
+      .filter(v => v && typeof v.name === 'string' && typeof v.value === 'string')
+      .map((v) => `${v.name}=${v.value}`)
+      .join('\n')
     return content
   })
 

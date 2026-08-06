@@ -190,3 +190,14 @@ describe('HSV and WCAG', () => {
     expect(result.ratio).toBeGreaterThan(20)
   })
 })
+describe('hexToRgba strict validation', () => {
+  it('rejects hex strings with mixed invalid characters', () => {
+    expect(hexToRgba('#1G2G3G')).toBeNull()
+    expect(hexToRgba('#ff00GG80')).toBeNull()
+    expect(hexToRgba('#12G')).toBeNull()
+  })
+
+  it('accepts lowercase hex', () => {
+    expect(hexToRgba('#1f2f3f')).not.toBeNull()
+  })
+})

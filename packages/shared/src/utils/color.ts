@@ -33,14 +33,17 @@ export function hexToRgba(hex: string): ColorRGBA | null {
   let r: number, g: number, b: number, a = 1
 
   if (cleaned.length === 3) {
+    if (!/^[0-9a-fA-F]{3}$/.test(cleaned)) return null
     r = parseInt(cleaned[0] + cleaned[0], 16)
     g = parseInt(cleaned[1] + cleaned[1], 16)
     b = parseInt(cleaned[2] + cleaned[2], 16)
   } else if (cleaned.length === 6) {
+    if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null
     r = parseInt(cleaned.slice(0, 2), 16)
     g = parseInt(cleaned.slice(2, 4), 16)
     b = parseInt(cleaned.slice(4, 6), 16)
   } else if (cleaned.length === 8) {
+    if (!/^[0-9a-fA-F]{8}$/.test(cleaned)) return null
     r = parseInt(cleaned.slice(0, 2), 16)
     g = parseInt(cleaned.slice(2, 4), 16)
     b = parseInt(cleaned.slice(4, 6), 16)

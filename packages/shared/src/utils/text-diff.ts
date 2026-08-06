@@ -15,7 +15,7 @@ export interface DiffOptions {
 export type DiffMode = 'line' | 'word'
 
 function normalizeLine(line: string, options: DiffOptions): string {
-  let value = line
+  let value = line.replace(/\r$/, '') // 剥离 Windows 行尾 \r，保证 \r\n 与 \n 比较一致
   if (options.ignoreWhitespace) {
     value = value.trim().replace(/\s+/g, ' ')
   }
@@ -26,7 +26,7 @@ function normalizeLine(line: string, options: DiffOptions): string {
 }
 
 function normalizeToken(token: string, options: DiffOptions): string {
-  let value = token
+  let value = token.replace(/\r/g, '') // 归一化 CRLF：空白 token 内的 \r 一并移除
   if (options.ignoreCase) {
     value = value.toLowerCase()
   }
@@ -50,6 +50,55 @@ function lcsTable(a: string[], b: string[]): number[][] {
   return dp
 }
 
+/** LCS 单元上限：防止超大输入（如数万行日志）产生 O(n×m) 内存导致卡死/OOM */
+const MAX_LCS_CELLS = 4_000_000
+
+function simpleDiff(
+  itemsA: string[],
+  itemsB: string[],
+  normalizedA: string[],
+  normalizedB: string[],
+  withLineNumbers: boolean
+): DiffLine[] {
+  const result: DiffLine[] = []
+  const max = Math.max(itemsA.length, itemsB.length)
+  let oldLine = 1
+  let newLine = 1
+  for (let i = 0; i < max; i++) {
+    const a = i < itemsA.length ? itemsA[i] : undefined
+    const b = i < itemsB.length ? itemsB[i] : undefined
+    const na = i < normalizedA.length ? normalizedA[i] : undefined
+    const nb = i < normalizedB.length ? normalizedB[i] : undefined
+    if (na !== undefined && nb !== undefined && na === nb) {
+      result.push({
+        type: 'equal',
+        content: a as string,
+        ...(withLineNumbers ? { oldLineNumber: oldLine, newLineNumber: newLine } : {})
+      })
+      oldLine++
+      newLine++
+    } else {
+      if (na !== undefined) {
+        result.push({
+          type: 'delete',
+          content: a as string,
+          ...(withLineNumbers ? { oldLineNumber: oldLine } : {})
+        })
+        oldLine++
+      }
+      if (nb !== undefined) {
+        result.push({
+          type: 'insert',
+          content: b as string,
+          ...(withLineNumbers ? { newLineNumber: newLine } : {})
+        })
+        newLine++
+      }
+    }
+  }
+  return result
+}
+
 function backtrackDiff(
   itemsA: string[],
   itemsB: string[],
@@ -57,6 +106,10 @@ function backtrackDiff(
   normalizedB: string[],
   withLineNumbers: boolean
 ): DiffLine[] {
+  if (itemsA.length * itemsB.length > MAX_LCS_CELLS) {
+    // 超大输入退化为逐行比较，避免 O(n×m) 内存/时间开销
+    return simpleDiff(itemsA, itemsB, normalizedA, normalizedB, withLineNumbers)
+  }
   const dp = lcsTable(normalizedA, normalizedB)
   const stack: DiffLine[] = []
 

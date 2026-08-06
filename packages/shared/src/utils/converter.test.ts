@@ -124,3 +124,31 @@ describe('getJsonParseError', () => {
     expect(err!.line).toBeGreaterThan(0)
   })
 })
+describe('numberBaseConvert strict input', () => {
+  it('rejects digits invalid for the source base', () => {
+    expect(numberBaseConvert('1A', 10, 16).success).toBe(false)
+    expect(numberBaseConvert('102', 2, 10).success).toBe(false)
+    expect(numberBaseConvert('18', 8, 10).success).toBe(false)
+  })
+
+  it('still accepts valid input', () => {
+    const result = numberBaseConvert('FF', 16, 10)
+    expect(result.success).toBe(true)
+    expect(result.result).toBe('255')
+  })
+})
+
+describe('htmlDecode code points', () => {
+  it('decodes supplementary-plane characters correctly', () => {
+    const result = htmlDecode('&#128512;')
+    expect(result.success).toBe(true)
+    expect(result.result).toBe('😀')
+  })
+})
+describe('htmlDecode out-of-range code points', () => {
+  it('keeps original entity for code points above 0x10FFFF', () => {
+    const result = htmlDecode('&#1114112;')
+    expect(result.success).toBe(true)
+    expect(result.result).toBe('&#1114112;')
+  })
+})

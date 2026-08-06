@@ -135,3 +135,9 @@ describe('recordsToSqlInsert', () => {
     expect(sql).toContain('NULL')
   })
 })
+describe('recordsToSqlInsert escaping', () => {
+  it('escapes backticks in column names', () => {
+    const sql = recordsToSqlInsert([{ 'weird`name': 1 }])
+    expect(sql).toContain('`weird``name`')
+  })
+})

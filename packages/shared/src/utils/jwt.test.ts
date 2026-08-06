@@ -127,3 +127,16 @@ describe('verifyJwtHmac', () => {
     expect(result.result?.valid).toBe(false)
   })
 })
+function b64urlJson(obj: object): string {
+  const json = JSON.stringify(obj)
+  const b64 = btoa(json)
+  return b64.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')
+}
+
+describe('algorithm guards', () => {
+  it('rejects prototype-inherited algorithm names instead of misreporting', async () => {
+    const token = `${b64urlJson({ alg: 'toString', typ: 'JWT' })}.${b64urlJson({})}.dummy-signature`
+    const result = await verifyJwtHmac(token, 'secret')
+    expect(result.success).toBe(false)
+  })
+})

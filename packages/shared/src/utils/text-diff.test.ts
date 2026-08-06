@@ -91,3 +91,22 @@ describe('computeDiff', () => {
     expect(getDiffStats(diff).insert).toBe(1)
   })
 })
+describe('line diff edge cases', () => {
+  it('treats CRLF and LF line endings as equal', () => {
+    const diff = computeLineDiff('a\r\nb\r\nc', 'a\nb\nc')
+    expect(diff.every(l => l.type === 'equal')).toBe(true)
+  })
+
+  it('degrades to simple diff for very large inputs without hanging', () => {
+    const bigA = Array.from({ length: 3000 }, (_, i) => `line-${i}`).join('\n')
+    const bigB = Array.from({ length: 3000 }, (_, i) => `line-${i}-x`).join('\n')
+    const diff = computeLineDiff(bigA, bigB)
+    expect(diff.length).toBe(6000) // 3000 delete + 3000 insert
+  })
+})
+describe('word diff edge cases', () => {
+  it('treats trailing CR in tokens as equal', () => {
+    const diff = computeWordDiff('hello\r\nworld', 'hello\nworld')
+    expect(diff.every(l => l.type === 'equal')).toBe(true)
+  })
+})
