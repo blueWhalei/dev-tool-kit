@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onUnmounted, watch, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   NInput,
   NButton,
@@ -19,10 +19,10 @@ import {
   useMessage
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
-import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
+import { useTabNavigation } from '../composables/useTabNavigation'
 import { useIpc } from '../composables/useIpc'
 import {
   IMAGE_TOOLS_TAB_STORAGE_KEY,
@@ -45,7 +45,6 @@ const message = useMessage()
 const page = useToolI18n('imageTools')
 const { copy } = useCopyToClipboard()
 const { invoke } = useIpc()
-const route = useRoute()
 
 // ─── Tab / Category management ───────────────────────────────────────────────
 
@@ -61,69 +60,16 @@ const TAB_CATEGORIES: Record<CategoryName, readonly TabName[]> = {
   batch: ['batch']
 }
 
-const activeTab = ref<TabName>('base64')
-const activeCategory = ref<CategoryName>('basic')
-
-function categoryForTab(tab: TabName): CategoryName {
-  if (TAB_CATEGORIES.basic.includes(tab)) return 'basic'
-  if (TAB_CATEGORIES.optimize.includes(tab)) return 'optimize'
-  if (TAB_CATEGORIES.batch.includes(tab)) return 'batch'
-  return 'convert'
-}
-
-function showTab(tab: TabName): boolean {
-  return TAB_CATEGORIES[activeCategory.value].includes(tab)
-}
-
-function syncCategoryFromTab(tab: TabName): void {
-  activeCategory.value = categoryForTab(tab)
-}
-
-function ensureTabInCategory(): void {
-  const tabs = TAB_CATEGORIES[activeCategory.value]
-  if (!tabs.includes(activeTab.value)) {
-    activeTab.value = tabs[0]
-  }
-}
-
-function resolveTab(tab: unknown): TabName | null {
-  if (typeof tab === 'string' && (VALID_TABS as readonly string[]).includes(tab)) {
-    return tab as TabName
-  }
-  return null
-}
-
-onMounted(() => {
-  const queryTab = resolveTab(route.query.tab)
-  if (queryTab) {
-    activeTab.value = queryTab
-  } else {
-    const saved = safeStorageGet(IMAGE_TOOLS_TAB_STORAGE_KEY)
-    const savedTab = resolveTab(saved)
-    if (savedTab) activeTab.value = savedTab
-  }
-  syncCategoryFromTab(activeTab.value)
+const {
+  activeTab,
+  activeCategory,
+  showTab
+} = useTabNavigation({
+  validTabs: VALID_TABS,
+  tabCategories: TAB_CATEGORIES,
+  defaultCategory: 'basic',
+  storageKey: IMAGE_TOOLS_TAB_STORAGE_KEY
 })
-
-watch(activeTab, (tab) => {
-  safeStorageSet(IMAGE_TOOLS_TAB_STORAGE_KEY, tab)
-  syncCategoryFromTab(tab)
-})
-
-watch(activeCategory, () => {
-  ensureTabInCategory()
-})
-
-watch(
-  () => route.query.tab,
-  (tab) => {
-    const resolved = resolveTab(tab)
-    if (resolved) {
-      activeTab.value = resolved
-      syncCategoryFromTab(resolved)
-    }
-  }
-)
 
 // ─── Shared image state ──────────────────────────────────────────────────────
 
@@ -464,7 +410,7 @@ const fitOptions = computed(() => [
 function handleResizeWidthInput(val: string) {
   const w = parseInt(val, 10)
   resizeCustomWidth.value = isNaN(w) ? null : w
-  if (resizeLockAspect.value && pickedImage.value && resizeCustomWidth.value && pickedImage.value.size > 0) {
+  if (resizeLockAspect.value && pickedImage.value && resizeCustomWidth.value && infoData.value?.width && infoData.value?.height) {
     const origW = infoData.value?.width ?? 1
     const origH = infoData.value?.height ?? 1
     resizeCustomHeight.value = Math.round((resizeCustomWidth.value / origW) * origH)
@@ -474,7 +420,7 @@ function handleResizeWidthInput(val: string) {
 function handleResizeHeightInput(val: string) {
   const h = parseInt(val, 10)
   resizeCustomHeight.value = isNaN(h) ? null : h
-  if (resizeLockAspect.value && pickedImage.value && resizeCustomHeight.value && pickedImage.value.size > 0) {
+  if (resizeLockAspect.value && pickedImage.value && resizeCustomHeight.value && infoData.value?.width && infoData.value?.height) {
     const origW = infoData.value?.width ?? 1
     const origH = infoData.value?.height ?? 1
     resizeCustomWidth.value = Math.round((resizeCustomHeight.value / origH) * origW)
@@ -1163,14 +1109,25 @@ function updateSliderPos(e: MouseEvent) {
 
 const diffOverlayDataUri = ref('')
 
+let diffRequestSeq = 0
+
 function computeDiffOverlay() {
   if (!compareImageA.value || !compareImageB.value) return
+  const seq = ++diffRequestSeq
   const imgA = new Image()
   const imgB = new Image()
   let loaded = 0
+  // 加载失败或过期请求：丢弃结果，避免旧图覆盖新结果
+  const fail = () => {
+    if (seq !== diffRequestSeq) return
+    diffOverlayDataUri.value = ''
+  }
+  imgA.onerror = fail
+  imgB.onerror = fail
   const onBothLoaded = () => {
     loaded++
     if (loaded < 2) return
+    if (seq !== diffRequestSeq) return
     const w = Math.max(imgA.naturalWidth, imgB.naturalWidth)
     const h = Math.max(imgA.naturalHeight, imgB.naturalHeight)
     const canvas = document.createElement('canvas')

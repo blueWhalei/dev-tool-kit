@@ -6,6 +6,7 @@ import { logger } from '../../logger'
 import type { EnvVariable } from '@dev-tool-kit/shared'
 import * as windows from './windows'
 import * as unix from './unix'
+import { isValidEnvName, isValidEnvValue } from './validation'
 
 const IS_WINDOWS = process.platform === 'win32'
 const IS_UNIX = process.platform === 'darwin' || process.platform === 'linux'
@@ -40,7 +41,10 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:get', async (_, name: string) => {
+  ipcMain.handle('env-manager:get', async (_, name: unknown) => {
+    if (!isValidEnvName(name)) {
+      return null
+    }
     try {
       if (IS_WINDOWS) return await windows.getWindowsEnv(name)
       if (IS_UNIX) return await unix.getUnixEnv(name)
@@ -51,13 +55,19 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:set', async (_, name: string, value: string) => {
+  ipcMain.handle('env-manager:set', async (_, name: unknown, value: unknown) => {
+    if (!isValidEnvName(name) || !isValidEnvValue(value)) {
+      return { success: false, error: '无效的环境变量名或值' }
+    }
     if (IS_WINDOWS) return windows.setWindowsEnv(name, value)
     if (IS_UNIX) return unix.setUnixEnv(name, value)
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
-  ipcMain.handle('env-manager:delete', async (_, name: string) => {
+  ipcMain.handle('env-manager:delete', async (_, name: unknown) => {
+    if (!isValidEnvName(name)) {
+      return { success: false, error: '无效的环境变量名' }
+    }
     if (IS_WINDOWS) return windows.deleteWindowsEnv(name)
     if (IS_UNIX) return unix.deleteUnixEnv(name)
     return { success: false, error: '当前平台不支持环境变量管理' }
@@ -74,24 +84,36 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:setPath', async (_, paths: string[]) => {
-    if (IS_WINDOWS) return windows.setWindowsPath(paths)
-    if (IS_UNIX) return unix.setUnixPath(paths)
+  ipcMain.handle('env-manager:setPath', async (_, paths: unknown) => {
+    if (!Array.isArray(paths) || paths.some(p => typeof p !== 'string')) {
+      return { success: false, error: '无效的 PATH' }
+    }
+    if (IS_WINDOWS) return windows.setWindowsPath(paths as string[])
+    if (IS_UNIX) return unix.setUnixPath(paths as string[])
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
-  ipcMain.handle('env-manager:previewSet', async (_, name: string, value: string) => {
+  ipcMain.handle('env-manager:previewSet', async (_, name: unknown, value: unknown) => {
+    if (!isValidEnvName(name) || !isValidEnvValue(value)) {
+      return { success: false, error: '无效的环境变量名或值' }
+    }
     if (IS_UNIX) return unix.previewUnixEnvSet(name, value)
     return { success: false, error: '当前平台不支持预览' }
   })
 
-  ipcMain.handle('env-manager:previewDelete', async (_, name: string) => {
+  ipcMain.handle('env-manager:previewDelete', async (_, name: unknown) => {
+    if (!isValidEnvName(name)) {
+      return { success: false, error: '无效的环境变量名' }
+    }
     if (IS_UNIX) return unix.previewUnixEnvDelete(name)
     return { success: false, error: '当前平台不支持预览' }
   })
 
-  ipcMain.handle('env-manager:previewPath', async (_, paths: string[]) => {
-    if (IS_UNIX) return unix.previewUnixPath(paths)
+  ipcMain.handle('env-manager:previewPath', async (_, paths: unknown) => {
+    if (!Array.isArray(paths) || paths.some(p => typeof p !== 'string')) {
+      return { success: false, error: '无效的 PATH' }
+    }
+    if (IS_UNIX) return unix.previewUnixPath(paths as string[])
     return { success: false, error: '当前平台不支持预览' }
   })
 

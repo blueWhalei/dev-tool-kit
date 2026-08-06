@@ -96,11 +96,16 @@ function generatePassword() {
 
   const chars = charSets.value
   let password = ''
-  const array = new Uint32Array(length.value)
-  crypto.getRandomValues(array)
-
+  // 拒绝采样消除模偏差（chars.length 非 2 的幂时直接取模会偏向部分字符）
+  const buf = new Uint32Array(1)
+  const limit = Math.floor(0xFFFFFFFF / chars.length) * chars.length
   for (let i = 0; i < length.value; i++) {
-    password += chars[array[i] % chars.length]
+    let value: number
+    do {
+      crypto.getRandomValues(buf)
+      value = buf[0]
+    } while (value >= limit)
+    password += chars[value % chars.length]
   }
 
   generatedPassword.value = password

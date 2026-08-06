@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed, type Ref } from 'vue'
+import { ref, onMounted, computed, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
@@ -11,8 +11,8 @@ import JsonTreeView from '../components/JsonTreeView.vue'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useIpc } from '../composables/useIpc'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
+import { useTabNavigation } from '../composables/useTabNavigation'
 import { translateToolError } from '../utils/translateToolError'
-import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import {
   base64Encode,
   base64Decode,
@@ -62,69 +62,22 @@ const TAB_CATEGORIES: Record<CategoryName, readonly TabName[]> = {
   utility: ['timestamp', 'number', 'case']
 }
 
-const activeTab = ref<TabName>('base64')
-const activeCategory = ref<CategoryName>('encode')
-
-function categoryForTab(tab: TabName): CategoryName {
-  if (TAB_CATEGORIES.encode.includes(tab)) return 'encode'
-  if (TAB_CATEGORIES.structure.includes(tab)) return 'structure'
-  return 'utility'
-}
-
-function showTab(tab: TabName): boolean {
-  return TAB_CATEGORIES[activeCategory.value].includes(tab)
-}
-
-function syncCategoryFromTab(tab: TabName): void {
-  activeCategory.value = categoryForTab(tab)
-}
-
-function ensureTabInCategory(): void {
-  const tabs = TAB_CATEGORIES[activeCategory.value]
-  if (!tabs.includes(activeTab.value)) {
-    activeTab.value = tabs[0]
-  }
-}
-
-function resolveTab(tab: unknown): TabName | null {
-  if (typeof tab === 'string' && (VALID_TABS as readonly string[]).includes(tab)) {
-    return tab as TabName
-  }
-  return null
-}
+const {
+  activeTab,
+  activeCategory,
+  showTab
+} = useTabNavigation({
+  validTabs: VALID_TABS,
+  tabCategories: TAB_CATEGORIES,
+  defaultCategory: 'encode',
+  storageKey: CODE_CONVERTER_TAB_STORAGE_KEY
+})
 
 onMounted(() => {
-  const queryTab = resolveTab(route.query.tab)
-  if (queryTab) {
-    activeTab.value = queryTab
-  } else {
-    const saved = safeStorageGet(CODE_CONVERTER_TAB_STORAGE_KEY)
-    const savedTab = resolveTab(saved)
-    if (savedTab) activeTab.value = savedTab
-  }
-  syncCategoryFromTab(activeTab.value)
-
   const queryInput = route.query.input
   if (typeof queryInput === 'string' && queryInput.trim()) {
     base64Input.value = queryInput
     handleBase64Encode()
-  }
-})
-
-watch(activeTab, (tab) => {
-  safeStorageSet(CODE_CONVERTER_TAB_STORAGE_KEY, tab)
-  syncCategoryFromTab(tab)
-})
-
-watch(activeCategory, () => {
-  ensureTabInCategory()
-})
-
-watch(() => route.query.tab, (tab) => {
-  const resolved = resolveTab(tab)
-  if (resolved) {
-    activeTab.value = resolved
-    syncCategoryFromTab(resolved)
   }
 })
 

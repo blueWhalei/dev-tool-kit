@@ -23,7 +23,7 @@ const theme = ref(lightTheme)
 const { themePreference, localePreference, resolveDark, resolveAppLocale, setThemePreference, setLocalePreference } = usePreferences()
 const { locale } = useI18n()
 
-const themeOverrides = ref<GlobalThemeOverrides>({
+const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#007AFF',
     primaryColorHover: '#0A84FF',
@@ -31,7 +31,7 @@ const themeOverrides = ref<GlobalThemeOverrides>({
     borderRadius: '8px',
     borderRadiusSmall: '6px'
   }
-})
+}
 
 const naiveLocale = computed(() => (locale.value === 'zh-CN' ? zhCN : enUS))
 const naiveDateLocale = computed(() => (locale.value === 'zh-CN' ? dateZhCN : dateEnUS))
