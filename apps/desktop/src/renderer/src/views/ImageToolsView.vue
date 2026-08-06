@@ -14,7 +14,6 @@ import {
   NRadioButton,
   NSlider,
   NSelect,
-  NAlert,
   NSwitch,
   useMessage
 } from 'naive-ui'
@@ -22,11 +21,14 @@ import PageLayout from '../components/PageLayout.vue'
 import ImageSvgPanel from '../components/image-tools/ImageSvgPanel.vue'
 import ImageBatchPanel from '../components/image-tools/ImageBatchPanel.vue'
 import ImageComparePanel from '../components/image-tools/ImageComparePanel.vue'
+import ImageInfoPanel from '../components/image-tools/ImageInfoPanel.vue'
+import ImageDataUrlPanel from '../components/image-tools/ImageDataUrlPanel.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
 import { useTabNavigation } from '../composables/useTabNavigation'
 import { useIpc } from '../composables/useIpc'
+import { useSharedImageState, type PickedImage } from '../composables/useSharedImageState'
 import {
   IMAGE_TOOLS_TAB_STORAGE_KEY,
   formatBytes,
@@ -36,7 +38,6 @@ import {
   type ImageConvertOptions,
   type ProcessedImage,
   type ExtractedColor,
-  type DataUrlParseResult,
   type IconGenerateResult
 } from '@dev-tool-kit/shared'
 
@@ -44,6 +45,7 @@ const message = useMessage()
 const page = useToolI18n('imageTools')
 const { copy } = useCopyToClipboard()
 const { invoke } = useIpc()
+const { pickedImage, imageLoading, infoData, pickImage, saveProcessedImage } = useSharedImageState()
 
 // ─── Tab / Category management ───────────────────────────────────────────────
 
@@ -69,49 +71,6 @@ const {
   defaultCategory: 'basic',
   storageKey: IMAGE_TOOLS_TAB_STORAGE_KEY
 })
-
-// ─── Shared image state ──────────────────────────────────────────────────────
-
-interface PickedImage {
-  fileName: string
-  filePath: string
-  mimeType: string
-  base64: string
-  dataUri: string
-  size: number
-}
-
-const pickedImage = ref<PickedImage | null>(null)
-const imageLoading = ref(false)
-
-async function pickImage(): Promise<PickedImage | null> {
-  imageLoading.value = true
-  try {
-    const data = await invoke<PickedImage | null>('image-tools:pickImage')
-    if (!data) return null
-    pickedImage.value = data
-    message.success(page.t('messages.imageLoaded'))
-    return data
-  } catch {
-    message.error(page.t('messages.imageLoadFailed'))
-    return null
-  } finally {
-    imageLoading.value = false
-  }
-}
-
-async function saveProcessedImage(img: ProcessedImage): Promise<void> {
-  try {
-    const result = await invoke<{ success: boolean; path?: string }>('image-tools:saveImage', img.data, img.fileName, img.mimeType)
-    if (result?.success) {
-      message.success(page.t('messages.saveSuccess'))
-    } else {
-      message.error(page.t('messages.saveFailed'))
-    }
-  } catch {
-    message.error(page.t('messages.saveFailed'))
-  }
-}
 
 // ─── Drag & Drop ──────────────────────────────────────────────────────────
 
@@ -254,51 +213,6 @@ function useForDecode() {
   if (base64Data.value) {
     decodeInput.value = base64Data.value
     decodeMime.value = base64Mime.value
-  }
-}
-
-// ─── Info / EXIF Tab ─────────────────────────────────────────────────────────
-
-const infoData = ref<ImageInfo | null>(null)
-const infoLoading = ref(false)
-
-const infoPreviewUri = computed(() => {
-  if (!pickedImage.value) return ''
-  return pickedImage.value.dataUri
-})
-
-const exifEntries = computed<{ key: string; value: string }[]>(() => {
-  const exif = infoData.value?.exif
-  if (!exif) return []
-  const entries: { key: string; value: string }[] = []
-  if (exif.make) entries.push({ key: page.t('labels.make'), value: exif.make })
-  if (exif.model) entries.push({ key: page.t('labels.model'), value: exif.model })
-  if (exif.dateTime) entries.push({ key: page.t('labels.dateTime'), value: exif.dateTime })
-  if (exif.exposureTime) entries.push({ key: page.t('labels.exposureTime'), value: String(exif.exposureTime) })
-  if (exif.fNumber != null) entries.push({ key: page.t('labels.fNumber'), value: `f/${exif.fNumber}` })
-  if (exif.iso) entries.push({ key: page.t('labels.iso'), value: String(exif.iso) })
-  if (exif.focalLength != null) entries.push({ key: page.t('labels.focalLength'), value: `${exif.focalLength}mm` })
-  if (exif.gps) {
-    entries.push({
-      key: page.t('labels.gps'),
-      value: `${page.t('labels.latitude')}: ${exif.gps.latitude}, ${page.t('labels.longitude')}: ${exif.gps.longitude}${exif.gps.altitude != null ? `, ${exif.gps.altitude}m` : ''}`
-    })
-  }
-  return entries
-})
-
-async function pickImageForInfo() {
-  const data = await pickImage()
-  if (!data) return
-  infoLoading.value = true
-  try {
-    const info = await invoke<ImageInfo | null>('image-tools:getInfo', data.filePath)
-    infoData.value = info ?? null
-  } catch {
-    message.error(page.t('messages.imageLoadFailed'))
-    infoData.value = null
-  } finally {
-    infoLoading.value = false
   }
 }
 
@@ -547,71 +461,6 @@ async function saveConverted() {
   await saveProcessedImage(convertResult.value)
 }
 
-// ─── Data URL Tab ──────────────────────────────────────────────────────────
-
-const dataUrlInput = ref('')
-const dataUrlParseResult = ref<DataUrlParseResult | null>(null)
-
-function parseDataUrl(input: string): DataUrlParseResult | null {
-  const match = input.trim().match(/^data:([^;,]+)?(?:;([^,]+))?,(.*)$/s)
-  if (!match) return null
-
-  const fullMediaType = match[1] || 'text/plain'
-  const params = match[2] || ''
-  const data = match[3]
-
-  // Parse charset from media type params
-  let charset: string | null = null
-  const isBase64 = params.includes('base64')
-
-  const charsetMatch = fullMediaType.match(/;\s*charset=([^\s;]+)/i)
-  if (charsetMatch) charset = charsetMatch[1]
-
-  const mimeType = fullMediaType.split(';')[0].trim()
-  const dataByteSize = isBase64 ? Math.ceil((data.length * 3) / 4) : new TextEncoder().encode(data).length
-
-  let rawText = ''
-  if (isBase64) {
-    try {
-      rawText = new TextDecoder().decode(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
-    } catch {
-      rawText = ''
-    }
-  } else {
-    rawText = data
-  }
-
-  return {
-    mimeType,
-    charset,
-    isBase64,
-    data,
-    rawText,
-    size: data.length,
-    decodedSize: dataByteSize
-  }
-}
-
-function handleParseDataUrl() {
-  if (!dataUrlInput.value.trim()) return
-  const result = parseDataUrl(dataUrlInput.value)
-  if (result) {
-    dataUrlParseResult.value = result
-    message.success(page.t('messages.dataUrlParsed'))
-  } else {
-    dataUrlParseResult.value = null
-    message.error(page.t('messages.dataUrlInvalid'))
-  }
-}
-
-async function pickImageForDataUrl() {
-  const data = await pickImage()
-  if (!data) return
-  dataUrlInput.value = data.dataUri
-  handleParseDataUrl()
-}
-
-// ─── SVG Optimize Tab ──────────────────────────────────────────────────────
 const router = useRouter()
 const colorPickedHex = ref('')
 const colorPickedRgb = ref<{ r: number; g: number; b: number } | null>(null)
@@ -882,9 +731,6 @@ function runActiveTabPrimaryAction() {
     case 'base64':
       pickImageForBase64()
       break
-    case 'info':
-      pickImageForInfo()
-      break
     case 'compress':
       handleCompress()
       break
@@ -893,9 +739,6 @@ function runActiveTabPrimaryAction() {
       break
     case 'convert':
       handleConvert()
-      break
-    case 'dataUrl':
-      pickImageForDataUrl()
       break
     case 'color':
       pickImageForColor()
@@ -1066,146 +909,7 @@ useKeyboardShortcut((event) => {
         </NTabPane>
 
         <!-- ─── Info / EXIF Tab ──────────────────────────────────────────── -->
-        <NTabPane
-          v-if="showTab('info')"
-          name="info"
-          :tab="page.t('tabs.info')"
-        >
-          <div class="action-bar">
-            <NButton
-              type="primary"
-              :loading="imageLoading || infoLoading"
-              @click="pickImageForInfo"
-            >
-              {{ page.t('actions.pickImage') }}
-            </NButton>
-          </div>
-
-          <div
-            v-if="infoPreviewUri"
-            class="image-preview-wrap"
-            style="margin-top: 16px"
-          >
-            <img
-              :src="infoPreviewUri"
-              :alt="page.t('labels.preview')"
-              class="image-preview"
-            >
-          </div>
-
-          <NCard
-            v-if="infoData"
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.fileName') }}</span>
-            </template>
-            <NGrid
-              cols="1 640:2"
-              :x-gap="16"
-              :y-gap="12"
-            >
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.fileName') }}</span>
-                  <span class="info-value">{{ infoData.fileName }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.filePath') }}</span>
-                  <span class="info-value info-path">{{ infoData.filePath }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.dimensions') }}</span>
-                  <span class="info-value">{{ infoData.width }}×{{ infoData.height }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.format') }}</span>
-                  <span class="info-value">{{ infoData.format }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.fileSize') }}</span>
-                  <span class="info-value">{{ formatBytes(infoData.size) }}</span>
-                </div>
-              </NGridItem>
-              <NGridItem>
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.hasAlpha') }}</span>
-                  <NTag
-                    :type="infoData.hasAlpha ? 'success' : 'default'"
-                    size="small"
-                    :bordered="false"
-                  >
-                    {{ infoData.hasAlpha ? page.t('labels.yes') : page.t('labels.no') }}
-                  </NTag>
-                </div>
-              </NGridItem>
-              <NGridItem v-if="infoData.density != null">
-                <div class="info-item">
-                  <span class="result-label">{{ page.t('labels.density') }}</span>
-                  <span class="info-value">{{ infoData.density }} DPI</span>
-                </div>
-              </NGridItem>
-            </NGrid>
-          </NCard>
-
-          <NCard
-            v-if="infoData"
-            class="editor-card"
-            :bordered="false"
-            style="margin-top: 16px"
-          >
-            <template #header>
-              <span class="card-title">{{ page.t('labels.exifData') }}</span>
-            </template>
-            <div
-              v-if="exifEntries.length"
-              class="exif-grid"
-            >
-              <div
-                v-for="(entry, index) in exifEntries"
-                :key="index"
-                class="exif-row"
-              >
-                <span class="exif-key">{{ entry.key }}</span>
-                <span class="exif-val">{{ entry.value }}</span>
-                <NButton
-                  size="tiny"
-                  quaternary
-                  @click="copy(entry.value, page.t('messages.imageCopied'))"
-                >
-                  {{ page.t('actions.copyValue') }}
-                </NButton>
-              </div>
-            </div>
-            <div
-              v-else
-              class="result-placeholder"
-            >
-              {{ page.t('labels.noExif') }}
-            </div>
-          </NCard>
-
-          <NAlert
-            v-if="infoData"
-            type="info"
-            :show-icon="true"
-            style="margin-top: 16px"
-          >
-            {{ page.t('messages.exifStripped') }}
-          </NAlert>
-        </NTabPane>
-
-        <!-- ─── Compress Tab ─────────────────────────────────────────────── -->
+        <ImageInfoPanel v-if="showTab('info')" />
         <NTabPane
           v-if="showTab('compress')"
           name="compress"
@@ -1695,145 +1399,8 @@ useKeyboardShortcut((event) => {
         </NTabPane>
 
         <!-- ─── Data URL Tab ────────────────────────────────────────────── -->
-        <NTabPane
-          v-if="showTab('dataUrl')"
-          name="dataUrl"
-          :tab="page.t('tabs.dataUrl')"
-        >
-          <div class="image-base64-panel">
-            <NCard
-              class="editor-card"
-              :bordered="false"
-            >
-              <template #header>
-                <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
-              </template>
-              <NInput
-                v-model:value="dataUrlInput"
-                type="textarea"
-                :rows="4"
-                :placeholder="page.t('placeholders.dataUrlInput')"
-                class="code-input"
-              />
-              <div
-                class="action-bar"
-                style="margin-top: 12px; border-top: none; padding-top: 0"
-              >
-                <NButton
-                  type="primary"
-                  @click="handleParseDataUrl"
-                >
-                  {{ page.t('actions.parseDataUrl') }}
-                </NButton>
-                <NButton @click="pickImageForDataUrl">
-                  {{ page.t('actions.pickImage') }}
-                </NButton>
-              </div>
-            </NCard>
-
-            <NCard
-              v-if="dataUrlParseResult"
-              class="editor-card"
-              :bordered="false"
-            >
-              <template #header>
-                <span class="card-title">{{ page.t('labels.parseResult') }}</span>
-              </template>
-              <NGrid
-                cols="1 640:2"
-                :x-gap="16"
-                :y-gap="12"
-              >
-                <NGridItem>
-                  <div class="info-item">
-                    <span class="result-label">{{ page.t('labels.mimeType') }}</span>
-                    <NTag
-                      size="small"
-                      :bordered="false"
-                    >
-                      {{ dataUrlParseResult.mimeType }}
-                    </NTag>
-                  </div>
-                </NGridItem>
-                <NGridItem>
-                  <div class="info-item">
-                    <span class="result-label">{{ page.t('labels.charset') }}</span>
-                    <span class="info-value">{{ dataUrlParseResult.charset || '—' }}</span>
-                  </div>
-                </NGridItem>
-                <NGridItem>
-                  <div class="info-item">
-                    <span class="result-label">{{ page.t('labels.encoding') }}</span>
-                    <NTag
-                      size="small"
-                      :bordered="false"
-                      :type="dataUrlParseResult.isBase64 ? 'info' : 'default'"
-                    >
-                      {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
-                    </NTag>
-                  </div>
-                </NGridItem>
-                <NGridItem>
-                  <div class="info-item">
-                    <span class="result-label">{{ page.t('labels.estimatedSize') }}</span>
-                    <span class="info-value">{{ formatBytes(dataUrlParseResult.size) }}</span>
-                  </div>
-                </NGridItem>
-                <NGridItem>
-                  <div class="info-item">
-                    <span class="result-label">{{ page.t('labels.decodedSize') }}</span>
-                    <span class="info-value">{{ formatBytes(dataUrlParseResult.decodedSize) }}</span>
-                  </div>
-                </NGridItem>
-              </NGrid>
-
-              <div
-                v-if="dataUrlParseResult.rawText && dataUrlParseResult.mimeType.startsWith('text/')"
-                style="margin-top: 12px"
-              >
-                <span class="section-label">{{ page.t('labels.decodedText') }}</span>
-                <NInput
-                  :value="dataUrlParseResult.rawText"
-                  type="textarea"
-                  readonly
-                  :rows="3"
-                  class="code-input"
-                  style="margin-top: 4px"
-                />
-              </div>
-
-              <div
-                v-if="dataUrlParseResult.mimeType.startsWith('image/')"
-                style="margin-top: 12px"
-              >
-                <span class="section-label">{{ page.t('labels.preview') }}</span>
-                <div
-                  class="image-preview-wrap"
-                  style="margin-top: 4px"
-                >
-                  <img
-                    :src="dataUrlInput"
-                    :alt="page.t('labels.preview')"
-                    class="image-preview"
-                  >
-                </div>
-              </div>
-
-              <div
-                class="action-bar"
-                style="margin-top: 12px; border-top: none; padding-top: 0"
-              >
-                <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
-                  {{ page.t('actions.copyDataUri') }}
-                </NButton>
-              </div>
-            </NCard>
-          </div>
-        </NTabPane>
-
-        <!-- ─── SVG Optimize Tab ────────────────────────────────────────── -->
+        <ImageDataUrlPanel v-if="showTab('dataUrl')" />
         <ImageSvgPanel v-if="showTab('svg')" />
-        <!-- ─── Color Picker Tab ────────────────────────────────────────── -->
         <NTabPane
           v-if="showTab('color')"
           name="color"
