@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="svg"
-    :tab="page.t('tabs.svg')"
-  >
     <div
       class="action-bar"
       style="margin-top: 0; border-top: none; padding-top: 0"
@@ -134,7 +130,6 @@
         </NButton>
       </div>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="color"
-    :tab="page.t('tabs.color')"
-  >
     <div
       class="action-bar"
       style="margin-top: 0; border-top: none; padding-top: 0"
@@ -155,7 +151,6 @@
         </NButton>
       </div>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="convert"
-    :tab="page.t('tabs.convert')"
-  >
     <div class="action-bar">
       <NButton
         type="primary"
@@ -146,7 +142,6 @@
         </NButton>
       </div>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

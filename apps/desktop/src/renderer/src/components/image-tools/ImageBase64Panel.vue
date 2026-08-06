@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="base64"
-    :tab="page.t('tabs.base64')"
-  >
     <div class="image-base64-panel">
       <NCard
         class="editor-card"
@@ -105,7 +101,6 @@
         </p>
       </NCard>
     </div>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="favicon"
-    :tab="page.t('tabs.favicon')"
-  >
     <div
       class="action-bar"
       style="margin-top: 0; border-top: none; padding-top: 0"
@@ -100,7 +96,6 @@
         </div>
       </template>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

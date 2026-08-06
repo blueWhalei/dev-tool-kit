@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="dataUrl"
-    :tab="page.t('tabs.dataUrl')"
-  >
     <div class="image-base64-panel">
       <NCard
         class="editor-card"
@@ -132,7 +128,6 @@
         </div>
       </NCard>
     </div>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

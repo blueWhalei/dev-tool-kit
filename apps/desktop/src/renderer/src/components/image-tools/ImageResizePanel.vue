@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="resize"
-    :tab="page.t('tabs.resize')"
-  >
     <div class="action-bar">
       <NButton
         type="primary"
@@ -177,7 +173,6 @@
         </NButton>
       </div>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

@@ -167,20 +167,92 @@ function handlePaste(e: ClipboardEvent) {
         class="converter-tabs"
       >
         <!-- ─── Base64 Tab ──────────────────────────────────────────────── -->
-        <ImageBase64Panel v-if="showTab('base64')" />
-        <ImageInfoPanel v-if="showTab('info')" />
-        <ImageCompressPanel v-if="showTab('compress')" />
-        <ImageResizePanel v-if="showTab('resize')" />
-        <ImageConvertPanel v-if="showTab('convert')" />
-        <ImageDataUrlPanel v-if="showTab('dataUrl')" />
-        <ImageSvgPanel v-if="showTab('svg')" />
-        <ImageColorPanel v-if="showTab('color')" />
-        <ImageFaviconPanel v-if="showTab('favicon')" />
-        <ImageBatchPanel v-if="showTab('batch')" />
+        <NTabPane
+          v-if="showTab('base64')"
+          name="base64"
+          :tab="page.t('tabs.base64')"
+        >
+          <ImageBase64Panel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('info')"
+          name="info"
+          :tab="page.t('tabs.info')"
+        >
+          <ImageInfoPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('compress')"
+          name="compress"
+          :tab="page.t('tabs.compress')"
+        >
+          <ImageCompressPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('resize')"
+          name="resize"
+          :tab="page.t('tabs.resize')"
+        >
+          <ImageResizePanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('convert')"
+          name="convert"
+          :tab="page.t('tabs.convert')"
+        >
+          <ImageConvertPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('dataUrl')"
+          name="dataUrl"
+          :tab="page.t('tabs.dataUrl')"
+        >
+          <ImageDataUrlPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('svg')"
+          name="svg"
+          :tab="page.t('tabs.svg')"
+        >
+          <ImageSvgPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('color')"
+          name="color"
+          :tab="page.t('tabs.color')"
+        >
+          <ImageColorPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('favicon')"
+          name="favicon"
+          :tab="page.t('tabs.favicon')"
+        >
+          <ImageFaviconPanel />
+        </NTabPane>
+        <NTabPane
+          v-if="showTab('batch')"
+          name="batch"
+          :tab="page.t('tabs.batch')"
+        >
+          <ImageBatchPanel />
+        </NTabPane>
         <!-- ─── Compare Tab ──────────────────────────────────────────── -->
-        <ImageComparePanel v-if="showTab('compare')" />
+        <NTabPane
+          v-if="showTab('compare')"
+          name="compare"
+          :tab="page.t('tabs.compare')"
+        >
+          <ImageComparePanel />
+        </NTabPane>
         <!-- ─── Preset Tab ──────────────────────────────────────────── -->
-        <ImagePresetPanel v-if="showTab('preset')" />
+        <NTabPane
+          v-if="showTab('preset')"
+          name="preset"
+          :tab="page.t('tabs.preset')"
+        >
+          <ImagePresetPanel />
+        </NTabPane>
       </NTabs>
     </div>
   </PageLayout>

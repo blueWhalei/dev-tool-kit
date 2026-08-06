@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="info"
-    :tab="page.t('tabs.info')"
-  >
     <div class="action-bar">
       <NButton
         type="primary"
@@ -135,7 +131,6 @@
     >
       {{ page.t('messages.exifStripped') }}
     </NAlert>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

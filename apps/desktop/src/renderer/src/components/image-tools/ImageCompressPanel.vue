@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="compress"
-    :tab="page.t('tabs.compress')"
-  >
     <div class="action-bar">
       <NButton
         type="primary"
@@ -151,7 +147,6 @@
         </NButton>
       </div>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

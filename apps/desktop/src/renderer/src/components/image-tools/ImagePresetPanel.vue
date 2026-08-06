@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="preset"
-    :tab="page.t('tabs.preset')"
-  >
     <div
       class="action-bar"
       style="margin-top: 0; border-top: none; padding-top: 0"
@@ -83,7 +79,6 @@
         </div>
       </NCard>
     </template>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">

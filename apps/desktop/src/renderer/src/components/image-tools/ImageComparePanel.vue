@@ -1,8 +1,4 @@
 <template>
-  <NTabPane
-    name="compare"
-    :tab="page.t('tabs.compare')"
-  >
     <div
       class="action-bar"
       style="margin-top: 0; border-top: none; padding-top: 0"
@@ -156,7 +152,6 @@
         {{ page.t('messages.compareNeedTwoImages') }}
       </div>
     </NCard>
-  </NTabPane>
 </template>
 
 <script setup lang="ts">
