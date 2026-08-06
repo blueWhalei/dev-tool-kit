@@ -86,13 +86,19 @@ function flagLabel(flag: 'g' | 'i' | 'm' | 's'): string {
   return page.t(`flags.${flag}`)
 }
 
+// 递增序号：丢弃过期的异步结果（用户快速输入时防止旧 IPC 响应覆盖新结果）
+let regexRequestSeq = 0
+let replaceRequestSeq = 0
+
 async function testRegex() {
   if (!pattern.value || !testString.value) {
     result.value = null
     return
   }
+  const seq = ++regexRequestSeq
   try {
     const data = await invoke<RegexResult>('regex:test', pattern.value, flags.value, testString.value)
+    if (seq !== regexRequestSeq) return
     const validated = validateOptional(data, isRegexResult, 'testRegex')
     if (validated) {
       result.value = validated
@@ -100,6 +106,7 @@ async function testRegex() {
       result.value = { isValid: false, matches: [], error: page.t('errors.invalidResponse') }
     }
   } catch (error) {
+    if (seq !== regexRequestSeq) return
     result.value = { isValid: false, matches: [], error: String(error) }
   }
 }
@@ -110,6 +117,7 @@ async function testReplace() {
     replaceResult.value = ''
     return
   }
+  const seq = ++replaceRequestSeq
   try {
     const data = await invoke<{ success: boolean; result?: string; error?: string }>(
       'regex:replace',
@@ -118,6 +126,7 @@ async function testReplace() {
       testString.value,
       replacement.value
     )
+    if (seq !== replaceRequestSeq) return
     if (data && typeof data === 'object' && 'success' in data) {
       if (data.success && typeof data.result === 'string') {
         replaceResult.value = data.result
@@ -130,6 +139,7 @@ async function testReplace() {
       replaceError.value = page.t('errors.invalidResponse')
     }
   } catch (error) {
+    if (seq !== replaceRequestSeq) return
     replaceResult.value = ''
     replaceError.value = String(error)
   }

@@ -8,6 +8,7 @@ import {
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import {
   DEV_REFERENCE_TAB_STORAGE_KEY,
   filterMimeTypes,
@@ -52,7 +53,7 @@ function applyRouteQuery() {
 
 onMounted(() => {
   applyRouteQuery()
-  const saved = localStorage.getItem(DEV_REFERENCE_TAB_STORAGE_KEY)
+  const saved = safeStorageGet(DEV_REFERENCE_TAB_STORAGE_KEY)
   const savedTab = resolveTab(saved)
   if (!route.query.tab && savedTab) activeTab.value = savedTab
 })
@@ -63,7 +64,7 @@ watch(() => route.query.tab, (tab) => {
 })
 
 watch(activeTab, (tab) => {
-  localStorage.setItem(DEV_REFERENCE_TAB_STORAGE_KEY, tab)
+  safeStorageSet(DEV_REFERENCE_TAB_STORAGE_KEY, tab)
 })
 
 const filteredMime = computed(() => filterMimeTypes(mimeQuery.value, localeKey.value))

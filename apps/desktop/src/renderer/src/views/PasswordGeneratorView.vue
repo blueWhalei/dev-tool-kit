@@ -8,6 +8,7 @@ import {
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import { useTimeoutFn } from '@vueuse/core'
 import { generatePassphrase } from '@dev-tool-kit/shared'
 
 const message = useMessage()
@@ -106,11 +107,13 @@ function generatePassword() {
   copied.value = false
 }
 
+const { start: resetCopiedTimer } = useTimeoutFn(() => { copied.value = false }, 2000, { immediate: false })
+
 async function copyPassword() {
   if (!generatedPassword.value) return
   await copy(generatedPassword.value, page.t('messages.copied'))
   copied.value = true
-  setTimeout(() => { copied.value = false }, 2000)
+  resetCopiedTimer()
 }
 
 function regenerate() {

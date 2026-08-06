@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { ROUTE_CATEGORIES, CODE_CONVERTER_TAB_KEYWORDS, DEV_REFERENCE_TAB_KEYWORDS, IMAGE_TOOLS_TAB_KEYWORDS, type RouteCategoryConfig } from '@dev-tool-kit/shared/constants'
+import { safeStorageGet } from '../utils/safeStorage'
 
 export interface TabKeywordMapping {
   tab: string
@@ -38,7 +39,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     redirect: () => {
-      const home = localStorage.getItem('dev-toolkit-default-home') || 'PortManager'
+      const home = safeStorageGet('dev-toolkit-default-home') || 'PortManager'
       return { name: home }
     }
   },
@@ -295,7 +296,7 @@ const validHomeNames = new Set(
   routes.map(r => r.name).filter((n): n is string => typeof n === 'string' && n !== 'NotFound')
 )
 routes[0].redirect = () => {
-  const home = localStorage.getItem('dev-toolkit-default-home') || DEFAULT_HOME
+  const home = safeStorageGet('dev-toolkit-default-home') || DEFAULT_HOME
   return { name: validHomeNames.has(home) ? home : DEFAULT_HOME }
 }
 

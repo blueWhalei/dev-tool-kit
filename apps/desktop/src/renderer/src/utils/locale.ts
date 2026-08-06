@@ -1,11 +1,13 @@
 export type LocalePreference = 'zh-CN' | 'en-US' | 'system'
 export type AppLocale = 'zh-CN' | 'en-US'
 
+import { safeStorageGet } from './safeStorage'
+
 export const LOCALE_STORAGE_KEY = 'dev-toolkit-locale'
 
 export function readStoredLocalePreference(): LocalePreference {
   try {
-    const raw = localStorage.getItem(LOCALE_STORAGE_KEY)
+    const raw = safeStorageGet(LOCALE_STORAGE_KEY)
     if (raw === 'zh-CN' || raw === 'en-US' || raw === 'system') {
       return raw
     }

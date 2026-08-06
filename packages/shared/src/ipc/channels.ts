@@ -107,6 +107,8 @@ export const IPC_INVOKE_CHANNELS = [
   // Certificate Parser
   'cert-parser:readFile',
   'cert-parser:parsePem',
+  // JSON Schema
+  'json-schema:validate',
   // Key Pair Generator
   'key-pair-generator:generate',
 ] as const

@@ -13,6 +13,7 @@ import { setupHashGeneratorIPC } from './modules/hash-generator'
 import { setupImageToolsIPC } from './modules/image-tools'
 import { setupTextDiffIPC } from './modules/text-diff'
 import { setupCertParserIPC } from './modules/cert-parser'
+import { setupJsonSchemaIPC } from './modules/json-schema'
 import { setupKeyPairGeneratorIPC } from './modules/key-pair-generator'
 import { loadWindowState, saveWindowState } from './store/window-state'
 import { getWindowState } from './window'
@@ -166,6 +167,7 @@ app.whenReady().then(async () => {
   setupTextDiffIPC()
 
   setupCertParserIPC()
+  setupJsonSchemaIPC()
   setupKeyPairGeneratorIPC()
 
   // Create menu

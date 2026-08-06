@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   NInput,
@@ -19,6 +19,7 @@ import {
   useMessage
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
@@ -97,7 +98,7 @@ onMounted(() => {
   if (queryTab) {
     activeTab.value = queryTab
   } else {
-    const saved = localStorage.getItem(IMAGE_TOOLS_TAB_STORAGE_KEY)
+    const saved = safeStorageGet(IMAGE_TOOLS_TAB_STORAGE_KEY)
     const savedTab = resolveTab(saved)
     if (savedTab) activeTab.value = savedTab
   }
@@ -105,7 +106,7 @@ onMounted(() => {
 })
 
 watch(activeTab, (tab) => {
-  localStorage.setItem(IMAGE_TOOLS_TAB_STORAGE_KEY, tab)
+  safeStorageSet(IMAGE_TOOLS_TAB_STORAGE_KEY, tab)
   syncCategoryFromTab(tab)
 })
 
@@ -693,16 +694,32 @@ const svgOptions = ref<SvgOptimizeOptions>({
   minifyStyles: true
 })
 
-const svgOriginalBlobUrl = computed(() => {
-  if (!svgFile.value) return ''
-  const blob = new Blob([svgFile.value.content], { type: 'image/svg+xml' })
-  return URL.createObjectURL(blob)
-})
+// SVG 预览 blob URL：变化时 revoke 旧 URL，组件卸载时统一清理，避免泄漏
+const svgOriginalBlobUrl = ref('')
+watch(
+  () => svgFile.value,
+  (file) => {
+    if (svgOriginalBlobUrl.value) URL.revokeObjectURL(svgOriginalBlobUrl.value)
+    svgOriginalBlobUrl.value = file
+      ? URL.createObjectURL(new Blob([file.content], { type: 'image/svg+xml' }))
+      : ''
+  }
+)
 
-const svgOptimizedBlobUrl = computed(() => {
-  if (!svgOptimizeResult.value) return ''
-  const blob = new Blob([svgOptimizeResult.value.optimized], { type: 'image/svg+xml' })
-  return URL.createObjectURL(blob)
+const svgOptimizedBlobUrl = ref('')
+watch(
+  () => svgOptimizeResult.value?.optimized,
+  (optimized) => {
+    if (svgOptimizedBlobUrl.value) URL.revokeObjectURL(svgOptimizedBlobUrl.value)
+    svgOptimizedBlobUrl.value = optimized
+      ? URL.createObjectURL(new Blob([optimized], { type: 'image/svg+xml' }))
+      : ''
+  }
+)
+
+onUnmounted(() => {
+  if (svgOriginalBlobUrl.value) URL.revokeObjectURL(svgOriginalBlobUrl.value)
+  if (svgOptimizedBlobUrl.value) URL.revokeObjectURL(svgOptimizedBlobUrl.value)
 })
 
 async function pickSvgFile() {

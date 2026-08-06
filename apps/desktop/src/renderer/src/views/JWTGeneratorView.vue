@@ -8,7 +8,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { watchDebounced } from '@vueuse/core'
+import { watchDebounced, useTimeoutFn } from '@vueuse/core'
 import { NSelect, NInput, NButton, NCard, NTabs, NTabPane, NTag, NAlert } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
@@ -79,11 +79,14 @@ function generateSecret() {
   generatedSecret.value = base64Url
 }
 
+// 组件级计时器：卸载时由 useTimeoutFn 自动清理，避免泄漏
+const { start: resetCopiedTimer } = useTimeoutFn(() => { copied.value = false }, 2000, { immediate: false })
+
 async function copySecret() {
   if (!generatedSecret.value) return
   await copy(generatedSecret.value, page.t('messages.copied'))
   copied.value = true
-  setTimeout(() => { copied.value = false }, 2000)
+  resetCopiedTimer()
 }
 
 watch(secretLength, () => {
@@ -177,11 +180,13 @@ function fillSignSample() {
   signAlgorithm.value = 'HS256'
 }
 
+const { start: resetSignCopiedTimer } = useTimeoutFn(() => { signCopied.value = false }, 2000, { immediate: false })
+
 async function copySignedToken() {
   if (!signedToken.value) return
   await copy(signedToken.value, page.t('messages.copied'))
   signCopied.value = true
-  setTimeout(() => { signCopied.value = false }, 2000)
+  resetSignCopiedTimer()
 }
 
 function useGeneratedSecretForSign() {

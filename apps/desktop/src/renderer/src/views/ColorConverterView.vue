@@ -4,6 +4,7 @@ import { NInput, NButton, NSlider, NCard, NGrid, NGridItem } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import {
   type ColorRGBA,
   hexToRgba,
@@ -48,7 +49,7 @@ const recentColors = ref<string[]>(loadRecentColors())
 
 function loadRecentColors(): string[] {
   try {
-    const raw = localStorage.getItem(RECENT_COLORS_KEY)
+    const raw = safeStorageGet(RECENT_COLORS_KEY)
     return raw ? JSON.parse(raw) : []
   } catch {
     return []
@@ -59,7 +60,7 @@ function saveRecentColor(hex8: string) {
   const list = recentColors.value.filter(c => c !== hex8)
   list.unshift(hex8)
   recentColors.value = list.slice(0, MAX_RECENT)
-  localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recentColors.value))
+  safeStorageSet(RECENT_COLORS_KEY, JSON.stringify(recentColors.value))
 }
 
 const colorPreview = computed(() => rgbaToHex(currentRgba.value))

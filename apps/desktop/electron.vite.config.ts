@@ -31,8 +31,8 @@ export default defineConfig({
   },
   renderer: {
     define: {
-      // vue-i18n AST JIT 编译。注意：渲染进程的 ajv（JSON Schema 校验）运行时
-      // 仍需 new Function 编译 schema，故 CSP 保留 'unsafe-eval'（见 index.html）。
+      // vue-i18n AST JIT 编译（无 new Function）。ajv 校验已移入主进程
+      // （json-schema:validate IPC），渲染进程无需 eval，CSP 已收紧为 script-src 'self'。
       __INTLIFY_JIT_COMPILATION__: true
     },
     resolve: {

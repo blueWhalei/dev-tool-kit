@@ -9,8 +9,10 @@ import { useToolI18n } from '../composables/useToolI18n'
 import ToolDualPanel from '../components/ToolDualPanel.vue'
 import JsonTreeView from '../components/JsonTreeView.vue'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
+import { useIpc } from '../composables/useIpc'
 import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcut'
 import { translateToolError } from '../utils/translateToolError'
+import { safeStorageGet, safeStorageSet } from '../utils/safeStorage'
 import {
   base64Encode,
   base64Decode,
@@ -19,9 +21,9 @@ import {
   jsonFormat,
   jsonMinify,
   parseJsonValue,
-  validateAgainstSchema,
   formatSchemaErrorLine,
   type SchemaValidationError,
+  type SchemaValidationResult,
   parseTimestampInput,
   numberBaseConvert,
   convertAllCaseFormats,
@@ -47,6 +49,7 @@ const message = useMessage()
 const { t } = useI18n()
 const page = useToolI18n('codeConverter')
 const { copy } = useCopyToClipboard()
+const { invoke } = useIpc()
 const route = useRoute()
 const VALID_TABS = ['base64', 'url', 'json', 'timestamp', 'number', 'case', 'html', 'yaml', 'toml', 'xml', 'sql'] as const
 type TabName = (typeof VALID_TABS)[number]
@@ -95,7 +98,7 @@ onMounted(() => {
   if (queryTab) {
     activeTab.value = queryTab
   } else {
-    const saved = localStorage.getItem(CODE_CONVERTER_TAB_STORAGE_KEY)
+    const saved = safeStorageGet(CODE_CONVERTER_TAB_STORAGE_KEY)
     const savedTab = resolveTab(saved)
     if (savedTab) activeTab.value = savedTab
   }
@@ -109,7 +112,7 @@ onMounted(() => {
 })
 
 watch(activeTab, (tab) => {
-  localStorage.setItem(CODE_CONVERTER_TAB_STORAGE_KEY, tab)
+  safeStorageSet(CODE_CONVERTER_TAB_STORAGE_KEY, tab)
   syncCategoryFromTab(tab)
 })
 
@@ -215,7 +218,7 @@ function updateJsonParsedValue() {
   }
 }
 
-function runSchemaValidation() {
+async function runSchemaValidation() {
   schemaValidationErrors.value = null
   schemaValidationValid.value = null
   schemaValidationError.value = ''
@@ -228,9 +231,13 @@ function runSchemaValidation() {
     return
   }
 
-  const result = validateAgainstSchema(dataResult.result, jsonSchemaInput.value)
-  if (!result.success) {
-    schemaValidationError.value = translateError(result.error)
+  // ajv 在主进程执行（渲染进程 CSP 无 unsafe-eval）
+  const result = await invoke<SchemaValidationResult>('json-schema:validate', {
+    data: dataResult.result,
+    schemaText: jsonSchemaInput.value
+  })
+  if (!result?.success) {
+    schemaValidationError.value = translateError(result?.error) || page.t('errors.schemaInvalid')
     return
   }
 

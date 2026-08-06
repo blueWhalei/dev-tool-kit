@@ -1,4 +1,5 @@
 import { useLocalStorage } from '@vueuse/core'
+import { safeStorageGet, safeStorageSet, safeStorageRemove } from '../utils/safeStorage'
 import {
   PINNED_TOOLS_STORAGE_KEY,
   CODE_CONVERTER_TAB_STORAGE_KEY,
@@ -98,7 +99,7 @@ export function usePreferences() {
       defaultHomeRoute: defaultHomeRoute.value,
       pinnedTools: [...pinnedTools.value],
       recentTools: [...recentTools.value],
-      codeConverterTab: localStorage.getItem(CODE_CONVERTER_TAB_STORAGE_KEY) ?? undefined
+      codeConverterTab: safeStorageGet(CODE_CONVERTER_TAB_STORAGE_KEY) ?? undefined
     }
   }
 
@@ -128,7 +129,7 @@ export function usePreferences() {
         .slice(0, MAX_RECENT_TOOLS)
     }
     if (typeof payload.codeConverterTab === 'string') {
-      localStorage.setItem(CODE_CONVERTER_TAB_STORAGE_KEY, payload.codeConverterTab)
+      safeStorageSet(CODE_CONVERTER_TAB_STORAGE_KEY, payload.codeConverterTab)
     }
     return { success: true }
   }
@@ -139,7 +140,7 @@ export function usePreferences() {
     defaultHomeRoute.value = 'PortManager'
     pinnedTools.value = []
     recentTools.value = []
-    localStorage.removeItem(CODE_CONVERTER_TAB_STORAGE_KEY)
+    safeStorageRemove(CODE_CONVERTER_TAB_STORAGE_KEY)
   }
 
   return {
