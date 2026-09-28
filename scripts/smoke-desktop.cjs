@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const { createRequire } = require('module')
 const assert = require('assert/strict')
 const { clickReadyControl } = require('./desktop-smoke-controls.cjs')
 const repo = path.resolve(__dirname, '..')
@@ -178,7 +179,8 @@ if (!process.versions.electron) {
     )
     assert.equal(fs.readFileSync(a, 'utf8'), 'a')
 
-    const sharp = require(path.join(repo, 'apps/desktop/node_modules/sharp'))
+    const desktopRequire = createRequire(path.join(repo, 'apps/desktop/package.json'))
+    const sharp = desktopRequire('sharp')
     const imageA = path.join(root, 'a.jpg'),
       imageB = path.join(root, 'b.png')
     await sharp({ create: { width: 3, height: 2, channels: 3, background: 'red' } })
