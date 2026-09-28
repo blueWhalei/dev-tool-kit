@@ -3,13 +3,28 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
-import { NButton, NSelect, NButtonGroup, NCard, NList, NListItem, NThing, NSpin, useMessage } from 'naive-ui'
+import {
+  NButton,
+  NSelect,
+  NButtonGroup,
+  NCard,
+  NList,
+  NListItem,
+  NThing,
+  NSpin,
+  useMessage
+} from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import ToolDualPanel from '../components/ToolDualPanel.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
-import { computeHash, type HashAlgorithm, type FileHashResults, formatBytes } from '@dev-tool-kit/shared'
+import {
+  computeHash,
+  type HashAlgorithm,
+  type FileHashResults,
+  formatBytes
+} from '@dev-tool-kit/shared'
 
 const message = useMessage()
 const router = useRouter()
@@ -69,11 +84,11 @@ function useHashInBase64() {
 
 async function selectAndHashFile() {
   try {
-    const filePath = await invoke<string | null>('hash-generator:selectFile')
+    const filePath = await invoke('hash-generator:selectFile')
     if (!filePath) return
 
     fileHashLoading.value = true
-    const data = await invoke<FileHashResults | null>('hash-generator:computeFileHash', filePath)
+    const data = await invoke('hash-generator:computeFileHash', filePath)
     if (data) {
       fileHashResults.value = data
       message.success(page.t('messages.fileHashComplete'))
@@ -134,12 +149,7 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
         :options="algorithmOptions"
         style="width: 160px"
       />
-      <NButton
-        v-if="hashMode === 'text'"
-        size="small"
-        quaternary
-        @click="fillSample"
-      >
+      <NButton v-if="hashMode === 'text'" size="small" quaternary @click="fillSample">
         {{ t('common.fillSample') }}
       </NButton>
       <NButton
@@ -185,20 +195,19 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
 
     <template v-else>
       <NSpin :show="fileHashLoading">
-        <NCard
-          v-if="fileHashResults"
-          class="file-hash-card"
-          :bordered="false"
-        >
+        <NCard v-if="fileHashResults" class="file-hash-card" :bordered="false">
           <div class="file-info">
-            <span class="file-info-item"><strong>{{ page.t('fileArea.fileName') }}:</strong> {{ fileHashResults.fileName }}</span>
-            <span class="file-info-item"><strong>{{ page.t('fileArea.fileSize') }}:</strong> {{ formatBytes(fileHashResults.fileSize) }}</span>
+            <span class="file-info-item"
+              ><strong>{{ page.t('fileArea.fileName') }}:</strong>
+              {{ fileHashResults.fileName }}</span
+            >
+            <span class="file-info-item"
+              ><strong>{{ page.t('fileArea.fileSize') }}:</strong>
+              {{ formatBytes(fileHashResults.fileSize) }}</span
+            >
           </div>
           <NList hoverable>
-            <NListItem
-              v-for="item in fileHashResults.hashes"
-              :key="item.algorithm"
-            >
+            <NListItem v-for="item in fileHashResults.hashes" :key="item.algorithm">
               <NThing>
                 <template #header>
                   <span class="hash-algorithm">{{ item.algorithm }}</span>
@@ -208,21 +217,14 @@ watchDebounced([inputText, selectedAlgorithm], calculateHash, { debounce: 300 })
                 </template>
               </NThing>
               <template #suffix>
-                <NButton
-                  size="small"
-                  @click="copyHash(item.hash)"
-                >
+                <NButton size="small" @click="copyHash(item.hash)">
                   {{ t('common.copy') }}
                 </NButton>
               </template>
             </NListItem>
           </NList>
         </NCard>
-        <NCard
-          v-else
-          class="file-hash-card empty-card"
-          :bordered="false"
-        >
+        <NCard v-else class="file-hash-card empty-card" :bordered="false">
           <div class="empty-hint">
             {{ page.t('messages.noFileSelected') }}
           </div>

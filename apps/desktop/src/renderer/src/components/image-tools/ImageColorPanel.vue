@@ -1,13 +1,6 @@
 <template>
-  <div
-    class="action-bar"
-    style="margin-top: 0; border-top: none; padding-top: 0"
-  >
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForColor"
-    >
+  <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForColor">
       {{ page.t('actions.pickImage') }}
     </NButton>
     <NButton @click="loadFromClipboard">
@@ -16,11 +9,7 @@
   </div>
 
   <template v-if="pickedImage">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.clickToPick') }}</span>
       </template>
@@ -32,24 +21,16 @@
           crossorigin="anonymous"
           style="cursor: crosshair"
           @click="handleImageClick"
-        >
+        />
       </div>
     </NCard>
 
-    <NCard
-      v-if="colorPickedHex"
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard v-if="colorPickedHex" class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.pickedColor') }}</span>
       </template>
       <div class="picked-color-row">
-        <span
-          class="color-swatch-large"
-          :style="{ backgroundColor: colorPickedHex }"
-        />
+        <span class="color-swatch-large" :style="{ backgroundColor: colorPickedHex }" />
         <div class="color-values">
           <div class="color-value-row">
             <span class="result-label">HEX</span>
@@ -62,30 +43,38 @@
               {{ page.t('actions.copyValue') }}
             </NButton>
           </div>
-          <div
-            v-if="colorPickedRgb"
-            class="color-value-row"
-          >
+          <div v-if="colorPickedRgb" class="color-value-row">
             <span class="result-label">RGB</span>
-            <code class="color-code">rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code>
+            <code class="color-code"
+              >rgb({{ colorPickedRgb.r }}, {{ colorPickedRgb.g }}, {{ colorPickedRgb.b }})</code
+            >
             <NButton
               size="tiny"
               quaternary
-              @click="copy(`rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`, page.t('messages.imageCopied'))"
+              @click="
+                copy(
+                  `rgb(${colorPickedRgb!.r}, ${colorPickedRgb!.g}, ${colorPickedRgb!.b})`,
+                  page.t('messages.imageCopied')
+                )
+              "
             >
               {{ page.t('actions.copyValue') }}
             </NButton>
           </div>
-          <div
-            v-if="colorPickedHsl"
-            class="color-value-row"
-          >
+          <div v-if="colorPickedHsl" class="color-value-row">
             <span class="result-label">HSL</span>
-            <code class="color-code">hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code>
+            <code class="color-code"
+              >hsl({{ colorPickedHsl.h }}, {{ colorPickedHsl.s }}%, {{ colorPickedHsl.l }}%)</code
+            >
             <NButton
               size="tiny"
               quaternary
-              @click="copy(`hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`, page.t('messages.imageCopied'))"
+              @click="
+                copy(
+                  `hsl(${colorPickedHsl!.h}, ${colorPickedHsl!.s}%, ${colorPickedHsl.l}%)`,
+                  page.t('messages.imageCopied')
+                )
+              "
             >
               {{ page.t('actions.copyValue') }}
             </NButton>
@@ -94,53 +83,28 @@
       </div>
     </NCard>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.dominantColors') }}</span>
-          <NButton
-            size="small"
-            :loading="colorExtracting"
-            @click="handleExtractColors"
-          >
+          <NButton size="small" :loading="colorExtracting" @click="handleExtractColors">
             {{ page.t('actions.extractColors') }}
           </NButton>
         </div>
       </template>
-      <div
-        v-if="colorExtractedColors.length"
-        class="color-palette"
-      >
-        <div
-          v-for="(c, i) in colorExtractedColors"
-          :key="i"
-          class="color-palette-item"
-        >
-          <span
-            class="color-swatch"
-            :style="{ backgroundColor: c.hex }"
-          />
+      <div v-if="colorExtractedColors.length" class="color-palette">
+        <div v-for="(c, i) in colorExtractedColors" :key="i" class="color-palette-item">
+          <span class="color-swatch" :style="{ backgroundColor: c.hex }" />
           <span class="color-palette-info">
             <code class="color-code">{{ c.hex }}</code>
             <span class="color-ratio">{{ c.ratio }}%</span>
           </span>
-          <NButton
-            size="tiny"
-            quaternary
-            @click="copy(c.hex, page.t('messages.imageCopied'))"
-          >
+          <NButton size="tiny" quaternary @click="copy(c.hex, page.t('messages.imageCopied'))">
             {{ page.t('actions.copyValue') }}
           </NButton>
         </div>
       </div>
-      <div
-        v-else
-        class="result-placeholder"
-      >
+      <div v-else class="result-placeholder">
         {{ page.t('labels.noColorsExtracted') }}
       </div>
     </NCard>
@@ -181,10 +145,14 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-  const rn = r / 255, gn = g / 255, bn = b / 255
-  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn)
+  const rn = r / 255,
+    gn = g / 255,
+    bn = b / 255
+  const max = Math.max(rn, gn, bn),
+    min = Math.min(rn, gn, bn)
   const l = (max + min) / 2
-  let h = 0, s = 0
+  let h = 0,
+    s = 0
   if (max !== min) {
     const d = max - min
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
@@ -212,7 +180,9 @@ function handleImageClick(e: MouseEvent) {
   const y = Math.floor((e.clientY - rect.top) * scaleY)
 
   const pixel = ctx.getImageData(x, y, 1, 1).data
-  const r = pixel[0], g = pixel[1], b = pixel[2]
+  const r = pixel[0],
+    g = pixel[1],
+    b = pixel[2]
 
   colorPickedRgb.value = { r, g, b }
   colorPickedHex.value = rgbToHex(r, g, b)
@@ -230,14 +200,14 @@ async function pickImageForColor() {
 
 async function loadFromClipboard() {
   try {
-    const data = await invoke<{ base64: string; dataUri: string; width: number; height: number; size: number; mimeType: string } | null>('image-tools:readClipboardImage')
+    const data = await invoke('image-tools:readClipboardImage')
     if (data) {
       pickedImage.value = {
         fileName: 'clipboard.png',
         filePath: '',
         mimeType: data.mimeType,
         base64: data.base64,
-        dataUri: data.dataUri,
+        dataUri: `data:${data.mimeType};base64,${data.base64}`,
         size: data.size
       }
       colorPickedHex.value = ''
@@ -259,7 +229,7 @@ async function handleExtractColors() {
   }
   colorExtracting.value = true
   try {
-    const colors = await invoke<ExtractedColor[] | null>('image-tools:extractColors', pickedImage.value.filePath, 8)
+    const colors = await invoke('image-tools:extractColors', pickedImage.value.filePath, 8)
     if (colors && colors.length > 0) {
       colorExtractedColors.value = colors
       message.success(page.t('messages.colorExtracted'))

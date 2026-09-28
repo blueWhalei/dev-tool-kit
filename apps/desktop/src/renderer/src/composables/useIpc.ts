@@ -1,4 +1,4 @@
-import type { IpcInvokeChannel } from '@dev-tool-kit/shared'
+import type { TypedIpcChannel, IpcArgs, IpcResult } from '@dev-tool-kit/shared'
 import { useI18n } from 'vue-i18n'
 import { logError, showError } from '../utils/error-handler'
 
@@ -20,17 +20,17 @@ export function serializeForIpc(value: unknown): unknown {
 export function useIpc() {
   const { t } = useI18n()
 
-  async function invoke<T>(
-    channel: IpcInvokeChannel,
-    ...args: unknown[]
-  ): Promise<T | undefined> {
+  async function invoke<C extends TypedIpcChannel>(
+    channel: C,
+    ...args: IpcArgs<C>
+  ): Promise<IpcResult<C> | undefined> {
     if (!window.electronAPI) {
       showError(t('common.electronApiUnavailable'))
       return undefined
     }
     try {
-      const plainArgs = args.map(serializeForIpc)
-      return (await window.electronAPI.invoke(channel, ...plainArgs)) as T
+      const plainArgs = args.map(serializeForIpc) as IpcArgs<C>
+      return await window.electronAPI.invoke(channel, ...plainArgs)
     } catch (error) {
       logError(`IPC:${channel}`, error)
       showError(error)

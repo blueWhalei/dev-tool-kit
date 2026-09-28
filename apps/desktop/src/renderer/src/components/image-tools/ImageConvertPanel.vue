@@ -1,33 +1,18 @@
 <template>
   <div class="action-bar">
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForConvert"
-    >
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForConvert">
       {{ page.t('actions.pickImage') }}
     </NButton>
   </div>
 
   <template v-if="pickedImage">
-    <NGrid
-      cols="1 768:2"
-      :x-gap="16"
-      :y-gap="16"
-      style="margin-top: 16px"
-    >
+    <NGrid cols="1 768:2" :x-gap="16" :y-gap="16" style="margin-top: 16px">
       <NGridItem>
-        <NCard
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard class="editor-card" :bordered="false">
           <template #header>
             <div class="card-header-flex">
               <span class="card-title">{{ page.t('labels.original') }}</span>
-              <NTag
-                size="small"
-                :bordered="false"
-              >
+              <NTag size="small" :bordered="false">
                 {{ pickedImage.mimeType }}
               </NTag>
             </div>
@@ -37,23 +22,16 @@
               :src="convertOriginalPreviewUri"
               :alt="page.t('labels.original')"
               class="image-preview"
-            >
+            />
           </div>
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard
-          v-if="convertResult"
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard v-if="convertResult" class="editor-card" :bordered="false">
           <template #header>
             <div class="card-header-flex">
               <span class="card-title">{{ page.t('labels.result') }}</span>
-              <NTag
-                size="small"
-                :bordered="false"
-              >
+              <NTag size="small" :bordered="false">
                 {{ convertResult.mimeType }}
               </NTag>
             </div>
@@ -63,14 +41,10 @@
               :src="`data:${convertResult.mimeType};base64,${convertResult.data}`"
               :alt="page.t('labels.result')"
               class="image-preview"
-            >
+            />
           </div>
         </NCard>
-        <NCard
-          v-else
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard v-else class="editor-card" :bordered="false">
           <div class="result-placeholder">
             {{ page.t('labels.result') }}
           </div>
@@ -78,11 +52,7 @@
       </NGridItem>
     </NGrid>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.targetFormat') }}</span>
       </template>
@@ -95,10 +65,7 @@
             style="width: 160px"
           />
         </div>
-        <div
-          v-if="convertTargetFormat !== 'png'"
-          class="option-row"
-        >
+        <div v-if="convertTargetFormat !== 'png'" class="option-row">
           <span class="section-label">{{ page.t('labels.quality') }}: {{ convertQuality }}</span>
           <NSlider
             v-model:value="convertQuality"
@@ -108,36 +75,23 @@
             style="width: 260px"
           />
         </div>
-        <div
-          v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha"
-          class="option-row"
-        >
+        <div v-if="convertTargetFormat === 'jpeg' && sourceHasAlpha" class="option-row">
           <span class="section-label">{{ page.t('labels.background') }}</span>
           <NInput
             v-model:value="convertBackground"
             :placeholder="page.t('placeholders.backgroundColor')"
             style="width: 160px"
           />
-          <span
-            class="color-swatch"
-            :style="{ backgroundColor: convertBackground }"
-          />
+          <span class="color-swatch" :style="{ backgroundColor: convertBackground }" />
         </div>
       </div>
     </NCard>
 
     <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="convertLoading"
-        @click="handleConvert"
-      >
+      <NButton type="primary" :loading="convertLoading" @click="handleConvert">
         {{ page.t('actions.convert') }}
       </NButton>
-      <NButton
-        v-if="convertResult"
-        @click="saveConverted"
-      >
+      <NButton v-if="convertResult" @click="saveConverted">
         {{ page.t('actions.save') }}
       </NButton>
     </div>
@@ -146,7 +100,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { NButton, NCard, NGrid, NGridItem, NTag, NSelect, NSlider, NInput, useMessage } from 'naive-ui'
+import {
+  NButton,
+  NCard,
+  NGrid,
+  NGridItem,
+  NTag,
+  NSelect,
+  NSlider,
+  NInput,
+  useMessage
+} from 'naive-ui'
 import { type ProcessedImage, type ImageConvertOptions } from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
@@ -191,9 +155,12 @@ async function handleConvert() {
     const options: ImageConvertOptions = {
       format: convertTargetFormat.value,
       quality: convertTargetFormat.value !== 'png' ? convertQuality.value : undefined,
-      background: convertTargetFormat.value === 'jpeg' && sourceHasAlpha.value ? convertBackground.value : undefined
+      background:
+        convertTargetFormat.value === 'jpeg' && sourceHasAlpha.value
+          ? convertBackground.value
+          : undefined
     }
-    const result = await invoke<ProcessedImage | null>('image-tools:convert', pickedImage.value.filePath, options)
+    const result = await invoke('image-tools:convert', pickedImage.value.filePath, options)
     if (result) {
       convertResult.value = result
       message.success(page.t('messages.convertSuccess'))

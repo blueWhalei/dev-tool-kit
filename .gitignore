@@ -1,116 +1,67 @@
 # Dependencies
 node_modules/
 .pnpm-store/
-jspm_packages/
 
-# Build outputs
+# Build and Electron packaging outputs
 dist/
 out/
-build/
-build/Release
+release/
+*.tsbuildinfo
+*.tgz
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# Diagnostic reports
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage
-coverage/
-*.lcov
-.nyc_output/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.vscode-test
-.trae/
-.reasonix/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-.env.local
-.env.*.local
-!.env.example
-
-# Cache directories
+# Tool caches
 .turbo/
 .cache/
-.parcel-cache/
+.vite/
+.vite-temp/
 .eslintcache
-.stylelintcache
-.npm
-.grunt
-.fusebox/
-.firebase/
-.dynamodb/
-.serverless/
-.svelte-kit/
+*.timestamp-*.mjs
+*.timestamp-*.js
 
-# Temporary
+# Test and coverage outputs
+coverage/
+.nyc_output/
+*.lcov
+/test-results/
+
+# Logs and runtime diagnostics
+logs/
+*.log
+*-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+*.pid
+*.pid.lock
+
+# Local environment files (templates remain trackable)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Temporary files
+/tmp/
+/temp/
 *.tmp
 *.temp
 .node_repl_history
 
-# TypeScript cache
-*.tsbuildinfo
+# Local editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Yarn
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-.yarn-integrity
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
-**/.vitepress/dist
-**/.vitepress/cache
-
-# Framework outputs
-.next/
-.nuxt/
-.vuepress/dist
-.docusaurus
-
-# Package files
-*.tgz
-*.lock-wscript
+# pnpm is the only package manager used by this repository
 package-lock.json
 
-# Other
-bower_components/
-web_modules/
-.tern-port
-
-# Electron specific
-release/
-*.dmg
-*.AppImage
-*.snap
-*.deb
-*.rpm
-*.exe
-*.msi
+# Local AI workflow instructions and implementation notes
+/AGENTS.md
+/.agents/
+/.codex/
+/specs/

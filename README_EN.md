@@ -34,55 +34,55 @@ Representative previews below (port manager, encoding converter, settings). The 
 
 ### System Tools
 
-| Tool | Description |
-|------|------|
-| Port Manager | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux; copy sudo command on failure) |
-| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux shell config write (shows target file, backup + diff preview) |
-| Hosts Editor | Visual hosts management, grouping, scheme diff, export/import, DNS flush (Linux multi-tool fallback); disable save without write access, one-click sudo copy |
-| File Renamer | Batch rename, rule chains, regex replace, undo, rule library, conflict preview |
-| Regex Tester | Regex matching, replace preview with flags, common expression library |
+| Tool                  | Description                                                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Port Manager          | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux; copy sudo command on failure)                        |
+| Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux shell config write (shows target file, backup + diff preview)                      |
+| Hosts Editor          | Visual hosts management, grouping, scheme diff, export/import, DNS flush (Linux multi-tool fallback); disable save without write access, one-click sudo copy |
+| File Renamer          | Batch rename, rule chains, regex replace, undo, rule library, conflict preview                                                                               |
+| Regex Tester          | Regex matching, replace preview with flags, common expression library                                                                                        |
 
 ### Encoding & Decoding
 
-| Tool | Description |
-|------|------|
+| Tool                         | Description                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Encoding & Format Conversion | Base64, URL, JSON (tree + Schema), YAML, TOML, XML, SQL, timestamp, radix, naming, HTML (unified entry with Tab memory) |
-| Text Diff | Line/word-level diff, file import, ignore whitespace/case, unified/split view |
+| Text Diff                    | Line/word-level diff, file import, ignore whitespace/case, unified/split view                                           |
 
 ### Data Conversion
 
-| Tool | Description |
-|------|------|
-| Color Converter | HEX, RGB, HSL, HSV conversion with WCAG contrast check |
-| UUID Generator | Batch generate UUID/GUID |
-| Mock Data | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT |
-| HTTP Status Codes | Quick reference for 62 common status codes with search and categories |
-| Developer Reference | Offline MIME types, Git command templates, HTTP methods (tab deep links) |
-| QR Code Generator | Generate QR codes locally from text/URL with adjustable size and error correction |
+| Tool                     | Description                                                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Color Converter          | HEX, RGB, HSL, HSV conversion with WCAG contrast check                                                |
+| UUID Generator           | Batch generate UUID/GUID                                                                              |
+| Mock Data                | Preset templates, rich field types, field-based JSON generation, export JSON/CSV/SQL INSERT           |
+| HTTP Status Codes        | Quick reference for 62 common status codes with search and categories                                 |
+| Developer Reference      | Offline MIME types, Git command templates, HTTP methods (tab deep links)                              |
+| QR Code Generator        | Generate QR codes locally from text/URL with adjustable size and error correction                     |
 | Connection String Parser | Parse and build MySQL, PostgreSQL, Redis, MongoDB URIs; export JSON; link to Mock Data / Port Manager |
 
 ### Password & Keys
 
-| Tool | Description |
-|------|------|
-| Password Generator | Random character passwords and offline passphrase (Diceware) |
-| JWT Tool | Secret generation, token decode/sign, HMAC & RSA public-key verification |
-| Hash Generator | MD5, SHA-1, SHA-256, SHA-512; text and file hashing |
-| Certificate Parser | Local PEM/X.509 parsing — subject, issuer, validity, fingerprints, and more |
+| Tool               | Description                                                                    |
+| ------------------ | ------------------------------------------------------------------------------ |
+| Password Generator | Random character passwords and offline passphrase (Diceware)                   |
+| JWT Tool           | Secret generation, token decode/sign, HMAC & RSA public-key verification       |
+| Hash Generator     | MD5, SHA-1, SHA-256, SHA-512; text and file hashing                            |
+| Certificate Parser | Local PEM/X.509 parsing — subject, issuer, validity, fingerprints, and more    |
 | Key Pair Generator | Local RSA 2048/4096 & EC P-256/P-384 key pairs, PEM export, link to JWT verify |
 
 ### Calculators
 
-| Tool | Description |
-|------|------|
-| Cron Parser | Visual field editor, local timezone, next 5 execution times with relative countdown |
-| Subnet Calculator | IPv4/IPv6 CIDR with VLSM splitting, network/broadcast/mask/host range |
-| Chmod Calculator | Octal/symbolic permission conversion with rwx bit visualization |
+| Tool              | Description                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| Cron Parser       | Visual field editor, local timezone, next 5 execution times with relative countdown |
+| Subnet Calculator | IPv4/IPv6 CIDR with VLSM splitting, network/broadcast/mask/host range               |
+| Chmod Calculator  | Octal/symbolic permission conversion with rwx bit visualization                     |
 
 ### Image Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool        | Description                                                                                                                                                                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image Tools | Base64 conversion, info & EXIF, compress, resize & crop, format conversion, Data URL, SVG optimization, color picker & palette, favicon generator, batch process, image compare (side-by-side/slider/diff overlay), encoding presets (Web/Avatar/E-commerce/OG) |
 
 ## Keyboard Shortcuts
@@ -107,37 +107,37 @@ Full keyboard shortcuts list available in the app's **About** page.
 
 ## Platform Capability Matrix
 
-| Feature | Windows | macOS | Linux | Notes |
-|---------|---------|-------|-------|-------|
-| Port Scanning | Full Support | Full Support | Full Support | — |
-| Kill Process | Full Support | Partial Support | Partial Support | Unix can kill user processes; system processes may need sudo |
-| Environment Variables | Full Support | Partial Support | Partial Support | Unix shell config write with backup; Windows registry write |
-| Hosts Editor | Partial Support | Partial Support | Partial Support | Write may require admin; sudo command copy on failure |
-| DNS Flush | Full Support | Full Support | Partial Support | Linux depends on systemd-resolve / nscd |
-| File Renamer | Full Support | Full Support | Full Support | — |
+| Feature                    | Windows         | macOS           | Linux           | Notes                                                           |
+| -------------------------- | --------------- | --------------- | --------------- | --------------------------------------------------------------- |
+| Port Scanning              | Full Support    | Full Support    | Full Support    | —                                                               |
+| Kill Process               | Full Support    | Partial Support | Partial Support | Unix can kill user processes; system processes may need sudo    |
+| Environment Variables      | Full Support    | Partial Support | Partial Support | Unix shell config write with backup; Windows registry write     |
+| Hosts Editor               | Partial Support | Partial Support | Partial Support | Write may require admin; sudo command copy on failure           |
+| DNS Flush                  | Full Support    | Full Support    | Partial Support | Linux depends on systemd-resolve / nscd                         |
+| File Renamer               | Full Support    | Full Support    | Full Support    | —                                                               |
 | Encoding / Hash / JWT etc. | Local Available | Local Available | Local Available | Renderer process local computation, consistent across platforms |
 
 ## Deep Link Routes
 
-| Path | Target |
-|------|------|
-| `/base64` | Encoding Conversion · Base64 Tab |
-| `/url` | Encoding Conversion · URL Tab |
-| `/yaml` | Encoding Conversion · YAML Tab |
-| `/toml` | Encoding Conversion · TOML Tab |
-| `/json-formatter` | Encoding Conversion · JSON Tab |
-| `/timestamp` | Encoding Conversion · Timestamp Tab |
-| `/xml` | Encoding Conversion · XML Tab |
-| `/sql` | Encoding Conversion · SQL Tab |
-| `/image-base64` | Image Tools · Base64 Tab |
-| `/image-tools` | Image Tools (`?tab=base64` / `info` / `compress` / `resize` / `convert` / `dataUrl` / `svg` / `color` / `favicon` / `batch` / `compare` / `preset`) |
-| `/chmod-calculator` | Chmod Calculator |
-| `/http-status-codes` | HTTP Status Codes Reference |
-| `/connection-string-parser` | Connection string parse & build |
-| `/dev-reference` | Developer Reference (`?tab=mime` / `git` / `http-methods`) |
-| `/key-pair-generator` | RSA/EC Key Pair Generator |
-| `/certificate-parser` | Certificate PEM Parser |
-| `/qr-code-generator` | QR Code Generator |
+| Path                        | Target                                                                                                                                              |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/base64`                   | Encoding Conversion · Base64 Tab                                                                                                                    |
+| `/url`                      | Encoding Conversion · URL Tab                                                                                                                       |
+| `/yaml`                     | Encoding Conversion · YAML Tab                                                                                                                      |
+| `/toml`                     | Encoding Conversion · TOML Tab                                                                                                                      |
+| `/json-formatter`           | Encoding Conversion · JSON Tab                                                                                                                      |
+| `/timestamp`                | Encoding Conversion · Timestamp Tab                                                                                                                 |
+| `/xml`                      | Encoding Conversion · XML Tab                                                                                                                       |
+| `/sql`                      | Encoding Conversion · SQL Tab                                                                                                                       |
+| `/image-base64`             | Image Tools · Base64 Tab                                                                                                                            |
+| `/image-tools`              | Image Tools (`?tab=base64` / `info` / `compress` / `resize` / `convert` / `dataUrl` / `svg` / `color` / `favicon` / `batch` / `compare` / `preset`) |
+| `/chmod-calculator`         | Chmod Calculator                                                                                                                                    |
+| `/http-status-codes`        | HTTP Status Codes Reference                                                                                                                         |
+| `/connection-string-parser` | Connection string parse & build                                                                                                                     |
+| `/dev-reference`            | Developer Reference (`?tab=mime` / `git` / `http-methods`)                                                                                          |
+| `/key-pair-generator`       | RSA/EC Key Pair Generator                                                                                                                           |
+| `/certificate-parser`       | Certificate PEM Parser                                                                                                                              |
+| `/qr-code-generator`        | QR Code Generator                                                                                                                                   |
 
 ## Tech Stack
 
@@ -217,6 +217,13 @@ pnpm test
 pnpm check:locales
 ```
 
+Desktop regression smoke test (requires a graphical session; build first; uses a hidden window and isolated temporary data):
+
+```bash
+pnpm build
+pnpm test:desktop
+```
+
 ## Project Structure
 
 Monorepo architecture: `apps/desktop` (Electron app) + `packages/shared` (shared utility modules)
@@ -232,3 +239,14 @@ Monorepo architecture: `apps/desktop` (Electron app) + `packages/shared` (shared
 ## License
 
 [MIT](LICENSE)
+
+### Development and verification
+
+- `pnpm dev` watches both shared and desktop code. Use `pnpm --filter @dev-tool-kit/shared build:watch` for shared alone.
+- `pnpm test:coverage` reports monorepo coverage and enforces critical-file thresholds.
+- `pnpm format:check` checks modified and untracked files against HEAD; `pnpm format:changed` formats them. CI compares against the target branch or previous commit.
+- Windows CI runs `pnpm test:desktop` against built artifacts.
+
+Batch selection transfers file metadata only. Outputs stay in main-process temporary files, with one task per window and two concurrent images. Cancellation stops queued items while active items finish. Retry preserves completed results; saving skips existing files. Leaving the panel or closing its window cleans up task files.
+
+User configuration writes are serialized and replaced atomically, retaining one `.bak` recovery copy. Resetting window state also removes its backup.

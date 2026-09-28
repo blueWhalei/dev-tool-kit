@@ -28,10 +28,7 @@ export function formatBytes(bytes: number, decimals = 2): string {
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
-  const i = Math.min(
-    Math.max(Math.floor(Math.log(bytes) / Math.log(k)), 0),
-    sizes.length - 1
-  )
+  const i = Math.min(Math.max(Math.floor(Math.log(bytes) / Math.log(k)), 0), sizes.length - 1)
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
@@ -40,7 +37,7 @@ export function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes % 60}m`
   }
@@ -53,14 +50,14 @@ export function formatDuration(ms: number): string {
 export function formatDate(date: Date | string | number, format = 'YYYY-MM-DD HH:mm:ss'): string {
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
-  
+
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   const hours = String(d.getHours()).padStart(2, '0')
   const minutes = String(d.getMinutes()).padStart(2, '0')
   const seconds = String(d.getSeconds()).padStart(2, '0')
-  
+
   return format
     .replace('YYYY', String(year))
     .replace('MM', month)
@@ -76,18 +73,20 @@ export function isValidPort(port: number): boolean {
 }
 
 export function isValidIP(ip: string): boolean {
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
   const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
   return ipv4Regex.test(ip) || ipv6Regex.test(ip)
 }
 
 export function isValidHostname(hostname: string): boolean {
-  const hostnameRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/
+  const hostnameRegex =
+    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/
   return hostnameRegex.test(hostname)
 }
 
 export function isValidPath(path: string): boolean {
-  const pathRegex = /^([a-zA-Z]:\\|\/)([^\\\/:*?"<>|\r\n]+[\\\/])*([^\\\/:*?"<>|\r\n]*)$/
+  const pathRegex = /^([a-zA-Z]:\\|\/)([^\\/:*?"<>|\r\n]+[\\/])*([^\\/:*?"<>|\r\n]*)$/
   return pathRegex.test(path)
 }
 
@@ -111,7 +110,7 @@ export function kebabCase(str: string): string {
 }
 
 export function camelCase(str: string): string {
-  return str.replace(/[-_\s]+(.)?/g, (_, c) => c ? c.toUpperCase() : '')
+  return str.replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ''))
 }
 
 // Array utilities
@@ -144,7 +143,7 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
-  
+
   return (...args: Parameters<T>) => {
     if (timeoutId) clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn(...args), delay)
@@ -156,7 +155,7 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle = false
-  
+
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       fn(...args)

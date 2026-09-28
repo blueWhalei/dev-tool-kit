@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { handleIpc } from '../../typed-ipc'
 import { validateAgainstSchema } from '@dev-tool-kit/shared'
 import { logger } from '../../logger'
 
@@ -15,7 +15,7 @@ interface JsonSchemaValidatePayload {
 export function setupJsonSchemaIPC(): void {
   logger.info('Setting up JSON Schema IPC handlers')
 
-  ipcMain.handle('json-schema:validate', async (_event, payload: JsonSchemaValidatePayload) => {
+  handleIpc('json-schema:validate', async (_event, payload: JsonSchemaValidatePayload) => {
     if (!payload || typeof payload !== 'object' || typeof payload.schemaText !== 'string') {
       return { success: false, error: '无效的 JSON Schema' }
     }

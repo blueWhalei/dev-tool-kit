@@ -1,4 +1,5 @@
-import { ipcMain, dialog } from 'electron'
+import { handleIpc } from '../../typed-ipc'
+import { dialog } from 'electron'
 import { logger } from '../../logger'
 import { computeFileHashes } from './file-hash'
 import { authorizePath, isPathAuthorized } from '../path-guard'
@@ -6,7 +7,7 @@ import { authorizePath, isPathAuthorized } from '../path-guard'
 export function setupHashGeneratorIPC(): void {
   logger.info('Setting up Hash Generator IPC handlers')
 
-  ipcMain.handle('hash-generator:selectFile', async () => {
+  handleIpc('hash-generator:selectFile', async () => {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
@@ -21,7 +22,7 @@ export function setupHashGeneratorIPC(): void {
     }
   })
 
-  ipcMain.handle('hash-generator:computeFileHash', async (_, filePath: unknown) => {
+  handleIpc('hash-generator:computeFileHash', async (_, filePath: unknown) => {
     if (typeof filePath !== 'string' || !filePath.trim()) {
       return null
     }

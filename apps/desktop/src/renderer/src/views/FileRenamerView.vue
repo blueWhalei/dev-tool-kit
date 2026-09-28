@@ -1,10 +1,27 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import {
-  NButton, NSpace, NInput, NSelect, NModal,
-  NForm, NFormItem, NProgress, NEmpty, NAlert,
-  NCard, NList, NListItem, NCheckbox, NTag, NDivider, useMessage
+  NButton,
+  NSpace,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NModal,
+  NForm,
+  NFormItem,
+  NProgress,
+  NEmpty,
+  NAlert,
+  NCard,
+  NList,
+  NListItem,
+  NCheckbox,
+  NTag,
+  NDivider,
+  useMessage
 } from 'naive-ui'
+import type { SavedRenameRule, RenameRule } from '@dev-tool-kit/shared'
+import { translateToolError } from '../utils/translateToolError'
 import { showError } from '../utils/error-handler'
 import PageLayout from '../components/PageLayout.vue'
 import { useIpc } from '../composables/useIpc'
@@ -14,7 +31,6 @@ import {
   type FileEntry,
   type RenamePreview,
   type RenameResult,
-  type SavedRenameRule,
   isFileEntryArray,
   isRenamePreviewArray,
   isRenameResultArray,
@@ -27,16 +43,6 @@ const message = useMessage()
 const { invoke } = useIpc()
 const page = useToolI18n('fileRenamer')
 const { t, locale } = useI18n()
-
-interface RenameRule {
-  type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
-  value?: string
-  replaceWith?: string
-  pattern?: string
-  startNumber?: number
-  padding?: number
-  caseType?: 'upper' | 'lower' | 'title'
-}
 
 const folderPath = ref('')
 const files = ref<FileEntry[]>([])
@@ -54,23 +60,17 @@ const ruleNameInput = ref('')
 const showSaveRuleModal = ref(false)
 const lastUndoOps = ref<{ oldPath: string; newPath: string }[]>([])
 
-let isFetchingPreview = false
+const isFetchingPreview = ref(false)
 let pendingFetch = false
 
 const ruleTypes = computed(() => {
   void locale.value
-  return ([
-    'number',
-    'prefix',
-    'suffix',
-    'replace',
-    'regex',
-    'case',
-    'date'
-  ] as const).map(value => ({
-    label: page.t(`ruleTypes.${value}`),
-    value
-  }))
+  return (['number', 'prefix', 'suffix', 'replace', 'regex', 'case', 'date'] as const).map(
+    value => ({
+      label: page.t(`ruleTypes.${value}`),
+      value
+    })
+  )
 })
 
 const caseOptions = computed(() => {
@@ -94,7 +94,14 @@ const allSelected = computed({
 
 const conflictCount = computed(() => previews.value.filter(item => item.conflict).length)
 const hasConflicts = computed(() => conflictCount.value > 0)
-const canExecute = computed(() => previews.value.length > 0 && !hasConflicts.value)
+const canExecute = computed(
+  () =>
+    previews.value.length > 0 &&
+    !hasConflicts.value &&
+    !isFetchingPreview.value &&
+    !executing.value &&
+    !undoing.value
+)
 
 const canUndo = computed(() => lastUndoOps.value.length > 0)
 
@@ -109,7 +116,7 @@ function removeRule(index: number) {
 
 async function loadSavedRules() {
   try {
-    const data = await invoke<SavedRenameRule[]>('file-renamer:listRules')
+    const data = await invoke('file-renamer:listRules')
     savedRules.value = Array.isArray(data) ? data : []
   } catch {
     savedRules.value = []
@@ -118,7 +125,7 @@ async function loadSavedRules() {
 
 async function selectFolder() {
   try {
-    const path = await invoke<string | null>('file-renamer:selectFolder')
+    const path = await invoke('file-renamer:selectFolder')
     if (path) {
       folderPath.value = path
       sourceType.value = 'folder'
@@ -161,20 +168,24 @@ async function loadFiles() {
 }
 
 async function fetchPreview() {
-  if (isFetchingPreview) {
+  previews.value = []
+  if (isFetchingPreview.value) {
     pendingFetch = true
     return
   }
 
-  isFetchingPreview = true
+  isFetchingPreview.value = true
   pendingFetch = false
 
   try {
     if (selectedFiles.value.length > 0 && files.value.length > 0) {
-      const selectedFileEntries = files.value.filter(file => selectedFiles.value.includes(file.path))
+      const selectedFileEntries = files.value.filter(file =>
+        selectedFiles.value.includes(file.path)
+      )
       try {
         const data = await invoke('file-renamer:preview', selectedFileEntries, rules.value)
-        previews.value = validateArray(data, isRenamePreviewArray, 'fetchPreview')
+        if (!pendingFetch)
+          previews.value = validateArray(data, isRenamePreviewArray, 'fetchPreview')
       } catch {
         previews.value = []
       }
@@ -182,7 +193,7 @@ async function fetchPreview() {
       previews.value = []
     }
   } finally {
-    isFetchingPreview = false
+    isFetchingPreview.value = false
     if (pendingFetch) {
       pendingFetch = false
       await fetchPreview()
@@ -243,13 +254,32 @@ async function deleteSavedRule(name: string) {
   }
 }
 
-watch(selectedFiles, async () => {
-  await fetchPreview()
-}, { deep: true })
+watch(
+  selectedFiles,
+  async () => {
+    await fetchPreview()
+  },
+  { deep: true, flush: 'sync' }
+)
 
-watch(rules, async () => {
-  await fetchPreview()
-}, { deep: true })
+watch(
+  rules,
+  async () => {
+    await fetchPreview()
+  },
+  { deep: true, flush: 'sync' }
+)
+
+function updateMovedFiles(moves: RenameResult[]) {
+  for (const move of moves) {
+    if (!move.success || !move.oldPath || !move.newPath) continue
+    const newPath = move.newPath
+    files.value = files.value.map(file =>
+      file.path === move.oldPath ? { ...file, name: move.renamed, path: newPath } : file
+    )
+    selectedFiles.value = selectedFiles.value.map(path => (path === move.oldPath ? newPath : path))
+  }
+}
 
 async function executeRename() {
   if (!canExecute.value) return
@@ -264,8 +294,8 @@ async function executeRename() {
     if (folderPath.value) {
       await loadFiles()
     } else if (sourceType.value === 'files') {
-      selectedFiles.value = []
-      previews.value = []
+      updateMovedFiles(results.value)
+      await fetchPreview()
     }
   } catch (error) {
     showError(error, page.t('messages.executeFailed'))
@@ -275,15 +305,18 @@ async function executeRename() {
 }
 
 async function undoRename() {
-  if (!canUndo.value) return
+  if (!canUndo.value || executing.value || undoing.value || isFetchingPreview.value) return
   undoing.value = true
   try {
     const data = await invoke('file-renamer:undo', lastUndoOps.value)
     results.value = validateArray(data, isRenameResultArray, 'undoRename')
-    lastUndoOps.value = []
+    lastUndoOps.value = lastUndoOps.value.filter((_, index) => !results.value[index]?.success)
     showResultModal.value = true
     if (folderPath.value) {
       await loadFiles()
+    } else if (sourceType.value === 'files') {
+      updateMovedFiles(results.value)
+      await fetchPreview()
     }
   } catch (error) {
     showError(error, page.t('messages.undoFailed'))
@@ -308,10 +341,7 @@ onMounted(() => {
   >
     <template #actions>
       <NSpace>
-        <NButton
-          type="primary"
-          @click="selectFolder"
-        >
+        <NButton type="primary" @click="selectFolder">
           {{ page.t('selectFolder') }}
         </NButton>
         <NButton @click="selectFiles">
@@ -320,18 +350,12 @@ onMounted(() => {
       </NSpace>
     </template>
 
-    <div
-      v-if="folderPath"
-      class="folder-bar"
-    >
+    <div v-if="folderPath" class="folder-bar">
       <span class="folder-label">{{ page.t('currentFolder') }}</span>
       <span class="folder-path">{{ folderPath }}</span>
     </div>
 
-    <div
-      v-else-if="sourceType === 'files'"
-      class="folder-bar"
-    >
+    <div v-else-if="sourceType === 'files'" class="folder-bar">
       <span class="folder-label">{{ page.t('selectedFiles') }}</span>
       <span class="folder-path">{{ page.t('filesCount', { count: files.length }) }}</span>
     </div>
@@ -339,11 +363,7 @@ onMounted(() => {
     <template v-if="files.length > 0">
       <div class="renamer-layout">
         <!-- 左栏：文件选择与规则 -->
-        <NCard
-          :title="page.t('filesAndRules')"
-          class="panel-card panel-left"
-          :bordered="false"
-        >
+        <NCard :title="page.t('filesAndRules')" class="panel-card panel-left" :bordered="false">
           <section class="panel-section">
             <div class="section-head">
               <span class="section-title">{{ page.t('fileList') }}</span>
@@ -355,19 +375,13 @@ onMounted(() => {
               </NSpace>
             </div>
             <NList class="files-list">
-              <NListItem
-                v-for="file in files"
-                :key="file.path"
-              >
+              <NListItem v-for="file in files" :key="file.path">
                 <div class="file-row">
                   <NCheckbox
                     :checked="selectedFiles.includes(file.path)"
-                    @update:checked="(checked) => toggleFile(file.path, checked)"
+                    @update:checked="checked => toggleFile(file.path, checked)"
                   />
-                  <span
-                    class="file-name"
-                    :title="file.path"
-                  >{{ file.name }}</span>
+                  <span class="file-name" :title="file.path">{{ file.name }}</span>
                 </div>
               </NListItem>
             </NList>
@@ -378,37 +392,21 @@ onMounted(() => {
           <section class="panel-section">
             <div class="section-head">
               <span class="section-title">{{ page.t('renameRules') }}</span>
-              <NButton
-                size="tiny"
-                quaternary
-                @click="showSaveRuleModal = true"
-              >
+              <NButton size="tiny" quaternary @click="showSaveRuleModal = true">
                 {{ page.t('saveRule') }}
               </NButton>
             </div>
-            <NForm
-              label-placement="top"
-              size="small"
-            >
+            <NForm label-placement="top" size="small">
               <NFormItem :label="page.t('savedRules')">
-                <NSpace
-                  vertical
-                  style="width: 100%"
-                >
+                <NSpace vertical style="width: 100%">
                   <NSelect
                     :options="savedRuleOptions"
                     :placeholder="page.t('loadSavedRule')"
                     clearable
                     @update:value="applySavedRule"
                   />
-                  <NList
-                    v-if="savedRules.length"
-                    class="saved-rules-list"
-                  >
-                    <NListItem
-                      v-for="item in savedRules"
-                      :key="item.name"
-                    >
+                  <NList v-if="savedRules.length" class="saved-rules-list">
+                    <NListItem v-for="item in savedRules" :key="item.name">
                       <div class="saved-rule-row">
                         <button
                           type="button"
@@ -432,20 +430,10 @@ onMounted(() => {
               </NFormItem>
 
               <NFormItem :label="page.t('ruleChain')">
-                <NSpace
-                  vertical
-                  style="width: 100%"
-                >
-                  <div
-                    v-for="(rule, index) in rules"
-                    :key="index"
-                    class="rule-chain-item"
-                  >
+                <NSpace vertical style="width: 100%">
+                  <div v-for="(rule, index) in rules" :key="index" class="rule-chain-item">
                     <div class="rule-chain-head">
-                      <NTag
-                        size="small"
-                        type="info"
-                      >
+                      <NTag size="small" type="info">
                         {{ page.t('ruleStep', { step: index + 1 }) }}
                       </NTag>
                       <NButton
@@ -459,38 +447,20 @@ onMounted(() => {
                       </NButton>
                     </div>
                     <NFormItem :label="page.t('ruleType')">
-                      <NSelect
-                        v-model:value="rule.type"
-                        :options="ruleTypes"
-                      />
+                      <NSelect v-model:value="rule.type" :options="ruleTypes" />
                     </NFormItem>
 
-                    <NFormItem
-                      v-if="rule.type === 'prefix'"
-                      :label="page.t('prefix')"
-                    >
-                      <NInput
-                        v-model:value="rule.value"
-                        :placeholder="page.t('prefix')"
-                      />
+                    <NFormItem v-if="rule.type === 'prefix'" :label="page.t('prefix')">
+                      <NInput v-model:value="rule.value" :placeholder="page.t('prefix')" />
                     </NFormItem>
 
-                    <NFormItem
-                      v-if="rule.type === 'suffix'"
-                      :label="page.t('suffix')"
-                    >
-                      <NInput
-                        v-model:value="rule.value"
-                        :placeholder="page.t('suffix')"
-                      />
+                    <NFormItem v-if="rule.type === 'suffix'" :label="page.t('suffix')">
+                      <NInput v-model:value="rule.value" :placeholder="page.t('suffix')" />
                     </NFormItem>
 
                     <template v-if="rule.type === 'replace'">
                       <NFormItem :label="page.t('findText')">
-                        <NInput
-                          v-model:value="rule.value"
-                          :placeholder="page.t('findText')"
-                        />
+                        <NInput v-model:value="rule.value" :placeholder="page.t('findText')" />
                       </NFormItem>
                       <NFormItem :label="page.t('replaceWith')">
                         <NInput
@@ -515,45 +485,31 @@ onMounted(() => {
                       </NFormItem>
                     </template>
 
-                    <NFormItem
-                      v-if="rule.type === 'number'"
-                      :label="page.t('startNumber')"
-                    >
-                      <NInput
-                        v-model:value="rule.startNumber"
-                        type="number"
+                    <NFormItem v-if="rule.type === 'number'" :label="page.t('startNumber')">
+                      <NInputNumber
+                        :value="rule.startNumber ?? 1"
+                        :precision="0"
+                        :max="Number.MAX_SAFE_INTEGER - files.length"
                         :min="1"
+                        @update:value="value => (rule.startNumber = value ?? 1)"
                       />
                     </NFormItem>
 
-                    <NFormItem
-                      v-if="rule.type === 'number'"
-                      :label="page.t('padding')"
-                    >
-                      <NInput
-                        v-model:value="rule.padding"
-                        type="number"
+                    <NFormItem v-if="rule.type === 'number'" :label="page.t('padding')">
+                      <NInputNumber
+                        :value="rule.padding ?? 3"
+                        :precision="0"
                         :min="1"
                         :max="10"
+                        @update:value="value => (rule.padding = value ?? 3)"
                       />
                     </NFormItem>
 
-                    <NFormItem
-                      v-if="rule.type === 'case'"
-                      :label="page.t('caseType')"
-                    >
-                      <NSelect
-                        v-model:value="rule.caseType"
-                        :options="caseOptions"
-                      />
+                    <NFormItem v-if="rule.type === 'case'" :label="page.t('caseType')">
+                      <NSelect v-model:value="rule.caseType" :options="caseOptions" />
                     </NFormItem>
                   </div>
-                  <NButton
-                    size="small"
-                    dashed
-                    block
-                    @click="addRule"
-                  >
+                  <NButton size="small" dashed block @click="addRule">
                     {{ page.t('addRule') }}
                   </NButton>
                 </NSpace>
@@ -563,30 +519,17 @@ onMounted(() => {
         </NCard>
 
         <!-- 右栏：并排预览 -->
-        <NCard
-          :title="page.t('preview')"
-          class="panel-card panel-right"
-          :bordered="false"
-        >
+        <NCard :title="page.t('preview')" class="panel-card panel-right" :bordered="false">
           <template #header-extra>
-            <NSpace
-              align="center"
-              :size="12"
-            >
-              <span
-                v-if="previews.length > 0"
-                class="preview-count"
-              >{{ previews.length }}</span>
-              <NTag
-                v-if="hasConflicts"
-                type="warning"
-                size="small"
-              >
+            <NSpace align="center" :size="12">
+              <span v-if="previews.length > 0" class="preview-count">{{ previews.length }}</span>
+              <NTag v-if="hasConflicts" type="warning" size="small">
                 {{ page.t('conflictWarning', { count: conflictCount }) }}
               </NTag>
               <NButton
                 v-if="canUndo"
                 :loading="undoing"
+                :disabled="executing || undoing || isFetchingPreview"
                 @click="undoRename"
               >
                 {{ page.t('undo') }}
@@ -610,17 +553,11 @@ onMounted(() => {
             :title="page.t('conflictWarning', { count: conflictCount })"
           />
 
-          <div
-            v-if="previews.length > 0"
-            class="preview-table-wrap"
-          >
+          <div v-if="previews.length > 0" class="preview-table-wrap">
             <div class="preview-table">
               <div class="preview-table-head">
                 <span class="col-original">{{ page.t('originalName') }}</span>
-                <span
-                  class="col-arrow"
-                  aria-hidden="true"
-                />
+                <span class="col-arrow" aria-hidden="true" />
                 <span class="col-preview">{{ page.t('newName') }}</span>
               </div>
               <div
@@ -629,42 +566,25 @@ onMounted(() => {
                 class="preview-table-row"
                 :class="{ conflict: !!preview.conflict }"
               >
-                <span
-                  class="col-original"
-                  :title="preview.original"
-                >{{ preview.original }}</span>
-                <span
-                  class="col-arrow"
-                  aria-hidden="true"
-                >→</span>
+                <span class="col-original" :title="preview.original">{{ preview.original }}</span>
+                <span class="col-arrow" aria-hidden="true">→</span>
                 <span class="col-preview">
-                  <span
-                    class="preview-name"
-                    :class="{ conflict: preview.conflict }"
-                  >{{ preview.preview }}</span>
-                  <NTag
-                    v-if="preview.conflict"
-                    size="tiny"
-                    type="error"
-                  >{{ preview.conflict }}</NTag>
+                  <span class="preview-name" :class="{ conflict: preview.conflict }">{{
+                    preview.preview
+                  }}</span>
+                  <NTag v-if="preview.conflict" size="tiny" type="error">{{
+                    translateToolError(t, 'fileRenamer', preview.conflict)
+                  }}</NTag>
                 </span>
               </div>
             </div>
           </div>
-          <NEmpty
-            v-else
-            :description="page.t('previewEmpty')"
-            class="preview-empty"
-          />
+          <NEmpty v-else :description="page.t('previewEmpty')" class="preview-empty" />
         </NCard>
       </div>
     </template>
 
-    <NEmpty
-      v-else
-      :description="page.t('empty')"
-      class="empty-state"
-    />
+    <NEmpty v-else :description="page.t('empty')" class="empty-state" />
 
     <NModal
       v-model:show="showSaveRuleModal"
@@ -673,10 +593,7 @@ onMounted(() => {
       :positive-text="t('common.save')"
       @positive-click="saveCurrentRule"
     >
-      <NInput
-        v-model:value="ruleNameInput"
-        :placeholder="page.t('saveRulePlaceholder')"
-      />
+      <NInput v-model:value="ruleNameInput" :placeholder="page.t('saveRulePlaceholder')" />
     </NModal>
 
     <NModal
@@ -688,16 +605,15 @@ onMounted(() => {
       <div class="result-summary">
         <NProgress
           type="line"
-          :percentage="results.length > 0 ? Math.round(successCount / results.length * 100) : 0"
+          :percentage="results.length > 0 ? Math.round((successCount / results.length) * 100) : 0"
           :indicator="false"
           :status="failCount > 0 ? 'warning' : 'success'"
         />
         <div class="result-stats">
           <span class="success">✓ {{ page.t('resultSuccess', { count: successCount }) }}</span>
-          <span
-            v-if="failCount > 0"
-            class="fail"
-          >✕ {{ page.t('resultFail', { count: failCount }) }}</span>
+          <span v-if="failCount > 0" class="fail"
+            >✕ {{ page.t('resultFail', { count: failCount }) }}</span
+          >
         </div>
       </div>
       <div class="result-list">
@@ -709,10 +625,9 @@ onMounted(() => {
         >
           <span>{{ result.original }}</span>
           <span v-if="result.success">→ {{ result.renamed }}</span>
-          <span
-            v-else
-            class="error-msg"
-          >{{ result.error }}</span>
+          <span v-else class="error-msg">{{
+            translateToolError(t, 'fileRenamer', result.error)
+          }}</span>
         </div>
       </div>
     </NModal>

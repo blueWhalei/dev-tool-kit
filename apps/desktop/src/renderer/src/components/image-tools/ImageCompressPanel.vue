@@ -1,26 +1,14 @@
 <template>
   <div class="action-bar">
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForCompress"
-    >
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForCompress">
       {{ page.t('actions.pickImage') }}
     </NButton>
   </div>
 
   <template v-if="pickedImage">
-    <NGrid
-      cols="1 768:2"
-      :x-gap="16"
-      :y-gap="16"
-      style="margin-top: 16px"
-    >
+    <NGrid cols="1 768:2" :x-gap="16" :y-gap="16" style="margin-top: 16px">
       <NGridItem>
-        <NCard
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard class="editor-card" :bordered="false">
           <template #header>
             <span class="card-title">{{ page.t('labels.original') }}</span>
           </template>
@@ -29,22 +17,15 @@
               :src="compressOriginalPreviewUri"
               :alt="page.t('labels.original')"
               class="image-preview"
-            >
+            />
           </div>
-          <div
-            class="image-meta"
-            style="margin-top: 8px"
-          >
+          <div class="image-meta" style="margin-top: 8px">
             <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(pickedImage.size) }}</span>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard
-          v-if="compressResult"
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard v-if="compressResult" class="editor-card" :bordered="false">
           <template #header>
             <span class="card-title">{{ page.t('labels.result') }}</span>
           </template>
@@ -53,27 +34,16 @@
               :src="`data:${compressResult.mimeType};base64,${compressResult.data}`"
               :alt="page.t('labels.result')"
               class="image-preview"
-            >
+            />
           </div>
-          <div
-            class="image-meta"
-            style="margin-top: 8px"
-          >
+          <div class="image-meta" style="margin-top: 8px">
             <span>{{ page.t('labels.sizeAfter') }}: {{ formatBytes(compressResult.size) }}</span>
-            <NTag
-              type="success"
-              size="small"
-              :bordered="false"
-            >
+            <NTag type="success" size="small" :bordered="false">
               {{ page.t('labels.compressionRatio') }}: {{ compressRatio }}
             </NTag>
           </div>
         </NCard>
-        <NCard
-          v-else
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard v-else class="editor-card" :bordered="false">
           <div class="result-placeholder">
             {{ page.t('labels.result') }}
           </div>
@@ -81,11 +51,7 @@
       </NGridItem>
     </NGrid>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.outputFormat') }}</span>
       </template>
@@ -98,10 +64,7 @@
             style="width: 160px"
           />
         </div>
-        <div
-          v-if="compressFormat !== 'png'"
-          class="option-row"
-        >
+        <div v-if="compressFormat !== 'png'" class="option-row">
           <span class="section-label">{{ page.t('labels.quality') }}: {{ compressQuality }}</span>
           <NSlider
             v-model:value="compressQuality"
@@ -111,15 +74,9 @@
             style="width: 260px"
           />
         </div>
-        <div
-          v-if="compressFormat === 'png'"
-          class="option-row"
-        >
+        <div v-if="compressFormat === 'png'" class="option-row">
           <span class="section-label">{{ page.t('labels.palette') }}</span>
-          <NRadioGroup
-            v-model:value="compressPalette"
-            size="small"
-          >
+          <NRadioGroup v-model:value="compressPalette" size="small">
             <NRadioButton :value="false">
               {{ page.t('labels.no') }}
             </NRadioButton>
@@ -132,17 +89,10 @@
     </NCard>
 
     <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="compressLoading"
-        @click="handleCompress"
-      >
+      <NButton type="primary" :loading="compressLoading" @click="handleCompress">
         {{ page.t('actions.compress') }}
       </NButton>
-      <NButton
-        v-if="compressResult"
-        @click="saveCompressed"
-      >
+      <NButton v-if="compressResult" @click="saveCompressed">
         {{ page.t('actions.save') }}
       </NButton>
     </div>
@@ -151,7 +101,18 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { NButton, NCard, NGrid, NGridItem, NTag, NSelect, NSlider, NRadioGroup, NRadioButton, useMessage } from 'naive-ui'
+import {
+  NButton,
+  NCard,
+  NGrid,
+  NGridItem,
+  NTag,
+  NSelect,
+  NSlider,
+  NRadioGroup,
+  NRadioButton,
+  useMessage
+} from 'naive-ui'
 import { formatBytes, type ProcessedImage, type CompressOptions } from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
@@ -201,7 +162,7 @@ async function handleCompress() {
       quality: compressFormat.value === 'png' ? 80 : compressQuality.value,
       palette: compressFormat.value === 'png' ? compressPalette.value : undefined
     }
-    const result = await invoke<ProcessedImage | null>('image-tools:compress', pickedImage.value.filePath, options)
+    const result = await invoke('image-tools:compress', pickedImage.value.filePath, options)
     if (result) {
       compressResult.value = result
       message.success(page.t('messages.compressSuccess'))

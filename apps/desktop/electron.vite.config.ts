@@ -9,7 +9,14 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
-          'modules/regex-tester/regex-worker': resolve(__dirname, 'src/main/modules/regex-tester/regex-worker.js')
+          'modules/file-renamer/rename-worker': resolve(
+            __dirname,
+            'src/main/modules/file-renamer/rename-worker.ts'
+          ),
+          'modules/regex-tester/regex-worker': resolve(
+            __dirname,
+            'src/main/modules/regex-tester/regex-worker.js'
+          )
         }
       }
     },

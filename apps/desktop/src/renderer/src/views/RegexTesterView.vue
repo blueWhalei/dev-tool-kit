@@ -2,8 +2,19 @@
 import { ref, computed } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import {
-  NInput, NButton, NSpace, NCard, NEmpty, NTag, NAlert, NTabs, NTabPane,
-  NList, NListItem, NThing, NButtonGroup
+  NInput,
+  NButton,
+  NSpace,
+  NCard,
+  NEmpty,
+  NTag,
+  NAlert,
+  NTabs,
+  NTabPane,
+  NList,
+  NListItem,
+  NThing,
+  NButtonGroup
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
@@ -26,20 +37,20 @@ const SAMPLE_TEXT = 'Order #12345 costs $67.89 on 2024-01-01'
 const SAMPLE_REPLACEMENT = '[$1]'
 
 const REGEX_I18N_KEY_BY_NAME: Record<string, string> = {
-  '邮箱': 'email',
-  '手机号': 'phone',
-  'URL': 'url',
+  邮箱: 'email',
+  手机号: 'phone',
+  URL: 'url',
   'IP 地址': 'ipv4',
-  '日期': 'date',
-  '中文': 'chinese',
-  '用户名': 'username',
-  '密码强度': 'passwordStrength',
-  'UUID': 'uuid',
-  '十六进制颜色': 'hexColor',
-  '整数': 'integer',
+  日期: 'date',
+  中文: 'chinese',
+  用户名: 'username',
+  密码强度: 'passwordStrength',
+  UUID: 'uuid',
+  十六进制颜色: 'hexColor',
+  整数: 'integer',
   'MAC 地址': 'macAddress',
   'HTML 标签': 'htmlTag',
-  '信用卡号': 'creditCard'
+  信用卡号: 'creditCard'
 }
 
 const pattern = ref('')
@@ -67,9 +78,7 @@ const activeFlags = computed(() => {
   return list
 })
 
-const matchesTabLabel = computed(() =>
-  page.t('tabs.matchesWithCount', { count: matchCount.value })
-)
+const matchesTabLabel = computed(() => page.t('tabs.matchesWithCount', { count: matchCount.value }))
 
 const highlightSegments = computed(() => {
   if (!testString.value || !result.value?.matches?.length) return []
@@ -97,7 +106,7 @@ async function testRegex() {
   }
   const seq = ++regexRequestSeq
   try {
-    const data = await invoke<RegexResult>('regex:test', pattern.value, flags.value, testString.value)
+    const data = await invoke('regex:test', pattern.value, flags.value, testString.value)
     if (seq !== regexRequestSeq) return
     const validated = validateOptional(data, isRegexResult, 'testRegex')
     if (validated) {
@@ -119,7 +128,7 @@ async function testReplace() {
   }
   const seq = ++replaceRequestSeq
   try {
-    const data = await invoke<{ success: boolean; result?: string; error?: string }>(
+    const data = await invoke(
       'regex:replace',
       pattern.value,
       flags.value,
@@ -132,7 +141,8 @@ async function testReplace() {
         replaceResult.value = data.result
       } else {
         replaceResult.value = ''
-        replaceError.value = typeof data.error === 'string' ? data.error : page.t('errors.invalidResponse')
+        replaceError.value =
+          typeof data.error === 'string' ? data.error : page.t('errors.invalidResponse')
       }
     } else {
       replaceResult.value = ''
@@ -162,20 +172,28 @@ function fillSample() {
 }
 
 async function loadCommonRegexes() {
-  const data = await invoke<CommonRegex[]>('regex:getCommon')
+  const data = await invoke('regex:getCommon')
   commonRegexes.value = validateArray(data, isCommonRegexArray, 'loadCommonRegexes')
 }
 
 loadCommonRegexes()
 
-watchDebounced([pattern, flags, testString], () => {
-  testRegex()
-  testReplace()
-}, { debounce: 300 })
+watchDebounced(
+  [pattern, flags, testString],
+  () => {
+    testRegex()
+    testReplace()
+  },
+  { debounce: 300 }
+)
 
-watchDebounced(replacement, () => {
-  if (pattern.value && testString.value) testReplace()
-}, { debounce: 300 })
+watchDebounced(
+  replacement,
+  () => {
+    if (pattern.value && testString.value) testReplace()
+  },
+  { debounce: 300 }
+)
 
 const matchCount = computed(() => result.value?.matches?.length || 0)
 </script>
@@ -187,19 +205,12 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
     container-class="regex-tester-view"
   >
     <template #actions>
-      <NButton
-        size="small"
-        quaternary
-        @click="fillSample"
-      >
+      <NButton size="small" quaternary @click="fillSample">
         {{ page.t('buttons.fillSample') }}
       </NButton>
     </template>
 
-    <NCard
-      :title="page.t('labels.pattern')"
-      class="regex-card"
-    >
+    <NCard :title="page.t('labels.pattern')" class="regex-card">
       <div class="regex-input-row">
         <NInput
           v-model:value="pattern"
@@ -207,10 +218,7 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
           class="regex-input"
         />
         <div class="flags-panel">
-          <NButtonGroup
-            size="small"
-            class="flags-toggle"
-          >
+          <NButtonGroup size="small" class="flags-toggle">
             <NButton
               :type="flagG ? 'primary' : 'default'"
               :title="flagLabel('g')"
@@ -240,32 +248,17 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
               s
             </NButton>
           </NButtonGroup>
-          <div
-            v-if="activeFlags.length"
-            class="active-flags"
-          >
-            <NTag
-              v-for="f in activeFlags"
-              :key="f"
-              size="small"
-              type="info"
-              :bordered="false"
-            >
+          <div v-if="activeFlags.length" class="active-flags">
+            <NTag v-for="f in activeFlags" :key="f" size="small" type="info" :bordered="false">
               /{{ f }}
             </NTag>
           </div>
-          <span
-            v-else
-            class="no-flags"
-          >{{ page.t('labels.noFlags') }}</span>
+          <span v-else class="no-flags">{{ page.t('labels.noFlags') }}</span>
         </div>
       </div>
     </NCard>
 
-    <NCard
-      :title="page.t('labels.testText')"
-      class="test-card"
-    >
+    <NCard :title="page.t('labels.testText')" class="test-card">
       <NInput
         v-model:value="testString"
         type="textarea"
@@ -273,17 +266,11 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
         :placeholder="page.t('placeholders.testText')"
         class="test-textarea"
       />
-      <div
-        v-if="highlightSegments.length"
-        class="highlight-panel"
-      >
+      <div v-if="highlightSegments.length" class="highlight-panel">
         <div class="input-label">
           {{ page.t('labels.highlightPreview') }}
         </div>
-        <pre
-          class="highlight-text"
-          aria-label="match highlight preview"
-        ><span
+        <pre class="highlight-text" aria-label="match highlight preview"><span
           v-for="(seg, si) in highlightSegments"
           :key="si"
           :class="{
@@ -297,62 +284,43 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
       </div>
     </NCard>
 
-    <NTabs
-      type="line"
-      animated
-      class="result-tabs"
-    >
-      <NTabPane
-        name="matches"
-        :tab="matchesTabLabel"
-      >
+    <NTabs type="line" animated class="result-tabs">
+      <NTabPane name="matches" :tab="matchesTabLabel">
         <NCard class="result-card">
-          <NAlert
-            v-if="result && !result.isValid"
-            type="error"
-            :bordered="false"
-          >
+          <NAlert v-if="result && !result.isValid" type="error" :bordered="false">
             {{ result.error }}
           </NAlert>
-          <NEmpty
-            v-else-if="!result || matchCount === 0"
-            :description="page.t('empty.matches')"
-          />
-          <NList
-            v-else
-            class="matches-list"
-          >
-            <NListItem
-              v-for="(m, i) in result?.matches || []"
-              :key="i"
-            >
+          <NEmpty v-else-if="!result || matchCount === 0" :description="page.t('empty.matches')" />
+          <NList v-else class="matches-list">
+            <NListItem v-for="(m, i) in result?.matches || []" :key="i">
               <NThing>
                 <template #header>
                   <div class="match-header">
-                    <NTag
-                      type="primary"
-                      size="small"
-                    >
-                      #{{ i + 1 }}
-                    </NTag>
+                    <NTag type="primary" size="small"> #{{ i + 1 }} </NTag>
                     <span class="match-text">"{{ m.match }}"</span>
                   </div>
                 </template>
                 <template #description>
                   <div class="match-info">
-                    <span class="match-index">{{ page.t('labels.matchIndex', { index: m.index }) }}</span>
-                    <div
-                      v-if="m.groups.length > 0"
-                      class="match-groups"
-                    >
+                    <span class="match-index">{{
+                      page.t('labels.matchIndex', { index: m.index })
+                    }}</span>
+                    <div v-if="m.groups.length > 0" class="match-groups">
                       <NTag
                         v-for="(g, gi) in m.groups"
                         :key="gi"
                         size="small"
                         :type="g ? 'success' : 'default'"
-                        :style="g ? { borderColor: `var(--regex-group-${(gi % 4) + 1})` } : undefined"
+                        :style="
+                          g ? { borderColor: `var(--regex-group-${(gi % 4) + 1})` } : undefined
+                        "
                       >
-                        {{ page.t('labels.groupLabel', { index: gi + 1, value: g || page.t('labels.groupEmpty') }) }}
+                        {{
+                          page.t('labels.groupLabel', {
+                            index: gi + 1,
+                            value: g || page.t('labels.groupEmpty')
+                          })
+                        }}
                       </NTag>
                     </div>
                   </div>
@@ -363,15 +331,9 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
         </NCard>
       </NTabPane>
 
-      <NTabPane
-        name="replace"
-        :tab="page.t('tabs.replace')"
-      >
+      <NTabPane name="replace" :tab="page.t('tabs.replace')">
         <NCard class="result-card">
-          <NSpace
-            vertical
-            :size="16"
-          >
+          <NSpace vertical :size="16">
             <div class="replace-input-wrapper">
               <div class="input-label">
                 {{ page.t('labels.replacement') }}
@@ -385,11 +347,7 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
                 {{ page.t('labels.replacementHint') }}
               </div>
             </div>
-            <NAlert
-              v-if="replaceError"
-              type="error"
-              :bordered="false"
-            >
+            <NAlert v-if="replaceError" type="error" :bordered="false">
               {{ replaceError }}
             </NAlert>
             <div class="replace-preview">
@@ -404,20 +362,13 @@ const matchCount = computed(() => result.value?.matches?.length || 0)
                 readonly
                 class="replace-result"
               />
-              <NEmpty
-                v-else
-                :description="page.t('empty.replacePreview')"
-                class="replace-empty"
-              />
+              <NEmpty v-else :description="page.t('empty.replacePreview')" class="replace-empty" />
             </div>
           </NSpace>
         </NCard>
       </NTabPane>
 
-      <NTabPane
-        name="common"
-        :tab="page.t('tabs.common')"
-      >
+      <NTabPane name="common" :tab="page.t('tabs.common')">
         <NCard class="result-card">
           <NList class="common-list">
             <NListItem

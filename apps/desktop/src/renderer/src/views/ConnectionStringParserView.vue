@@ -69,7 +69,7 @@ interface FieldRow {
 const fieldRows = computed<FieldRow[]>(() => {
   if (!parsed.value) return []
   const result = parsed.value
-  return CONNECTION_STRING_FIELD_KEYS.map((key) => ({
+  return CONNECTION_STRING_FIELD_KEYS.map<FieldRow>(key => ({
     key,
     label: page.t(`fields.${key}`),
     value: formatFieldValue(key, result)
@@ -88,13 +88,13 @@ const columns = computed<DataTableColumns<FieldRow>>(() => [
     title: page.t('columns.value'),
     key: 'value',
     ellipsis: { tooltip: true },
-    render: (row) => row.value || page.t('labels.empty')
+    render: row => row.value || page.t('labels.empty')
   },
   {
     title: page.t('columns.actions'),
     key: 'actions',
     width: 90,
-    render: (row) =>
+    render: row =>
       row.value
         ? h(
             NButton,
@@ -132,8 +132,7 @@ function runParse() {
   const result = parseConnectionString(input.value)
   if (!result.success || !result.result) {
     parseError.value =
-      translateToolError(t, 'connectionStringParser', result.error) ||
-      page.t('errors.unknown')
+      translateToolError(t, 'connectionStringParser', result.error) || page.t('errors.unknown')
     return
   }
   parsed.value = result.result
@@ -155,8 +154,7 @@ function runBuild() {
 
   if (!result.success || !result.result) {
     buildError.value =
-      translateToolError(t, 'connectionStringParser', result.error) ||
-      page.t('errors.unknown')
+      translateToolError(t, 'connectionStringParser', result.error) || page.t('errors.unknown')
     return
   }
 
@@ -256,53 +254,23 @@ watchDebounced(input, runParse, { debounce: 300 })
     container-class="connection-string-parser-view"
   >
     <template #actions>
-      <NButton
-        size="small"
-        quaternary
-        @click="fillSample"
-      >
+      <NButton size="small" quaternary @click="fillSample">
         {{ t('common.fillSample') }}
       </NButton>
-      <NButton
-        v-if="parsed"
-        size="small"
-        type="primary"
-        quaternary
-        @click="openInMockData"
-      >
+      <NButton v-if="parsed" size="small" type="primary" quaternary @click="openInMockData">
         {{ page.t('buttons.openInMockData') }}
       </NButton>
-      <NButton
-        v-if="parsed?.port != null"
-        size="small"
-        quaternary
-        @click="openInPortManager"
-      >
+      <NButton v-if="parsed?.port != null" size="small" quaternary @click="openInPortManager">
         {{ page.t('buttons.openInPortManager') }}
       </NButton>
-      <NButton
-        v-if="parsed"
-        size="small"
-        @click="copyJson"
-      >
+      <NButton v-if="parsed" size="small" @click="copyJson">
         {{ page.t('buttons.copyJson') }}
       </NButton>
     </template>
 
-    <NTabs
-      v-model:value="activeTab"
-      type="line"
-      animated
-      class="conn-tabs"
-    >
-      <NTabPane
-        name="parse"
-        :tab="page.t('tabs.parse')"
-      >
-        <NCard
-          class="input-card"
-          :bordered="false"
-        >
+    <NTabs v-model:value="activeTab" type="line" animated class="conn-tabs">
+      <NTabPane name="parse" :tab="page.t('tabs.parse')">
+        <NCard class="input-card" :bordered="false">
           <div class="field-label">
             {{ page.t('labels.input') }}
           </div>
@@ -315,27 +283,13 @@ watchDebounced(input, runParse, { debounce: 300 })
           />
         </NCard>
 
-        <NAlert
-          v-if="parseError"
-          type="error"
-          :bordered="false"
-          class="error-alert"
-        >
+        <NAlert v-if="parseError" type="error" :bordered="false" class="error-alert">
           {{ parseError }}
         </NAlert>
 
-        <NCard
-          v-if="parsed"
-          class="result-card"
-          :bordered="false"
-          :title="page.t('labels.parsed')"
-        >
+        <NCard v-if="parsed" class="result-card" :bordered="false" :title="page.t('labels.parsed')">
           <template #header-extra>
-            <NButton
-              size="small"
-              quaternary
-              @click="fillBuilderFromParsed"
-            >
+            <NButton size="small" quaternary @click="fillBuilderFromParsed">
               {{ page.t('buttons.fillBuilder') }}
             </NButton>
           </template>
@@ -349,32 +303,20 @@ watchDebounced(input, runParse, { debounce: 300 })
         </NCard>
       </NTabPane>
 
-      <NTabPane
-        name="build"
-        :tab="page.t('tabs.build')"
-      >
-        <NCard
-          class="input-card"
-          :bordered="false"
-        >
+      <NTabPane name="build" :tab="page.t('tabs.build')">
+        <NCard class="input-card" :bordered="false">
           <div class="builder-grid">
             <div class="builder-field">
               <div class="field-label">
                 {{ page.t('fields.protocol') }}
               </div>
-              <NSelect
-                v-model:value="buildProtocol"
-                :options="PROTOCOL_OPTIONS"
-              />
+              <NSelect v-model:value="buildProtocol" :options="PROTOCOL_OPTIONS" />
             </div>
             <div class="builder-field">
               <div class="field-label">
                 {{ page.t('fields.host') }}
               </div>
-              <NInput
-                v-model:value="buildHost"
-                :placeholder="page.t('placeholders.host')"
-              />
+              <NInput v-model:value="buildHost" :placeholder="page.t('placeholders.host')" />
             </div>
             <div class="builder-field">
               <div class="field-label">
@@ -392,20 +334,13 @@ watchDebounced(input, runParse, { debounce: 300 })
               <div class="field-label">
                 {{ page.t('fields.user') }}
               </div>
-              <NInput
-                v-model:value="buildUser"
-                :placeholder="page.t('placeholders.user')"
-              />
+              <NInput v-model:value="buildUser" :placeholder="page.t('placeholders.user')" />
             </div>
             <div class="builder-field">
               <div class="field-label">
                 {{ page.t('fields.password') }}
               </div>
-              <NInput
-                v-model:value="buildPassword"
-                type="password"
-                show-password-on="click"
-              />
+              <NInput v-model:value="buildPassword" type="password" show-password-on="click" />
             </div>
             <div class="builder-field">
               <div class="field-label">
@@ -427,33 +362,19 @@ watchDebounced(input, runParse, { debounce: 300 })
             </div>
           </div>
           <div class="builder-actions">
-            <NButton
-              type="primary"
-              @click="runBuild"
-            >
+            <NButton type="primary" @click="runBuild">
               {{ page.t('buttons.build') }}
             </NButton>
-            <NButton
-              :disabled="!builtOutput"
-              @click="parseBuiltString"
-            >
+            <NButton :disabled="!builtOutput" @click="parseBuiltString">
               {{ page.t('buttons.parseBuilt') }}
             </NButton>
-            <NButton
-              :disabled="!builtOutput"
-              @click="copyBuilt"
-            >
+            <NButton :disabled="!builtOutput" @click="copyBuilt">
               {{ page.t('buttons.copyBuilt') }}
             </NButton>
           </div>
         </NCard>
 
-        <NAlert
-          v-if="buildError"
-          type="error"
-          :bordered="false"
-          class="error-alert"
-        >
+        <NAlert v-if="buildError" type="error" :bordered="false" class="error-alert">
           {{ buildError }}
         </NAlert>
 
@@ -463,13 +384,7 @@ watchDebounced(input, runParse, { debounce: 300 })
           :bordered="false"
           :title="page.t('labels.built')"
         >
-          <NInput
-            :value="builtOutput"
-            type="textarea"
-            :rows="3"
-            readonly
-            class="conn-input"
-          />
+          <NInput :value="builtOutput" type="textarea" :rows="3" readonly class="conn-input" />
         </NCard>
       </NTabPane>
     </NTabs>

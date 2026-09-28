@@ -1,12 +1,28 @@
-import { ipcMain, app } from 'electron'
+import { handleIpc } from '../../typed-ipc'
+import { readJsonFile, updateJsonFile } from '../../store/atomic-json'
+import { app } from 'electron'
 import { randomUUID } from 'crypto'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
-import { readFile, writeFile, mkdir, copyFile, readdir, unlink, access, constants } from 'fs/promises'
+import {
+  readFile,
+  writeFile,
+  mkdir,
+  copyFile,
+  readdir,
+  unlink,
+  access,
+  constants
+} from 'fs/promises'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { logger } from '../../logger'
-import { isValidIP, isValidHostname, getDnsFlushPlatformInfo, type DnsFlushResult } from '@dev-tool-kit/shared'
+import {
+  isValidIP,
+  isValidHostname,
+  getDnsFlushPlatformInfo,
+  type DnsFlushResult
+} from '@dev-tool-kit/shared'
 import type { HostsEntry, HostsGroup, HostsScheme } from '@dev-tool-kit/shared'
 import {
   splitHostsFile,
@@ -20,9 +36,10 @@ const execFileAsync = promisify(execFile)
 
 export type { HostsEntry, HostsGroup, HostsScheme }
 
-const HOSTS_PATH = process.platform === 'win32'
-  ? join(process.env.SystemRoot || 'C:\\Windows', 'System32\\drivers\\etc\\hosts')
-  : '/etc/hosts'
+const HOSTS_PATH =
+  process.platform === 'win32'
+    ? join(process.env.SystemRoot || 'C:\\Windows', 'System32\\drivers\\etc\\hosts')
+    : '/etc/hosts'
 
 const MAX_HOSTS_BACKUPS = 20
 const HOSTS_PERMISSION_ERROR = 'HOSTS_PERMISSION_DENIED'
@@ -110,14 +127,14 @@ export async function checkHostsWriteAccess(): Promise<HostsWriteAccess> {
 function isPermissionError(error: unknown): boolean {
   return Boolean(
     error &&
-    typeof error === 'object' &&
-    'code' in error &&
-    (error.code === 'EACCES' || error.code === 'EPERM')
+      typeof error === 'object' &&
+      'code' in error &&
+      (error.code === 'EACCES' || error.code === 'EPERM')
   )
 }
 
 async function permissionDeniedResult(backupPath?: string): Promise<HostsOperationResult> {
-  const resolvedBackup = backupPath ?? await getLatestBackupPath()
+  const resolvedBackup = backupPath ?? (await getLatestBackupPath())
   return {
     success: false,
     error: HOSTS_PERMISSION_ERROR,
@@ -157,7 +174,7 @@ async function backupHostsFile(): Promise<string | undefined> {
 let writeQueue: Promise<void> = Promise.resolve()
 
 function enqueueWrite(operation: () => Promise<void>): Promise<void> {
-  writeQueue = writeQueue.then(operation).catch((error) => {
+  writeQueue = writeQueue.then(operation).catch(error => {
     logger.error('Hosts write queue error:', error)
   })
   return writeQueue
@@ -206,7 +223,7 @@ async function writeEntriesAndFlush(entries: HostsEntry[]): Promise<HostsOperati
 export function setupHostsEditorIPC(): void {
   logger.info('Setting up Hosts Editor IPC handlers')
 
-  ipcMain.handle('hosts:checkWriteAccess', async () => {
+  handleIpc('hosts:checkWriteAccess', async () => {
     try {
       return await checkHostsWriteAccess()
     } catch (error) {
@@ -215,7 +232,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:getAll', async () => {
+  handleIpc('hosts:getAll', async () => {
     try {
       return await readHostsEntries()
     } catch (error) {
@@ -224,7 +241,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:add', async (_, entry: Omit<HostsEntry, 'id'>) => {
+  handleIpc('hosts:add', async (_, entry: Omit<HostsEntry, 'id'>) => {
     if (!entry || !isValidIP(entry.ip) || !isValidHostname(entry.hostname)) {
       return { success: false, error: '无效的 IP 地址或主机名' }
     }
@@ -251,7 +268,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:update', async (_, id: string, updates: Partial<HostsEntry>) => {
+  handleIpc('hosts:update', async (_, id: string, updates: Partial<HostsEntry>) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
@@ -301,7 +318,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:delete', async (_, id: string) => {
+  handleIpc('hosts:delete', async (_, id: string) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
@@ -323,7 +340,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:toggle', async (_, id: string) => {
+  handleIpc('hosts:toggle', async (_, id: string) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
@@ -336,7 +353,9 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        result = await writeEntriesAndFlush(entries.map((e, i) => i === index ? { ...e, enabled: !e.enabled } : e))
+        result = await writeEntriesAndFlush(
+          entries.map((e, i) => (i === index ? { ...e, enabled: !e.enabled } : e))
+        )
       })
       return result
     } catch (error) {
@@ -345,9 +364,9 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:getGroups', () => DEFAULT_GROUPS)
+  handleIpc('hosts:getGroups', () => DEFAULT_GROUPS)
 
-  ipcMain.handle('hosts:setGroup', async (_, id: string, group: string | undefined) => {
+  handleIpc('hosts:setGroup', async (_, id: string, group: string | undefined) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
@@ -365,7 +384,7 @@ export function setupHostsEditorIPC(): void {
         }
         const sanitizedGroup = group === undefined ? undefined : sanitizeHostsText(group, 200)
         result = await writeEntriesAndFlush(
-          entries.map((e, i) => i === index ? { ...e, group: sanitizedGroup } : e)
+          entries.map((e, i) => (i === index ? { ...e, group: sanitizedGroup } : e))
         )
       })
       return result
@@ -375,7 +394,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:saveScheme', async (_, name: string) => {
+  handleIpc('hosts:saveScheme', async (_, name: string) => {
     if (typeof name !== 'string' || !name.trim()) {
       return { success: false, error: '无效的方案名称' }
     }
@@ -392,8 +411,7 @@ export function setupHostsEditorIPC(): void {
         entries: entries.map(e => ({ ...e }))
       }
 
-      const schemes = await getSchemes()
-      await saveSchemes([...schemes, scheme])
+      await saveSchemes(schemes => [...schemes, scheme])
 
       return { success: true }
     } catch (error) {
@@ -402,7 +420,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:listSchemes', async () => {
+  handleIpc('hosts:listSchemes', async () => {
     const schemes = await getSchemes()
     return schemes.map(s => ({
       id: s.id,
@@ -412,7 +430,7 @@ export function setupHostsEditorIPC(): void {
     }))
   })
 
-  ipcMain.handle('hosts:loadScheme', async (_, id: string) => {
+  handleIpc('hosts:loadScheme', async (_, id: string) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的方案 ID' }
     }
@@ -425,10 +443,12 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到方案' }
           return
         }
-        result = await writeEntriesAndFlush(scheme.entries.map(e => ({
-          ...e,
-          id: stableEntryId(e.ip, e.hostname)
-        })))
+        result = await writeEntriesAndFlush(
+          scheme.entries.map(e => ({
+            ...e,
+            id: stableEntryId(e.ip, e.hostname)
+          }))
+        )
       })
       return result
     } catch (error) {
@@ -437,14 +457,12 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:deleteScheme', async (_, id: string) => {
+  handleIpc('hosts:deleteScheme', async (_, id: string) => {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的方案 ID' }
     }
     try {
-      let schemes = await getSchemes()
-      schemes = schemes.filter(s => s.id !== id)
-      await saveSchemes(schemes)
+      await saveSchemes(schemes => schemes.filter(s => s.id !== id))
       return { success: true }
     } catch (error) {
       logger.error('Failed to delete scheme:', error)
@@ -452,7 +470,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:getScheme', async (_, id: string) => {
+  handleIpc('hosts:getScheme', async (_, id: string) => {
     if (typeof id !== 'string' || !id.trim()) return null
     try {
       const schemes = await getSchemes()
@@ -463,7 +481,7 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:exportSchemes', async () => {
+  handleIpc('hosts:exportSchemes', async () => {
     try {
       return await getSchemes()
     } catch (error) {
@@ -472,55 +490,63 @@ export function setupHostsEditorIPC(): void {
     }
   })
 
-  ipcMain.handle('hosts:importSchemes', async (_, payload: HostsScheme[], mode: 'merge' | 'replace' = 'merge') => {
-    if (!Array.isArray(payload)) {
-      return { success: false, error: '无效的方案数据' }
-    }
-    try {
-      const sanitized = payload
-        .filter(item => item && typeof item.name === 'string' && Array.isArray(item.entries))
-        .map(item => ({
-          id: typeof item.id === 'string' && item.id ? item.id : generateId(),
-          name: item.name.trim(),
-          timestamp: item.timestamp || new Date().toISOString(),
-          entries: item.entries
-            .filter(entry => entry && typeof entry.ip === 'string' && typeof entry.hostname === 'string')
-            .map(entry => sanitizeHostsEntry({
-              id: stableEntryId(entry.ip, entry.hostname),
-              ip: entry.ip,
-              hostname: entry.hostname,
-              comment: typeof entry.comment === 'string' ? entry.comment : undefined,
-              enabled: typeof entry.enabled === 'boolean' ? entry.enabled : true,
-              group: typeof entry.group === 'string' ? entry.group : undefined
-            }))
-        }))
-        .filter(item => item.name)
-
-      if (sanitized.length === 0) {
-        return { success: false, error: '没有可导入的方案' }
+  handleIpc(
+    'hosts:importSchemes',
+    async (_, payload: HostsScheme[], mode: 'merge' | 'replace' = 'merge') => {
+      if (!Array.isArray(payload)) {
+        return { success: false, error: '无效的方案数据' }
       }
+      try {
+        const sanitized = payload
+          .filter(item => item && typeof item.name === 'string' && Array.isArray(item.entries))
+          .map(item => ({
+            id: typeof item.id === 'string' && item.id ? item.id : generateId(),
+            name: item.name.trim(),
+            timestamp: item.timestamp || new Date().toISOString(),
+            entries: item.entries
+              .filter(
+                entry => entry && typeof entry.ip === 'string' && typeof entry.hostname === 'string'
+              )
+              .map(entry =>
+                sanitizeHostsEntry({
+                  id: stableEntryId(entry.ip, entry.hostname),
+                  ip: entry.ip,
+                  hostname: entry.hostname,
+                  comment: typeof entry.comment === 'string' ? entry.comment : undefined,
+                  enabled: typeof entry.enabled === 'boolean' ? entry.enabled : true,
+                  group: typeof entry.group === 'string' ? entry.group : undefined
+                })
+              )
+          }))
+          .filter(item => item.name)
 
-      const existing = mode === 'replace' ? [] : await getSchemes()
-      const merged = [...existing]
-
-      for (const scheme of sanitized) {
-        const index = merged.findIndex(item => item.name === scheme.name)
-        if (index >= 0) {
-          merged[index] = { ...scheme, id: merged[index].id }
-        } else {
-          merged.push(scheme)
+        if (sanitized.length === 0) {
+          return { success: false, error: '没有可导入的方案' }
         }
+
+        await saveSchemes(existing => {
+          const merged = mode === 'replace' ? [] : [...existing]
+
+          for (const scheme of sanitized) {
+            const index = merged.findIndex(item => item.name === scheme.name)
+            if (index >= 0) {
+              merged[index] = { ...scheme, id: merged[index].id }
+            } else {
+              merged.push(scheme)
+            }
+          }
+
+          return merged
+        })
+        return { success: true, count: sanitized.length }
+      } catch (error) {
+        logger.error('Failed to import schemes:', error)
+        return { success: false, error: '导入方案失败' }
       }
-
-      await saveSchemes(merged)
-      return { success: true, count: sanitized.length }
-    } catch (error) {
-      logger.error('Failed to import schemes:', error)
-      return { success: false, error: '导入方案失败' }
     }
-  })
+  )
 
-  ipcMain.handle('hosts:flushDNS', async (): Promise<DnsFlushResult> => {
+  handleIpc('hosts:flushDNS', async (): Promise<DnsFlushResult> => {
     try {
       return await flushDNS()
     } catch (error) {
@@ -563,15 +589,24 @@ async function flushDNS(): Promise<DnsFlushResult> {
   const attempts: Array<{ method: DnsFlushResult['method']; run: () => Promise<unknown> }> = [
     {
       method: 'systemd-resolve',
-      run: async () => { await execFileAsync('systemd-resolve', ['--flush-caches'], { windowsHide: true, timeout: 10000 }) }
+      run: async () => {
+        await execFileAsync('systemd-resolve', ['--flush-caches'], {
+          windowsHide: true,
+          timeout: 10000
+        })
+      }
     },
     {
       method: 'resolvectl',
-      run: async () => { await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true, timeout: 10000 }) }
+      run: async () => {
+        await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true, timeout: 10000 })
+      }
     },
     {
       method: 'nscd',
-      run: async () => { await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true, timeout: 10000 }) }
+      run: async () => {
+        await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true, timeout: 10000 })
+      }
     }
   ]
 
@@ -594,19 +629,10 @@ async function flushDNS(): Promise<DnsFlushResult> {
 }
 
 async function getSchemes(): Promise<HostsScheme[]> {
-  const path = await getConfigPath('hosts-schemes.json')
-  try {
-    if (existsSync(path)) {
-      const content = await readFile(path, 'utf-8')
-      return JSON.parse(content)
-    }
-  } catch (error) {
-    logger.warn('Failed to load schemes:', error)
-  }
-  return []
+  const value = await readJsonFile<HostsScheme[]>(await getConfigPath('hosts-schemes.json'), [])
+  return Array.isArray(value) ? value : []
 }
 
-async function saveSchemes(schemes: HostsScheme[]): Promise<void> {
-  const path = await getConfigPath('hosts-schemes.json')
-  await writeFile(path, JSON.stringify(schemes, null, 2))
+async function saveSchemes(update: (items: HostsScheme[]) => HostsScheme[]): Promise<void> {
+  await updateJsonFile<HostsScheme[]>(await getConfigPath('hosts-schemes.json'), [], update)
 }

@@ -2,6 +2,7 @@ export default {
   title: 'HTTP 状态码',
   description: '常见 HTTP 状态码离线速查（1xx–5xx）',
   labels: {
+    other: '其他',
     search: '搜索',
     category: '分类',
     allCategories: '全部分类',

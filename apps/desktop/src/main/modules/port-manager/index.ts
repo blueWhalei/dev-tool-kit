@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { handleIpc } from '../../typed-ipc'
 import { PortScanner, isProtectedPid } from './scanner'
 import { logger } from '../../logger'
 import { isValidPort, COMMON_PORTS } from '@dev-tool-kit/shared'
@@ -16,7 +16,7 @@ function isValidPid(pid: number): boolean {
 export function setupPortManagerIPC(): void {
   logger.info('Setting up Port Manager IPC handlers')
 
-  ipcMain.handle('port-manager:getPorts', async () => {
+  handleIpc('port-manager:getPorts', async () => {
     try {
       return await portScanner.getAllPorts()
     } catch (error) {
@@ -25,7 +25,7 @@ export function setupPortManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('port-manager:getPort', async (_, port: number) => {
+  handleIpc('port-manager:getPort', async (_, port: number) => {
     if (!isValidPort(port)) return null
     try {
       return await portScanner.getPort(port)
@@ -35,7 +35,7 @@ export function setupPortManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('port-manager:scanRange', async (_, startPort: number, endPort: number) => {
+  handleIpc('port-manager:scanRange', async (_, startPort: number, endPort: number) => {
     if (!isValidPort(startPort) || !isValidPort(endPort) || startPort > endPort) {
       return []
     }
@@ -47,7 +47,7 @@ export function setupPortManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('port-manager:getProcess', async (_, pid: number) => {
+  handleIpc('port-manager:getProcess', async (_, pid: number) => {
     if (!isValidPid(pid)) return null
     try {
       return await portScanner.getProcessInfo(pid)
@@ -57,7 +57,7 @@ export function setupPortManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('port-manager:killProcess', async (_, pid: number, force = false) => {
+  handleIpc('port-manager:killProcess', async (_, pid: number, force = false) => {
     if (!isValidPid(pid)) return { success: false, errorCode: 'invalid_pid' as const }
     if (isProtectedPid(pid)) {
       logger.warn(`Blocked kill attempt on protected PID ${pid}`)
@@ -71,14 +71,15 @@ export function setupPortManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('port-manager:getCommonPorts', () => COMMON_PORTS)
+  handleIpc('port-manager:getCommonPorts', () => COMMON_PORTS)
 
-  ipcMain.handle('port-manager:scanCommonPorts', async () => {
+  handleIpc('port-manager:scanCommonPorts', async () => {
     try {
       const allPorts = await portScanner.getAllPorts()
       const commonPortNumbers = new Set(COMMON_PORTS.map(p => p.port))
 
-      return allPorts.filter(p => commonPortNumbers.has(p.port))
+      return allPorts
+        .filter(p => commonPortNumbers.has(p.port))
         .map(p => ({
           ...p,
           service: COMMON_PORTS.find(c => c.port === p.port)?.service

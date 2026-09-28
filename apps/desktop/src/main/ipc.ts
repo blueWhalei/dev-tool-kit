@@ -1,4 +1,5 @@
-import { ipcMain, BrowserWindow, app, shell, dialog } from 'electron'
+import { handleIpc } from './typed-ipc'
+import { BrowserWindow, app, shell, dialog } from 'electron'
 import { resolve } from 'path'
 import { isValidElectronPathName } from '@dev-tool-kit/shared'
 import { logger } from './logger'
@@ -15,13 +16,13 @@ import { authorizePath } from './modules/path-guard'
 export function setupIpcHandlers(): void {
   logger.info('Setting up IPC handlers')
 
-  ipcMain.handle('window:minimize', (event) => {
+  handleIpc('window:minimize', event => {
     const window = BrowserWindow.fromWebContents(event.sender)
     window?.minimize()
     return true
   })
 
-  ipcMain.handle('window:maximize', (event) => {
+  handleIpc('window:maximize', event => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (window?.isMaximized()) {
       window.unmaximize()
@@ -31,18 +32,18 @@ export function setupIpcHandlers(): void {
     return window?.isMaximized() ?? false
   })
 
-  ipcMain.handle('window:close', (event) => {
+  handleIpc('window:close', event => {
     const window = BrowserWindow.fromWebContents(event.sender)
     window?.close()
     return true
   })
 
-  ipcMain.handle('window:isMaximized', (event) => {
+  handleIpc('window:isMaximized', event => {
     const window = BrowserWindow.fromWebContents(event.sender)
     return window?.isMaximized() ?? false
   })
 
-  ipcMain.handle('window:resetState', async (event) => {
+  handleIpc('window:resetState', async event => {
     await resetWindowState()
     const window = BrowserWindow.fromWebContents(event.sender)
     if (window) {
@@ -55,19 +56,19 @@ export function setupIpcHandlers(): void {
     return DEFAULT_STATE
   })
 
-  ipcMain.handle('app:getVersion', () => app.getVersion())
+  handleIpc('app:getVersion', () => app.getVersion())
 
-  ipcMain.handle('app:getName', () => app.getName())
+  handleIpc('app:getName', () => app.getName())
 
-  ipcMain.handle('app:getPlatform', () => process.platform)
+  handleIpc('app:getPlatform', () => process.platform)
 
-  ipcMain.handle('app:getRuntimeInfo', () => ({
+  handleIpc('app:getRuntimeInfo', () => ({
     electron: process.versions.electron ?? '—',
     node: process.versions.node ?? '—',
     chrome: process.versions.chrome ?? '—'
   }))
 
-  ipcMain.handle('app:getPath', (_, name: unknown) => {
+  handleIpc('app:getPath', (_, name: unknown) => {
     if (!isValidElectronPathName(name)) {
       logger.warn('Blocked app:getPath with invalid name:', name)
       throw new Error('Invalid path name')
@@ -75,7 +76,7 @@ export function setupIpcHandlers(): void {
     return app.getPath(name)
   })
 
-  ipcMain.handle('shell:openExternal', (_, url: string) => {
+  handleIpc('shell:openExternal', (_, url: string) => {
     if (typeof url !== 'string' || (!url.startsWith('https://') && !url.startsWith('http://'))) {
       logger.warn('Blocked openExternal with invalid URL:', url)
       return false
@@ -84,7 +85,7 @@ export function setupIpcHandlers(): void {
     return true
   })
 
-  ipcMain.handle('shell:openPath', (_, path: string) => {
+  handleIpc('shell:openPath', (_, path: string) => {
     if (!isSafeLocalPath(path)) {
       logger.warn('Blocked openPath with invalid or missing path:', path)
       return false
@@ -93,7 +94,7 @@ export function setupIpcHandlers(): void {
     return true
   })
 
-  ipcMain.handle('dialog:showOpenDialog', async (event, options: unknown) => {
+  handleIpc('dialog:showOpenDialog', async (event, options: unknown) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { canceled: true, filePaths: [] }
     const result = await dialog.showOpenDialog(window, sanitizeOpenDialogOptions(options))
@@ -105,7 +106,7 @@ export function setupIpcHandlers(): void {
     return result
   })
 
-  ipcMain.handle('dialog:showSaveDialog', async (event, options: unknown) => {
+  handleIpc('dialog:showSaveDialog', async (event, options: unknown) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { canceled: true, filePath: undefined }
     const result = await dialog.showSaveDialog(window, sanitizeSaveDialogOptions(options))
@@ -115,7 +116,7 @@ export function setupIpcHandlers(): void {
     return result
   })
 
-  ipcMain.handle('dialog:showMessageBox', async (event, options: unknown) => {
+  handleIpc('dialog:showMessageBox', async (event, options: unknown) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) return { response: 0, checkboxChecked: false }
     const sanitized = sanitizeMessageBoxOptions(options)

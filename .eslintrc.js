@@ -14,7 +14,8 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:vue/vue3-recommended'
+    'plugin:vue/vue3-recommended',
+    'prettier'
   ],
   plugins: ['@typescript-eslint', 'vue'],
   rules: {
@@ -24,7 +25,7 @@ module.exports = {
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    
+
     // Vue
     'vue/multi-word-component-names': 'off',
     'vue/require-default-prop': 'off',
@@ -32,8 +33,8 @@ module.exports = {
     'vue/no-v-html': 'off',
     'vue/no-unused-vars': ['error', { ignorePattern: '^_' }],
     // 模板中使用的组件必须已注册（防"用了未 import 的组件"类回归）
-    'vue/no-undef-components': ['error', { ignorePatterns: ['^N[A-Z]', 'RouterLink', 'RouterView'] }],
-    
+    'vue/no-undef-components': ['error', { ignorePatterns: ['RouterLink', 'RouterView'] }],
+
     // General
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
@@ -47,7 +48,7 @@ module.exports = {
     {
       files: ['*.vue'],
       parser: 'vue-eslint-parser',
-      extends: ['plugin:vue/vue3-recommended']
+      extends: ['plugin:vue/vue3-recommended', 'prettier']
     }
   ]
 }

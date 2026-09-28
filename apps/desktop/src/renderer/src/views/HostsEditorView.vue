@@ -2,10 +2,27 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { 
-  NDataTable, NButton, NSpace, NInput, NModal, NForm, 
-  NFormItem, NPopconfirm, useMessage, useDialog, NSwitch, NEmpty,
-  NAlert, NTabs, NTabPane, NList, NListItem, NThing, NTag, NSelect
+import {
+  NDataTable,
+  NButton,
+  NSpace,
+  NInput,
+  NModal,
+  NForm,
+  NFormItem,
+  NPopconfirm,
+  useMessage,
+  useDialog,
+  NSwitch,
+  NEmpty,
+  NAlert,
+  NTabs,
+  NTabPane,
+  NList,
+  NListItem,
+  NThing,
+  NTag,
+  NSelect
 } from 'naive-ui'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -60,20 +77,19 @@ const pendingScheme = ref<HostsScheme | null>(null)
 const schemeDiff = ref<HostsEntryChange[]>([])
 
 const adminHint = computed(() => {
-  const suffix = platform.value
-    ? page.t('hints.platformSuffix', { platform: platform.value })
-    : ''
+  const suffix = platform.value ? page.t('hints.platformSuffix', { platform: platform.value }) : ''
   return page.t('hints.adminRequired', { platformSuffix: suffix })
 })
 
 const filteredEntries = computed(() => {
   if (!search.value) return entries.value
   const keyword = search.value.toLowerCase()
-  return entries.value.filter(e => 
-    e.ip.includes(keyword) ||
-    e.hostname.toLowerCase().includes(keyword) ||
-    (e.comment && e.comment.toLowerCase().includes(keyword)) ||
-    (e.group && e.group.toLowerCase().includes(keyword))
+  return entries.value.filter(
+    e =>
+      e.ip.includes(keyword) ||
+      e.hostname.toLowerCase().includes(keyword) ||
+      (e.comment && e.comment.toLowerCase().includes(keyword)) ||
+      (e.group && e.group.toLowerCase().includes(keyword))
   )
 })
 
@@ -98,23 +114,68 @@ const entriesByGroup = computed(() => {
 })
 
 const columns = computed(() => [
-  { title: page.t('columns.status'), key: 'enabled', width: 60, render: (row: HostsEntry) => h(NSwitch, { value: row.enabled, size: 'small', onUpdateValue: () => confirmToggle(row) }) },
-  { title: page.t('columns.group'), key: 'group', width: 100, render: (row: HostsEntry) => {
-    const g = groups.value.find(g => g.id === row.group)
-    return g ? h(NTag, { size: 'small', color: { color: g.color + '20', textColor: g.color } }, { default: () => g.name }) : h('span', { style: 'color: var(--color-text-tertiary)' }, '—')
-  }},
+  {
+    title: page.t('columns.status'),
+    key: 'enabled',
+    width: 60,
+    render: (row: HostsEntry) =>
+      h(NSwitch, { value: row.enabled, size: 'small', onUpdateValue: () => confirmToggle(row) })
+  },
+  {
+    title: page.t('columns.group'),
+    key: 'group',
+    width: 100,
+    render: (row: HostsEntry) => {
+      const g = groups.value.find(g => g.id === row.group)
+      return g
+        ? h(
+            NTag,
+            { size: 'small', color: { color: g.color + '20', textColor: g.color } },
+            { default: () => g.name }
+          )
+        : h('span', { style: 'color: var(--color-text-tertiary)' }, '—')
+    }
+  },
   { title: page.t('columns.ip'), key: 'ip', width: 140, ellipsis: { tooltip: true } },
   { title: page.t('columns.hostname'), key: 'hostname', ellipsis: { tooltip: true } },
   { title: page.t('columns.comment'), key: 'comment', ellipsis: { tooltip: true } },
-  { title: '', key: 'actions', width: 150, render: (row: HostsEntry) => {
-    return h(NSpace, { size: 'small', noWrap: true }, {
-      default: () => [
-        h(NButton, { size: 'small', quaternary: true, onClick: () => openPortManagerForEntry(row) }, { default: () => page.t('buttons.checkPorts') }),
-        h(NButton, { size: 'small', quaternary: true, onClick: () => openEditModal(row) }, { default: () => page.t('buttons.edit') }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row.id) }, { trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { default: () => page.t('buttons.delete') }) })
-      ]
-    })
-  }}
+  {
+    title: '',
+    key: 'actions',
+    width: 150,
+    render: (row: HostsEntry) => {
+      return h(
+        NSpace,
+        { size: 'small', noWrap: true },
+        {
+          default: () => [
+            h(
+              NButton,
+              { size: 'small', quaternary: true, onClick: () => openPortManagerForEntry(row) },
+              { default: () => page.t('buttons.checkPorts') }
+            ),
+            h(
+              NButton,
+              { size: 'small', quaternary: true, onClick: () => openEditModal(row) },
+              { default: () => page.t('buttons.edit') }
+            ),
+            h(
+              NPopconfirm,
+              { onPositiveClick: () => handleDelete(row.id) },
+              {
+                trigger: () =>
+                  h(
+                    NButton,
+                    { size: 'small', quaternary: true, type: 'error' },
+                    { default: () => page.t('buttons.delete') }
+                  )
+              }
+            )
+          ]
+        }
+      )
+    }
+  }
 ])
 
 function translateFlushError(result: DnsFlushResult): string {
@@ -161,10 +222,11 @@ function handleHostsOperationResult(
   if (result?.error === 'HOSTS_PERMISSION_DENIED' && result.sudoCommand) {
     dialog.warning({
       title: page.t('dialogs.permissionTitle'),
-      content: () => h('div', { class: 'permission-dialog' }, [
-        h('p', page.t('dialogs.permissionContent')),
-        h('pre', { class: 'sudo-command' }, result.sudoCommand)
-      ]),
+      content: () =>
+        h('div', { class: 'permission-dialog' }, [
+          h('p', page.t('dialogs.permissionContent')),
+          h('pre', { class: 'sudo-command' }, result.sudoCommand)
+        ]),
       positiveText: page.t('buttons.copyCommand'),
       negativeText: t('common.cancel'),
       onPositiveClick: () => copy(result.sudoCommand!, page.t('messages.commandCopied'))
@@ -228,15 +290,31 @@ async function handleSave() {
     return
   }
   try {
-    const payload = { ip: editingEntry.value.ip, hostname: editingEntry.value.hostname, comment: editingEntry.value.comment, enabled: editingEntry.value.enabled, group: editingEntry.value.group }
+    const payload = {
+      ip: editingEntry.value.ip,
+      hostname: editingEntry.value.hostname,
+      comment: editingEntry.value.comment,
+      enabled: editingEntry.value.enabled,
+      group: editingEntry.value.group
+    }
     let data: unknown
     if (isNewEntry.value) {
       data = await invoke('hosts:add', payload)
     } else {
       data = await invoke('hosts:update', editingEntry.value.id, payload)
     }
-    const result = validateOptional(data, isOperationResult, 'handleSave') as HostsOperationResponse | null
-    if (handleHostsOperationResult(result, isNewEntry.value ? 'messages.added' : 'messages.saved', 'errors.operationFailed')) {
+    const result = validateOptional(
+      data,
+      isOperationResult,
+      'handleSave'
+    ) as HostsOperationResponse | null
+    if (
+      handleHostsOperationResult(
+        result,
+        isNewEntry.value ? 'messages.added' : 'messages.saved',
+        'errors.operationFailed'
+      )
+    ) {
       showEditModal.value = false
       await fetchEntries()
     }
@@ -261,7 +339,11 @@ function confirmToggle(entry: HostsEntry) {
 async function handleToggle(id: string) {
   try {
     const data = await invoke('hosts:toggle', id)
-    const result = validateOptional(data, isOperationResult, 'handleToggle') as HostsOperationResponse | null
+    const result = validateOptional(
+      data,
+      isOperationResult,
+      'handleToggle'
+    ) as HostsOperationResponse | null
     if (handleHostsOperationResult(result, 'messages.statusUpdated', 'errors.updateFailed')) {
       await fetchEntries()
     }
@@ -273,7 +355,11 @@ async function handleToggle(id: string) {
 async function handleDelete(id: string) {
   try {
     const data = await invoke('hosts:delete', id)
-    const result = validateOptional(data, isOperationResult, 'handleDelete') as HostsOperationResponse | null
+    const result = validateOptional(
+      data,
+      isOperationResult,
+      'handleDelete'
+    ) as HostsOperationResponse | null
     if (handleHostsOperationResult(result, 'messages.deleted', 'errors.deleteFailed')) {
       await fetchEntries()
     }
@@ -303,7 +389,9 @@ async function handleSaveScheme() {
 }
 
 const diffSummary = computed(() => summarizeHostsDiff(schemeDiff.value))
-const visibleDiffChanges = computed(() => schemeDiff.value.filter(change => change.type !== 'unchanged'))
+const visibleDiffChanges = computed(() =>
+  schemeDiff.value.filter(change => change.type !== 'unchanged')
+)
 
 function confirmLoadScheme(scheme: { id: string; name: string }) {
   void previewSchemeDiff(scheme.id)
@@ -311,7 +399,7 @@ function confirmLoadScheme(scheme: { id: string; name: string }) {
 
 async function previewSchemeDiff(id: string) {
   try {
-    const data = await invoke<HostsScheme | null>('hosts:getScheme', id)
+    const data = await invoke('hosts:getScheme', id)
     if (!data || !Array.isArray(data.entries)) {
       message.error(page.t('errors.readSchemeFailed'))
       return
@@ -335,7 +423,7 @@ async function confirmApplyScheme() {
 
 async function handleExportSchemes() {
   try {
-    const data = await invoke<HostsScheme[]>('hosts:exportSchemes')
+    const data = await invoke('hosts:exportSchemes')
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -399,7 +487,11 @@ function confirmFlushDNS() {
 async function handleLoadScheme(id: string) {
   try {
     const data = await invoke('hosts:loadScheme', id)
-    const result = validateOptional(data, isOperationResult, 'handleLoadScheme') as HostsOperationResponse | null
+    const result = validateOptional(
+      data,
+      isOperationResult,
+      'handleLoadScheme'
+    ) as HostsOperationResponse | null
     if (handleHostsOperationResult(result, 'messages.schemeLoaded', 'errors.loadFailed')) {
       await fetchEntries()
     }
@@ -423,7 +515,7 @@ async function handleDeleteScheme(id: string) {
 
 async function handleFlushDNS() {
   try {
-    const result = await invoke<DnsFlushResult>('hosts:flushDNS')
+    const result = await invoke('hosts:flushDNS')
     if (result?.success) {
       message.success(page.t('messages.dnsFlushed'))
       return
@@ -433,10 +525,11 @@ async function handleFlushDNS() {
       const commands = result.manualCommands.join('\n')
       dialog.warning({
         title: page.t('dialogs.flushDnsFailedTitle'),
-        content: () => h('div', { class: 'permission-dialog' }, [
-          h('p', translateFlushError(result)),
-          h('pre', { class: 'sudo-command' }, commands)
-        ]),
+        content: () =>
+          h('div', { class: 'permission-dialog' }, [
+            h('p', translateFlushError(result)),
+            h('pre', { class: 'sudo-command' }, commands)
+          ]),
         positiveText: page.t('buttons.copyCommand'),
         negativeText: t('common.cancel'),
         onPositiveClick: () => copy(commands, page.t('messages.commandCopied'))
@@ -457,7 +550,11 @@ function formatDate(timestamp: string): string {
 onMounted(async () => {
   await loadPlatform()
   try {
-    const access = await invoke('hosts:checkWriteAccess') as { writable?: boolean; path?: string; sudoHint?: string }
+    const access = (await invoke('hosts:checkWriteAccess')) as {
+      writable?: boolean
+      path?: string
+      sudoHint?: string
+    }
     hostsWritable.value = access?.writable ?? true
     hostsFilePath.value = access?.path ?? ''
     hostsSudoHint.value = access?.sudoHint ?? ''
@@ -480,116 +577,71 @@ onMounted(async () => {
       accept="application/json,.json"
       class="hidden-input"
       @change="handleImportSchemes"
-    >
+    />
 
     <template #actions>
       <div class="search-area">
-        <NInput 
-          v-model:value="search" 
-          :placeholder="page.t('placeholders.search')" 
-          style="width: 220px" 
-          clearable 
+        <NInput
+          v-model:value="search"
+          :placeholder="page.t('placeholders.search')"
+          style="width: 220px"
+          clearable
         />
       </div>
       <div class="action-buttons">
         <NButton @click="confirmFlushDNS">
           {{ page.t('buttons.flushDns') }}
         </NButton>
-        <NButton
-          type="primary"
-          :disabled="!hostsWritable"
-          @click="openEditModal()"
-        >
+        <NButton type="primary" :disabled="!hostsWritable" @click="openEditModal()">
           {{ page.t('buttons.addEntry') }}
         </NButton>
       </div>
     </template>
 
-    <NAlert
-      v-if="!hostsWritable"
-      type="warning"
-      :bordered="false"
-      class="info-alert"
-    >
+    <NAlert v-if="!hostsWritable" type="warning" :bordered="false" class="info-alert">
       <div class="write-access-alert">
         <span>{{ page.t('hints.noWriteAccess', { path: hostsFilePath }) }}</span>
-        <NButton
-          v-if="hostsSudoHint"
-          size="small"
-          quaternary
-          @click="copyHostsSudoHint"
-        >
+        <NButton v-if="hostsSudoHint" size="small" quaternary @click="copyHostsSudoHint">
           {{ page.t('buttons.copyCommand') }}
         </NButton>
       </div>
     </NAlert>
 
-    <NAlert
-      type="info"
-      :bordered="false"
-      class="info-alert"
-    >
+    <NAlert type="info" :bordered="false" class="info-alert">
       {{ adminHint }}
     </NAlert>
 
     <div class="content-card">
-      <NTabs
-        v-model:value="activeTab"
-        type="line"
-        animated
-      >
-        <NTabPane
-          name="entries"
-          :tab="page.t('tabs.entries')"
-        >
-          <NDataTable 
-            :columns="columns" 
-            :data="filteredEntries" 
-            :loading="loading" 
-            :pagination="{ pageSize: 10 }" 
-            :bordered="false" 
-            striped 
+      <NTabs v-model:value="activeTab" type="line" animated>
+        <NTabPane name="entries" :tab="page.t('tabs.entries')">
+          <NDataTable
+            :columns="columns"
+            :data="filteredEntries"
+            :loading="loading"
+            :pagination="{ pageSize: 10 }"
+            :bordered="false"
+            striped
           />
           <NEmpty
             v-if="filteredEntries.length === 0 && !loading"
             :description="page.t('empty.entries')"
           />
         </NTabPane>
-        
-        <NTabPane
-          name="groups"
-          :tab="page.t('tabs.groups')"
-        >
+
+        <NTabPane name="groups" :tab="page.t('tabs.groups')">
           <div class="groups-container">
-            <div
-              v-for="group in groups"
-              :key="group.id"
-              class="group-section"
-            >
-              <div
-                class="group-header"
-                :style="{ borderLeftColor: group.color }"
-              >
-                <NTag
-                  :color="{ color: group.color + '20', textColor: group.color }"
-                  size="medium"
-                >
+            <div v-for="group in groups" :key="group.id" class="group-section">
+              <div class="group-header" :style="{ borderLeftColor: group.color }">
+                <NTag :color="{ color: group.color + '20', textColor: group.color }" size="medium">
                   {{ group.name }}
                 </NTag>
-                <span class="group-count">{{ page.t('labels.entryCount', { count: entriesByGroup[group.id]?.length || 0 }) }}</span>
+                <span class="group-count">{{
+                  page.t('labels.entryCount', { count: entriesByGroup[group.id]?.length || 0 })
+                }}</span>
               </div>
-              <NList
-                v-if="entriesByGroup[group.id]?.length"
-                class="group-list"
-              >
-                <NListItem
-                  v-for="entry in entriesByGroup[group.id]"
-                  :key="entry.id"
-                >
-                  <NThing
-                    :title="entry.hostname"
-                    :description="entry.ip"
-                  >
+              <NList v-if="entriesByGroup[group.id]?.length" class="group-list">
+                <NListItem v-for="entry in entriesByGroup[group.id]" :key="entry.id">
+                  <NThing :title="entry.hostname" :description="entry.ip">
                     <template #header-extra>
                       <NSwitch
                         :value="entry.enabled"
@@ -607,38 +659,25 @@ onMounted(async () => {
                 class="group-empty"
               />
             </div>
-            <div
-              v-if="entriesByGroup.ungrouped?.length"
-              class="group-section"
-            >
-              <div
-                class="group-header"
-                style="border-left-color: #8E8E93"
-              >
+            <div v-if="entriesByGroup.ungrouped?.length" class="group-section">
+              <div class="group-header" style="border-left-color: #8e8e93">
                 <NTag size="medium">
                   {{ page.t('labels.ungrouped') }}
                 </NTag>
-                <span class="group-count">{{ page.t('labels.entryCount', { count: entriesByGroup.ungrouped.length }) }}</span>
+                <span class="group-count">{{
+                  page.t('labels.entryCount', { count: entriesByGroup.ungrouped.length })
+                }}</span>
               </div>
               <NList class="group-list">
-                <NListItem
-                  v-for="entry in entriesByGroup.ungrouped"
-                  :key="entry.id"
-                >
-                  <NThing
-                    :title="entry.hostname"
-                    :description="entry.ip"
-                  />
+                <NListItem v-for="entry in entriesByGroup.ungrouped" :key="entry.id">
+                  <NThing :title="entry.hostname" :description="entry.ip" />
                 </NListItem>
               </NList>
             </div>
           </div>
         </NTabPane>
-        
-        <NTabPane
-          name="schemes"
-          :tab="page.t('tabs.schemes')"
-        >
+
+        <NTabPane name="schemes" :tab="page.t('tabs.schemes')">
           <div class="scheme-toolbar">
             <div class="scheme-input-row">
               <NInput
@@ -647,10 +686,7 @@ onMounted(async () => {
                 style="flex: 1"
                 @keyup.enter="handleSaveScheme"
               />
-              <NButton
-                type="primary"
-                @click="handleSaveScheme"
-              >
+              <NButton type="primary" @click="handleSaveScheme">
                 {{ page.t('buttons.saveScheme') }}
               </NButton>
             </div>
@@ -663,31 +699,23 @@ onMounted(async () => {
               </NButton>
             </NSpace>
           </div>
-          <NList
-            v-if="schemes.length > 0"
-            class="scheme-list"
-          >
-            <NListItem
-              v-for="scheme in schemes"
-              :key="scheme.id"
-            >
+          <NList v-if="schemes.length > 0" class="scheme-list">
+            <NListItem v-for="scheme in schemes" :key="scheme.id">
               <NThing
                 :title="scheme.name"
-                :description="page.t('labels.schemeMeta', { count: scheme.count, date: formatDate(scheme.timestamp) })"
+                :description="
+                  page.t('labels.schemeMeta', {
+                    count: scheme.count,
+                    date: formatDate(scheme.timestamp)
+                  })
+                "
               >
                 <template #header-extra>
                   <NSpace>
-                    <NButton
-                      size="small"
-                      @click="confirmLoadScheme(scheme)"
-                    >
+                    <NButton size="small" @click="confirmLoadScheme(scheme)">
                       {{ page.t('buttons.load') }}
                     </NButton>
-                    <NButton
-                      size="small"
-                      type="error"
-                      @click="confirmDeleteScheme(scheme)"
-                    >
+                    <NButton size="small" type="error" @click="confirmDeleteScheme(scheme)">
                       {{ page.t('buttons.delete') }}
                     </NButton>
                   </NSpace>
@@ -695,30 +723,20 @@ onMounted(async () => {
               </NThing>
             </NListItem>
           </NList>
-          <NEmpty
-            v-else
-            :description="page.t('empty.schemes')"
-          />
+          <NEmpty v-else :description="page.t('empty.schemes')" />
         </NTabPane>
       </NTabs>
     </div>
 
-    <NModal 
-      v-model:show="showEditModal" 
-      :title="isNewEntry ? page.t('modals.addTitle') : page.t('modals.editTitle')" 
-      preset="card" 
+    <NModal
+      v-model:show="showEditModal"
+      :title="isNewEntry ? page.t('modals.addTitle') : page.t('modals.editTitle')"
+      preset="card"
       style="width: 500px"
     >
-      <NForm
-        v-if="editingEntry"
-        label-placement="left"
-        label-width="80"
-      >
+      <NForm v-if="editingEntry" label-placement="left" label-width="80">
         <NFormItem :label="page.t('columns.ip')">
-          <NInput
-            v-model:value="editingEntry.ip"
-            :placeholder="page.t('placeholders.ip')"
-          />
+          <NInput v-model:value="editingEntry.ip" :placeholder="page.t('placeholders.ip')" />
         </NFormItem>
         <NFormItem :label="page.t('columns.hostname')">
           <NInput
@@ -749,10 +767,7 @@ onMounted(async () => {
           <NButton @click="showEditModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            @click="handleSave"
-          >
+          <NButton type="primary" @click="handleSave">
             {{ page.t('buttons.save') }}
           </NButton>
         </NSpace>
@@ -762,46 +777,41 @@ onMounted(async () => {
     <NModal
       v-model:show="showDiffModal"
       preset="card"
-      :title="pendingScheme ? page.t('labels.schemeCompare', { name: pendingScheme.name }) : page.t('labels.schemeCompareDefault')"
+      :title="
+        pendingScheme
+          ? page.t('labels.schemeCompare', { name: pendingScheme.name })
+          : page.t('labels.schemeCompareDefault')
+      "
       style="width: 640px"
     >
       <div class="diff-summary">
-        <NTag
-          size="small"
-          type="success"
-        >
+        <NTag size="small" type="success">
           {{ page.t('diff.addedCount', { count: diffSummary.added }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="error"
-        >
+        <NTag size="small" type="error">
           {{ page.t('diff.removedCount', { count: diffSummary.removed }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="warning"
-        >
+        <NTag size="small" type="warning">
           {{ page.t('diff.modifiedCount', { count: diffSummary.modified }) }}
         </NTag>
         <NTag size="small">
           {{ page.t('diff.unchangedCount', { count: diffSummary.unchanged }) }}
         </NTag>
       </div>
-      <NList
-        v-if="visibleDiffChanges.length"
-        class="scheme-diff-list"
-      >
-        <NListItem
-          v-for="change in visibleDiffChanges"
-          :key="`${change.type}-${change.hostname}`"
-        >
+      <NList v-if="visibleDiffChanges.length" class="scheme-diff-list">
+        <NListItem v-for="change in visibleDiffChanges" :key="`${change.type}-${change.hostname}`">
           <NThing>
             <template #header>
               <div class="diff-item-header">
                 <NTag
                   size="small"
-                  :type="change.type === 'added' ? 'success' : change.type === 'removed' ? 'error' : 'warning'"
+                  :type="
+                    change.type === 'added'
+                      ? 'success'
+                      : change.type === 'removed'
+                        ? 'error'
+                        : 'warning'
+                  "
                 >
                   {{ diffTypeLabel(change.type) }}
                 </NTag>
@@ -822,19 +832,13 @@ onMounted(async () => {
           </NThing>
         </NListItem>
       </NList>
-      <NEmpty
-        v-else
-        :description="page.t('diff.identical')"
-      />
+      <NEmpty v-else :description="page.t('diff.identical')" />
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showDiffModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            @click="confirmApplyScheme"
-          >
+          <NButton type="primary" @click="confirmApplyScheme">
             {{ page.t('buttons.confirmLoad') }}
           </NButton>
         </NSpace>

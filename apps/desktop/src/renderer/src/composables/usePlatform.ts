@@ -10,7 +10,7 @@ export function usePlatform() {
 
   async function loadPlatform() {
     if (loaded.value) return platform.value
-    const value = await invoke<string>('app:getPlatform')
+    const value = await invoke('app:getPlatform')
     platform.value = value ?? ''
     loaded.value = true
     return platform.value

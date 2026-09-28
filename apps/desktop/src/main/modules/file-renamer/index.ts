@@ -1,35 +1,23 @@
-import { ipcMain, dialog, app } from 'electron'
-import { readdir, rename, stat } from 'fs/promises'
+import { isRenameRule } from '@dev-tool-kit/shared/types'
+import { handleIpc } from '../../typed-ipc'
+import { readJsonFile, updateJsonFile } from '../../store/atomic-json'
+import { dialog, app } from 'electron'
+import { readdir, realpath, stat } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
-import { join, dirname, extname, basename, resolve, sep } from 'path'
+import { join, dirname, basename, resolve, sep } from 'path'
 import { logger } from '../../logger'
-import type { FileEntry, RenamePreview, RenameResult, SavedRenameRule } from '@dev-tool-kit/shared'
+import type {
+  FileEntry,
+  RenamePreview,
+  RenameResult,
+  SavedRenameRule,
+  RenameRule
+} from '@dev-tool-kit/shared'
 
-export type { FileEntry, RenamePreview, RenameResult }
+import { isValidFilename, moveWithoutOverwrite } from './safe-move'
+import { runWorkerTask } from '../worker-task'
 
-export interface RenameRule {
-  type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
-  value?: string
-  replaceWith?: string
-  pattern?: string
-  startNumber?: number
-  padding?: number
-  caseType?: 'upper' | 'lower' | 'title'
-}
-
-export type RenameRuleInput = RenameRule | RenameRule[]
-
-const ILLEGAL_FILENAME_CHARS = /[<>:"|?*\\/]/
-
-function containsIllegalControlChars(name: string): boolean {
-  return name.includes('\0') || name.includes('\r') || name.includes('\n')
-}
-
-function isValidFilename(name: string): boolean {
-  if (!name || name === '.' || name === '..') return false
-  if (ILLEGAL_FILENAME_CHARS.test(name) || containsIllegalControlChars(name)) return false
-  return true
-}
+export type { FileEntry, RenamePreview, RenameResult, RenameRule }
 
 function isPathWithin(childPath: string, parentDir: string): boolean {
   const resolved = resolve(childPath)
@@ -40,13 +28,17 @@ function isPathWithin(childPath: string, parentDir: string): boolean {
 /** Directories the user explicitly selected via dialog */
 const allowedFolderRoots = new Set<string>()
 
-function registerAllowedRoot(folderPath: string): void {
-  allowedFolderRoots.add(resolve(folderPath))
+async function registerAllowedRoot(folderPath: string): Promise<void> {
+  allowedFolderRoots.add(await realpath(folderPath))
 }
 
-function isAllowedFolder(folderPath: string): boolean {
-  const resolved = resolve(folderPath)
-  if (!existsSync(resolved)) return false
+async function isAllowedFolder(folderPath: string): Promise<boolean> {
+  let resolved: string
+  try {
+    resolved = await realpath(folderPath)
+  } catch {
+    return false
+  }
 
   for (const root of allowedFolderRoots) {
     if (resolved === root || isPathWithin(resolved, root)) {
@@ -54,72 +46,6 @@ function isAllowedFolder(folderPath: string): boolean {
     }
   }
   return false
-}
-
-function applyRuleToName(original: string, rule: RenameRule, index: number): string {
-  const ext = extname(original)
-  const nameWithoutExt = basename(original, ext)
-
-  let newName = nameWithoutExt
-
-  switch (rule.type) {
-    case 'prefix':
-      newName = (rule.value || '') + nameWithoutExt
-      break
-    case 'suffix':
-      newName = nameWithoutExt + (rule.value || '')
-      break
-    case 'replace':
-      if (rule.value && rule.replaceWith !== undefined) {
-        newName = nameWithoutExt.split(rule.value).join(rule.replaceWith)
-      }
-      break
-    case 'regex': {
-      if (rule.pattern) {
-        try {
-          const re = new RegExp(rule.pattern, 'g')
-          newName = nameWithoutExt.replace(re, rule.replaceWith ?? '')
-        } catch {
-          // keep name on invalid regex
-        }
-      }
-      break
-    }
-    case 'number': {
-      const startNum = typeof rule.startNumber === 'string' ? parseInt(rule.startNumber, 10) : (rule.startNumber || 1)
-      const paddingNum = typeof rule.padding === 'string' ? parseInt(rule.padding, 10) : (rule.padding || 3)
-      const num = startNum + index
-      const padded = String(num).padStart(paddingNum, '0')
-      newName = `${padded}_${nameWithoutExt}`
-      break
-    }
-    case 'case':
-      if (rule.caseType === 'upper') {
-        newName = nameWithoutExt.toUpperCase()
-      } else if (rule.caseType === 'lower') {
-        newName = nameWithoutExt.toLowerCase()
-      } else if (rule.caseType === 'title') {
-        newName = nameWithoutExt.replace(/\b\w/g, c => c.toUpperCase())
-      }
-      break
-    case 'date': {
-      const date = new Date()
-      const dateStr = `${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}`
-      newName = `${dateStr}_${nameWithoutExt}`
-      break
-    }
-  }
-
-  return newName + ext
-}
-
-function generateNewName(original: string, rules: RenameRuleInput, index: number): string {
-  const ruleList = Array.isArray(rules) ? rules : [rules]
-  let current = original
-  for (const rule of ruleList) {
-    current = applyRuleToName(current, rule, index)
-  }
-  return current
 }
 
 async function getRulesPath(): Promise<string> {
@@ -132,44 +58,40 @@ async function getRulesPath(): Promise<string> {
 
 async function readSavedRules(): Promise<SavedRenameRule[]> {
   const rulesPath = await getRulesPath()
-  if (!existsSync(rulesPath)) return []
-  const { readFile } = await import('fs/promises')
-  const parsed = JSON.parse(await readFile(rulesPath, 'utf-8'))
-  return Array.isArray(parsed) ? parsed : []
-}
-
-async function writeSavedRules(rules: SavedRenameRule[]): Promise<void> {
-  const { writeFile } = await import('fs/promises')
-  await writeFile(await getRulesPath(), JSON.stringify(rules, null, 2))
+  const parsed = await readJsonFile<SavedRenameRule[]>(rulesPath, [])
+  if (!parsed.every(item => item && typeof item.name === 'string' && isRenameRule(item.rule))) {
+    throw new Error('invalidRule')
+  }
+  return parsed
 }
 
 function detectPreviewConflicts(previews: RenamePreview[]): RenamePreview[] {
   const targetNames = new Map<string, number>()
 
-  return previews.map((preview) => {
+  return previews.map(preview => {
     const dir = dirname(preview.path)
     const newPath = join(dir, preview.preview)
     const resolvedNew = resolve(newPath)
     const resolvedOld = resolve(preview.path)
 
-    if (preview.original === preview.preview) {
+    if (preview.conflict || preview.original === preview.preview) {
       return preview
     }
 
     if (!isValidFilename(preview.preview)) {
-      return { ...preview, conflict: '文件名包含非法字符' }
+      return { ...preview, conflict: 'invalidFilename' }
     }
 
     if (resolvedNew !== resolvedOld && existsSync(newPath)) {
-      return { ...preview, conflict: '目标文件名已存在' }
+      return { ...preview, conflict: 'targetExists' }
     }
 
     // 按目录分组统计，避免跨目录批量重命名时误报重复
-    const key = `${dir}\u0000${preview.preview}`
+    const key = process.platform === 'win32' ? resolvedNew.toLowerCase() : resolvedNew
     const count = targetNames.get(key) ?? 0
     targetNames.set(key, count + 1)
     if (count > 0) {
-      return { ...preview, conflict: '批量重命名后文件名重复' }
+      return { ...preview, conflict: 'duplicateTarget' }
     }
 
     return preview
@@ -180,7 +102,7 @@ export function setupFileRenamerIPC(): void {
   logger.info('Setting up File Renamer IPC handlers')
 
   // Open folder dialog
-  ipcMain.handle('file-renamer:selectFolder', async () => {
+  handleIpc('file-renamer:selectFolder', async () => {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openDirectory']
@@ -188,7 +110,7 @@ export function setupFileRenamerIPC(): void {
       if (result.canceled || result.filePaths.length === 0) {
         return null
       }
-      registerAllowedRoot(result.filePaths[0])
+      await registerAllowedRoot(result.filePaths[0])
       return result.filePaths[0]
     } catch (error) {
       logger.error('Failed to select folder:', error)
@@ -197,7 +119,7 @@ export function setupFileRenamerIPC(): void {
   })
 
   // Open files dialog (multi-select)
-  ipcMain.handle('file-renamer:selectFiles', async () => {
+  handleIpc('file-renamer:selectFiles', async () => {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile', 'multiSelections']
@@ -210,7 +132,7 @@ export function setupFileRenamerIPC(): void {
       for (const filePath of result.filePaths) {
         try {
           const fileStat = await stat(filePath)
-          registerAllowedRoot(dirname(filePath))
+          await registerAllowedRoot(dirname(filePath))
           entries.push({
             name: basename(filePath),
             path: filePath,
@@ -231,9 +153,9 @@ export function setupFileRenamerIPC(): void {
   })
 
   // List files in folder
-  ipcMain.handle('file-renamer:listFiles', async (_, folderPath: string) => {
+  handleIpc('file-renamer:listFiles', async (_, folderPath: string) => {
     if (typeof folderPath !== 'string' || !folderPath.trim()) return []
-    if (!isAllowedFolder(folderPath)) {
+    if (!(await isAllowedFolder(folderPath))) {
       logger.warn('Blocked listFiles for unauthorized path:', folderPath)
       return []
     }
@@ -268,160 +190,100 @@ export function setupFileRenamerIPC(): void {
     }
   })
 
-  // Preview rename
-  ipcMain.handle('file-renamer:preview', async (_, files: FileEntry[], rules: RenameRuleInput) => {
-    if (!Array.isArray(files)) return []
-    const previews = files.map((file, index) => ({
-      original: file.name,
-      preview: generateNewName(file.name, rules, index),
-      path: file.path
-    })) as RenamePreview[]
-    return detectPreviewConflicts(previews)
+  // Only name calculation runs in the worker; filesystem checks stay here.
+  handleIpc('file-renamer:preview', async (_, files: FileEntry[], rules: RenameRule[]) => {
+    if (
+      !Array.isArray(files) ||
+      !files.every(file => file && typeof file.name === 'string' && typeof file.path === 'string')
+    )
+      return []
+    try {
+      const previews = await runWorkerTask<RenamePreview[]>(
+        join(__dirname, 'modules/file-renamer/rename-worker.js'),
+        { files, rules }
+      )
+      return detectPreviewConflicts(previews)
+    } catch (error) {
+      const conflict =
+        error instanceof Error && error.message === 'workerTimeout'
+          ? 'workerTimeout'
+          : 'workerFailed'
+      return files.map(file => ({
+        original: file.name,
+        preview: file.name,
+        path: file.path,
+        conflict
+      }))
+    }
   })
 
-  // Execute rename
-  ipcMain.handle('file-renamer:execute', async (_, previews: RenamePreview[]) => {
+  handleIpc('file-renamer:execute', async (_, previews: RenamePreview[]) => {
     if (!Array.isArray(previews)) return []
     const results: RenameResult[] = []
-
     for (const preview of previews) {
+      if (!preview || typeof preview.path !== 'string' || typeof preview.preview !== 'string') {
+        results.push({ success: false, original: '', renamed: '', error: 'invalidFilename' })
+        continue
+      }
+      const failure = { success: false, original: basename(preview.path), renamed: preview.preview }
       if (preview.conflict) {
-        results.push({
-          success: false,
-          original: preview.original,
-          renamed: preview.preview,
-          error: preview.conflict
-        })
-        continue
-      }
-
-      if (!isAllowedFolder(dirname(preview.path))) {
-        results.push({
-          success: false,
-          original: preview.original,
-          renamed: preview.preview,
-          error: '路径未授权'
-        })
-        continue
-      }
-
-      try {
-        if (!isValidFilename(preview.preview)) {
-          results.push({
-            success: false,
-            original: preview.original,
-            renamed: preview.preview,
-            error: '文件名包含非法字符'
-          })
-          continue
-        }
-
-        const dir = dirname(preview.path)
-        const newPath = join(dir, preview.preview)
-
-        if (!isPathWithin(newPath, dir)) {
-          results.push({
-            success: false,
-            original: preview.original,
-            renamed: preview.preview,
-            error: '目标路径超出允许范围'
-          })
-          continue
-        }
-
-        if (resolve(newPath) === resolve(preview.path)) {
-          results.push({
-            success: true,
-            original: preview.original,
-            renamed: preview.preview
-          })
-          continue
-        }
-
-        await rename(preview.path, newPath)
-
-        results.push({
-          success: true,
-          original: preview.original,
-          renamed: preview.preview,
-          oldPath: preview.path,
-          newPath
-        })
-      } catch (error) {
-        results.push({
-          success: false,
-          original: preview.original,
-          renamed: preview.preview,
-          error: '重命名失败'
-        })
+        results.push({ ...failure, error: preview.conflict })
+      } else if (!isValidFilename(preview.preview)) {
+        results.push({ ...failure, error: 'invalidFilename' })
+      } else if (!(await isAllowedFolder(dirname(preview.path)))) {
+        results.push({ ...failure, error: 'unauthorizedPath' })
+      } else {
+        results.push(
+          await moveWithoutOverwrite(preview.path, join(dirname(preview.path), preview.preview))
+        )
       }
     }
-
     return results
   })
 
-  ipcMain.handle('file-renamer:undo', async (_, ops: { oldPath: string; newPath: string }[]) => {
+  handleIpc('file-renamer:undo', async (_, ops: { oldPath: string; newPath: string }[]) => {
     if (!Array.isArray(ops)) return []
     const results: RenameResult[] = []
-
     for (const op of ops) {
-      if (!op?.oldPath || !op?.newPath) continue
-      if (!isAllowedFolder(dirname(op.oldPath)) || !isAllowedFolder(dirname(op.newPath))) {
+      if (!op || typeof op.oldPath !== 'string' || typeof op.newPath !== 'string') {
+        results.push({ success: false, original: '', renamed: '', error: 'unauthorizedPath' })
+        continue
+      }
+      if (
+        !(await isAllowedFolder(dirname(op.oldPath))) ||
+        !(await isAllowedFolder(dirname(op.newPath)))
+      ) {
         results.push({
           success: false,
           original: basename(op.newPath),
           renamed: basename(op.oldPath),
-          error: '路径未授权'
+          error: 'unauthorizedPath'
         })
         continue
       }
-      try {
-        if (!existsSync(op.newPath)) {
-          results.push({
-            success: false,
-            original: basename(op.newPath),
-            renamed: basename(op.oldPath),
-            error: '文件不存在，无法撤销'
-          })
-          continue
-        }
-        await rename(op.newPath, op.oldPath)
-        results.push({
-          success: true,
-          original: basename(op.newPath),
-          renamed: basename(op.oldPath),
-          oldPath: op.newPath,
-          newPath: op.oldPath
-        })
-      } catch {
-        results.push({
-          success: false,
-          original: basename(op.newPath),
-          renamed: basename(op.oldPath),
-          error: '撤销失败'
-        })
-      }
+      results.push(await moveWithoutOverwrite(op.newPath, op.oldPath))
     }
-
     return results
   })
 
   // Save rename rules
-  ipcMain.handle('file-renamer:saveRule', async (_, name: string, rule: RenameRule) => {
+  handleIpc('file-renamer:saveRule', async (_, name: string, rule: RenameRule) => {
+    if (!isRenameRule(rule)) return { success: false, error: 'invalidRule' }
     if (typeof name !== 'string' || !name.trim()) {
       return { success: false, error: '无效的规则名称' }
     }
     try {
-      const rules = await readSavedRules()
-      const trimmedName = name.trim()
-      const existingIndex = rules.findIndex(item => item.name === trimmedName)
-      const nextRule: SavedRenameRule = { name: trimmedName, rule }
-      if (existingIndex >= 0) {
-        rules[existingIndex] = nextRule
-      } else {
-        rules.push(nextRule)
-      }
-      await writeSavedRules(rules)
+      await updateJsonFile<SavedRenameRule[]>(await getRulesPath(), [], rules => {
+        const trimmedName = name.trim()
+        const existingIndex = rules.findIndex(item => item.name === trimmedName)
+        const nextRule: SavedRenameRule = { name: trimmedName, rule }
+        if (existingIndex >= 0) {
+          rules[existingIndex] = nextRule
+        } else {
+          rules.push(nextRule)
+        }
+        return rules
+      })
       return { success: true }
     } catch (error) {
       logger.error('Failed to save rename rule:', error)
@@ -429,7 +291,7 @@ export function setupFileRenamerIPC(): void {
     }
   })
 
-  ipcMain.handle('file-renamer:listRules', async () => {
+  handleIpc('file-renamer:listRules', async () => {
     try {
       return await readSavedRules()
     } catch (error) {
@@ -438,14 +300,14 @@ export function setupFileRenamerIPC(): void {
     }
   })
 
-  ipcMain.handle('file-renamer:deleteRule', async (_, name: string) => {
+  handleIpc('file-renamer:deleteRule', async (_, name: string) => {
     if (typeof name !== 'string' || !name.trim()) {
       return { success: false, error: '无效的规则名称' }
     }
     try {
-      const rules = await readSavedRules()
-      const nextRules = rules.filter(item => item.name !== name.trim())
-      await writeSavedRules(nextRules)
+      await updateJsonFile<SavedRenameRule[]>(await getRulesPath(), [], rules =>
+        rules.filter(item => item.name !== name.trim())
+      )
       return { success: true }
     } catch (error) {
       logger.error('Failed to delete rename rule:', error)

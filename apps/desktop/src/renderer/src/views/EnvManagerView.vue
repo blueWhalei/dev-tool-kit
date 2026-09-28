@@ -1,10 +1,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { 
-  NDataTable, NButton, NSpace, NInput, NModal, NForm, 
-  NFormItem, NPopconfirm, useMessage, useDialog, NTabs, NTabPane,
-  NEmpty, NButtonGroup, NList, NListItem, NThing, NAlert, NTag
+import {
+  NDataTable,
+  NButton,
+  NSpace,
+  NInput,
+  NModal,
+  NForm,
+  NFormItem,
+  NPopconfirm,
+  useMessage,
+  useDialog,
+  NTabs,
+  NTabPane,
+  NEmpty,
+  NButtonGroup,
+  NList,
+  NListItem,
+  NThing,
+  NAlert,
+  NTag
 } from 'naive-ui'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -67,18 +83,42 @@ const systemVars = computed(() => variables.value.filter(v => v.type === 'system
 const columns = computed(() => [
   { title: page.t('columns.name'), key: 'name', width: 200, ellipsis: { tooltip: true } },
   { title: page.t('columns.value'), key: 'value', ellipsis: { tooltip: true } },
-  ...(readOnly.value ? [] : [{
-    title: '', key: 'actions', width: 100, render: (row: EnvVariable) => {
-      return h(NSpace, { size: 'small', noWrap: true }, {
-        default: () => [
-          h(NButton, { size: 'small', quaternary: true, onClick: () => openEditModal(row) }, { default: () => page.t('buttons.edit') }),
-          h(NPopconfirm, { onPositiveClick: () => handleDelete(row.name) }, {
-            trigger: () => h(NButton, { size: 'small', quaternary: true, type: 'error' }, { default: () => page.t('buttons.delete') })
-          })
-        ]
-      })
-    }
-  }])
+  ...(readOnly.value
+    ? []
+    : [
+        {
+          title: '',
+          key: 'actions',
+          width: 100,
+          render: (row: EnvVariable) => {
+            return h(
+              NSpace,
+              { size: 'small', noWrap: true },
+              {
+                default: () => [
+                  h(
+                    NButton,
+                    { size: 'small', quaternary: true, onClick: () => openEditModal(row) },
+                    { default: () => page.t('buttons.edit') }
+                  ),
+                  h(
+                    NPopconfirm,
+                    { onPositiveClick: () => handleDelete(row.name) },
+                    {
+                      trigger: () =>
+                        h(
+                          NButton,
+                          { size: 'small', quaternary: true, type: 'error' },
+                          { default: () => page.t('buttons.delete') }
+                        )
+                    }
+                  )
+                ]
+              }
+            )
+          }
+        }
+      ])
 ])
 
 function formatDate(timestamp: string): string {
@@ -142,11 +182,10 @@ function diffTagType(type: 'add' | 'remove' | 'unchanged'): 'success' | 'error' 
   return 'default'
 }
 
-async function previewShellChange(
-  previewChannel: 'env-manager:previewSet' | 'env-manager:previewDelete' | 'env-manager:previewPath',
-  ...args: unknown[]
-): Promise<boolean> {
-  const data = await invoke(previewChannel, ...args) as {
+async function previewShellChange<
+  C extends 'env-manager:previewSet' | 'env-manager:previewDelete' | 'env-manager:previewPath'
+>(previewChannel: C, ...args: import('@dev-tool-kit/shared').IpcArgs<C>): Promise<boolean> {
+  const data = (await invoke(previewChannel, ...args)) as {
     success: boolean
     preview?: {
       configFile: string
@@ -221,7 +260,10 @@ async function handleDelete(name: string) {
     const ok = await previewShellChange('env-manager:previewDelete', name)
     if (!ok) return
     pendingShellAction.value = async () => {
-      const result = await invoke('env-manager:delete', name) as { success: boolean; error?: string }
+      const result = (await invoke('env-manager:delete', name)) as {
+        success: boolean
+        error?: string
+      }
       if (result?.success) {
         message.success(page.t('messages.deleted'))
         await fetchVariables()
@@ -236,7 +278,10 @@ async function handleDelete(name: string) {
 
 async function executeDelete(name: string) {
   try {
-    const result = await invoke('env-manager:delete', name) as { success: boolean; error?: string }
+    const result = (await invoke('env-manager:delete', name)) as {
+      success: boolean
+      error?: string
+    }
     if (result?.success) {
       message.success(page.t('messages.deleted'))
       await fetchVariables()
@@ -267,7 +312,10 @@ async function handleAddPath() {
 
 async function applyPathChange(newPaths: string[], successMessage: string) {
   try {
-    const result = await invoke('env-manager:setPath', newPaths) as { success: boolean; error?: string }
+    const result = (await invoke('env-manager:setPath', newPaths)) as {
+      success: boolean
+      error?: string
+    }
     if (result?.success) {
       message.success(successMessage)
       pathInput.value = ''
@@ -297,7 +345,7 @@ async function handleMovePath(index: number, direction: 'up' | 'down') {
   const newPaths = [...pathEntries.value.map(p => p.path)]
   const targetIndex = direction === 'up' ? index - 1 : index + 1
   if (targetIndex < 0 || targetIndex >= newPaths.length) return
-  
+
   const temp = newPaths[index]
   newPaths[index] = newPaths[targetIndex]
   newPaths[targetIndex] = temp
@@ -399,7 +447,7 @@ async function handleDeleteBackup(timestamp: string) {
 
 async function handleExport() {
   try {
-    const content = await invoke<string>('env-manager:export', userVars.value)
+    const content = await invoke('env-manager:export', userVars.value)
     if (content) {
       await copy(content, page.t('messages.exportCopied'))
     } else {
@@ -422,18 +470,17 @@ async function handleImport() {
   }
   importLoading.value = true
   try {
-    const results = await invoke<Array<{ success: boolean; name: string; error?: string }>>(
-      'env-manager:import',
-      importContent.value
-    )
+    const results = await invoke('env-manager:import', importContent.value)
     const list = results ?? []
     const ok = list.filter(r => r.success).length
     const fail = list.filter(r => !r.success).length
     if (ok > 0) {
-      message.success(page.t('messages.importSuccess', {
-        ok,
-        failSuffix: fail > 0 ? page.t('messages.importFailSuffix', { fail }) : ''
-      }))
+      message.success(
+        page.t('messages.importSuccess', {
+          ok,
+          failSuffix: fail > 0 ? page.t('messages.importFailSuffix', { fail }) : ''
+        })
+      )
       showImportModal.value = false
       await fetchVariables()
     } else if (list.length === 0) {
@@ -450,13 +497,15 @@ async function handleImport() {
 
 onMounted(async () => {
   try {
-    const support = await invoke('env-manager:getSupport') as {
-      supported: boolean
-      platform?: string
-      readOnly?: boolean
-      writeMode?: 'registry' | 'shell' | 'none'
-      shellConfigFile?: string
-    } | undefined
+    const support = (await invoke('env-manager:getSupport')) as
+      | {
+          supported: boolean
+          platform?: string
+          readOnly?: boolean
+          writeMode?: 'registry' | 'shell' | 'none'
+          shellConfigFile?: string
+        }
+      | undefined
     if (support) {
       platformSupported.value = support.supported
       platformName.value = support.platform ?? ''
@@ -484,20 +533,14 @@ onMounted(async () => {
   >
     <template #actions>
       <template v-if="platformSupported">
-        <NButton
-          v-if="!readOnly"
-          @click="openEditModal()"
-        >
+        <NButton v-if="!readOnly" @click="openEditModal()">
           {{ page.t('buttons.create') }}
         </NButton>
         <NButtonGroup>
           <NButton @click="handleExport">
             {{ page.t('buttons.export') }}
           </NButton>
-          <NButton
-            v-if="writeMode === 'registry'"
-            @click="openImportModal"
-          >
+          <NButton v-if="writeMode === 'registry'" @click="openImportModal">
             {{ page.t('buttons.import') }}
           </NButton>
           <NButton @click="showBackupModal = true">
@@ -514,7 +557,7 @@ onMounted(async () => {
       v-if="!platformSupported"
       type="warning"
       :title="page.t('unsupported')"
-      style="margin-bottom: 16px;"
+      style="margin-bottom: 16px"
     >
       {{ page.t('unsupportedAlert', { platform: platformName || page.t('unknownPlatform') }) }}
     </NAlert>
@@ -523,13 +566,10 @@ onMounted(async () => {
       v-else-if="shellWriteMode"
       type="info"
       :title="page.t('shellWriteTitle')"
-      style="margin-bottom: 16px;"
+      style="margin-bottom: 16px"
     >
       <p>{{ page.t('shellWriteAlert') }}</p>
-      <p
-        v-if="shellConfigFile"
-        class="shell-config-path"
-      >
+      <p v-if="shellConfigFile" class="shell-config-path">
         {{ page.t('hints.shellConfigFile', { file: shellConfigFile }) }}
       </p>
     </NAlert>
@@ -538,24 +578,14 @@ onMounted(async () => {
       v-else-if="readOnly"
       type="info"
       :title="page.t('readOnlyTitle')"
-      style="margin-bottom: 16px;"
+      style="margin-bottom: 16px"
     >
       {{ page.t('readOnlyAlert') }}
     </NAlert>
-    
-    <div
-      v-if="platformSupported"
-      class="content-card"
-    >
-      <NTabs
-        v-model:value="activeTab"
-        type="line"
-        animated
-      >
-        <NTabPane
-          name="user"
-          :tab="page.t('tabs.user')"
-        >
+
+    <div v-if="platformSupported" class="content-card">
+      <NTabs v-model:value="activeTab" type="line" animated>
+        <NTabPane name="user" :tab="page.t('tabs.user')">
           <NDataTable
             :columns="columns"
             :data="userVars"
@@ -569,11 +599,8 @@ onMounted(async () => {
             :description="page.t('empty.userVars')"
           />
         </NTabPane>
-        
-        <NTabPane
-          name="system"
-          :tab="page.t('tabs.system')"
-        >
+
+        <NTabPane name="system" :tab="page.t('tabs.system')">
           <NDataTable
             :columns="columns"
             :data="systemVars"
@@ -587,46 +614,34 @@ onMounted(async () => {
             :description="page.t('empty.systemVars')"
           />
         </NTabPane>
-        
-        <NTabPane
-          name="path"
-          :tab="page.t('tabs.path')"
-        >
+
+        <NTabPane name="path" :tab="page.t('tabs.path')">
           <div class="path-section">
-            <div
-              v-if="!readOnly"
-              class="path-input-row"
-            >
+            <div v-if="!readOnly" class="path-input-row">
               <NInput
                 v-model:value="pathInput"
                 :placeholder="page.t('placeholders.pathInput')"
                 style="flex: 1"
                 @keyup.enter="handleAddPath"
               />
-              <NButton
-                type="primary"
-                :disabled="!pathInput.trim()"
-                @click="handleAddPath"
-              >
+              <NButton type="primary" :disabled="!pathInput.trim()" @click="handleAddPath">
                 {{ page.t('buttons.add') }}
               </NButton>
             </div>
-            
-            <NList
-              v-if="pathEntries.length > 0"
-              class="path-list"
-            >
-              <NListItem
-                v-for="(entry, index) in pathEntries"
-                :key="index"
-              >
+
+            <NList v-if="pathEntries.length > 0" class="path-list">
+              <NListItem v-for="(entry, index) in pathEntries" :key="index">
                 <template #prefix>
                   <span class="path-index">{{ index + 1 }}</span>
                 </template>
                 <NThing
                   :title="entry.path"
-                  :description="entry.exists ? page.t('labels.pathExists') : page.t('labels.pathNotExists')"
-                  :description-style="{ color: entry.exists ? 'var(--color-success)' : 'var(--color-error)' }"
+                  :description="
+                    entry.exists ? page.t('labels.pathExists') : page.t('labels.pathNotExists')
+                  "
+                  :description-style="{
+                    color: entry.exists ? 'var(--color-success)' : 'var(--color-error)'
+                  }"
                 >
                   <template #header-extra>
                     <NSpace v-if="!readOnly">
@@ -646,12 +661,7 @@ onMounted(async () => {
                       >
                         ↓
                       </NButton>
-                      <NButton
-                        size="tiny"
-                        quaternary
-                        type="error"
-                        @click="handleRemovePath(index)"
-                      >
+                      <NButton size="tiny" quaternary type="error" @click="handleRemovePath(index)">
                         {{ page.t('buttons.remove') }}
                       </NButton>
                     </NSpace>
@@ -659,40 +669,28 @@ onMounted(async () => {
                 </NThing>
               </NListItem>
             </NList>
-            <NEmpty
-              v-else
-              :description="page.t('empty.path')"
-            />
+            <NEmpty v-else :description="page.t('empty.path')" />
           </div>
         </NTabPane>
-        
-        <NTabPane
-          name="backup"
-          :tab="page.t('tabs.backup')"
-        >
+
+        <NTabPane name="backup" :tab="page.t('tabs.backup')">
           <NList v-if="backups.length > 0">
-            <NListItem
-              v-for="backup in backups"
-              :key="backup.timestamp"
-            >
+            <NListItem v-for="backup in backups" :key="backup.timestamp">
               <NThing
                 :title="backup.name"
-                :description="page.t('labels.backupMeta', { count: backup.count, date: formatDate(backup.timestamp) })"
+                :description="
+                  page.t('labels.backupMeta', {
+                    count: backup.count,
+                    date: formatDate(backup.timestamp)
+                  })
+                "
               >
                 <template #header-extra>
                   <NSpace>
-                    <NButton
-                      v-if="!readOnly"
-                      size="small"
-                      @click="confirmRestoreBackup(backup)"
-                    >
+                    <NButton v-if="!readOnly" size="small" @click="confirmRestoreBackup(backup)">
                       {{ page.t('buttons.restore') }}
                     </NButton>
-                    <NButton
-                      size="small"
-                      type="error"
-                      @click="confirmDeleteBackup(backup)"
-                    >
+                    <NButton size="small" type="error" @click="confirmDeleteBackup(backup)">
                       {{ page.t('buttons.delete') }}
                     </NButton>
                   </NSpace>
@@ -700,25 +698,18 @@ onMounted(async () => {
               </NThing>
             </NListItem>
           </NList>
-          <NEmpty
-            v-else
-            :description="page.t('empty.backups')"
-          />
+          <NEmpty v-else :description="page.t('empty.backups')" />
         </NTabPane>
       </NTabs>
     </div>
-    
+
     <NModal
       v-model:show="showEditModal"
       :title="isNewVar ? page.t('modals.createTitle') : page.t('modals.editTitle')"
       preset="card"
       style="width: 500px"
     >
-      <NForm
-        v-if="editingVar"
-        label-placement="left"
-        label-width="80"
-      >
+      <NForm v-if="editingVar" label-placement="left" label-width="80">
         <NFormItem :label="page.t('labels.variableName')">
           <NInput
             v-model:value="editingVar.name"
@@ -740,42 +731,29 @@ onMounted(async () => {
           <NButton @click="showEditModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            @click="handleSave"
-          >
+          <NButton type="primary" @click="handleSave">
             {{ page.t('buttons.save') }}
           </NButton>
         </NSpace>
       </template>
     </NModal>
-    
+
     <NModal
       v-model:show="showBackupModal"
       preset="card"
       :title="page.t('modals.createBackupTitle')"
       style="width: 400px"
     >
-      <NAlert
-        type="info"
-        :bordered="false"
-        style="margin-bottom: 12px; border-radius: 8px;"
-      >
+      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px">
         {{ page.t('hints.backupInfo') }}
       </NAlert>
-      <NInput
-        v-model:value="backupName"
-        :placeholder="page.t('placeholders.backupName')"
-      />
+      <NInput v-model:value="backupName" :placeholder="page.t('placeholders.backupName')" />
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showBackupModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            @click="handleCreateBackup"
-          >
+          <NButton type="primary" @click="handleCreateBackup">
             {{ page.t('buttons.createBackup') }}
           </NButton>
         </NSpace>
@@ -788,11 +766,7 @@ onMounted(async () => {
       :title="page.t('modals.importTitle')"
       style="width: 520px"
     >
-      <NAlert
-        type="info"
-        :bordered="false"
-        style="margin-bottom: 12px; border-radius: 8px;"
-      >
+      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px">
         {{ page.t('hints.importInfo') }}
       </NAlert>
       <NInput
@@ -806,11 +780,7 @@ onMounted(async () => {
           <NButton @click="showImportModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            :loading="importLoading"
-            @click="handleImport"
-          >
+          <NButton type="primary" :loading="importLoading" @click="handleImport">
             {{ page.t('buttons.import') }}
           </NButton>
         </NSpace>
@@ -823,48 +793,26 @@ onMounted(async () => {
       :title="page.t('modals.diffTitle')"
       style="width: 640px"
     >
-      <NAlert
-        type="info"
-        :bordered="false"
-        style="margin-bottom: 12px; border-radius: 8px;"
-      >
+      <NAlert type="info" :bordered="false" style="margin-bottom: 12px; border-radius: 8px">
         {{ page.t('hints.diffInfo', { file: diffConfigFile }) }}
       </NAlert>
-      <NList
-        v-if="diffLines.length"
-        class="shell-diff-list"
-      >
-        <NListItem
-          v-for="(line, index) in diffLines"
-          :key="`${line.type}-${index}`"
-        >
-          <NSpace
-            align="center"
-            :size="8"
-          >
-            <NTag
-              size="small"
-              :type="diffTagType(line.type)"
-            >
+      <NList v-if="diffLines.length" class="shell-diff-list">
+        <NListItem v-for="(line, index) in diffLines" :key="`${line.type}-${index}`">
+          <NSpace align="center" :size="8">
+            <NTag size="small" :type="diffTagType(line.type)">
               {{ diffTypeLabel(line.type) }}
             </NTag>
             <code class="diff-line">{{ line.line }}</code>
           </NSpace>
         </NListItem>
       </NList>
-      <NEmpty
-        v-else
-        :description="page.t('diff.noChanges')"
-      />
+      <NEmpty v-else :description="page.t('diff.noChanges')" />
       <template #footer>
         <NSpace justify="end">
           <NButton @click="showDiffModal = false">
             {{ page.t('buttons.cancel') }}
           </NButton>
-          <NButton
-            type="primary"
-            @click="confirmShellDiff"
-          >
+          <NButton type="primary" @click="confirmShellDiff">
             {{ page.t('buttons.confirmWrite') }}
           </NButton>
         </NSpace>
@@ -879,13 +827,53 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-.content-card { background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.content-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
 
-.path-section { padding: var(--space-2) 0; }
-.path-input-row { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); }
-.path-list { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
-.path-index { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-bg-tertiary); font-size: var(--font-size-caption1); color: var(--color-text-secondary); margin-right: var(--space-3); }
-.shell-diff-list { max-height: 360px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-.diff-line { font-family: var(--font-family-mono); font-size: var(--font-size-footnote); word-break: break-all; }
-.shell-config-path { margin: 8px 0 0; font-family: var(--font-family-mono); font-size: var(--font-size-footnote); color: var(--color-text-secondary); }
+.path-section {
+  padding: var(--space-2) 0;
+}
+.path-input-row {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.path-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.path-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg-tertiary);
+  font-size: var(--font-size-caption1);
+  color: var(--color-text-secondary);
+  margin-right: var(--space-3);
+}
+.shell-diff-list {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.diff-line {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-footnote);
+  word-break: break-all;
+}
+.shell-config-path {
+  margin: 8px 0 0;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-footnote);
+  color: var(--color-text-secondary);
+}
 </style>

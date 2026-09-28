@@ -1,43 +1,22 @@
 <template>
-  <div
-    class="action-bar"
-    style="margin-top: 0; border-top: none; padding-top: 0"
-  >
-    <NButton
-      type="primary"
-      :loading="compareLoadingA"
-      @click="pickCompareImage('A')"
-    >
+  <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
+    <NButton type="primary" :loading="compareLoadingA" @click="pickCompareImage('A')">
       {{ page.t('actions.pickImageA') }}
     </NButton>
-    <NButton
-      type="primary"
-      :loading="compareLoadingB"
-      @click="pickCompareImage('B')"
-    >
+    <NButton type="primary" :loading="compareLoadingB" @click="pickCompareImage('B')">
       {{ page.t('actions.pickImageB') }}
     </NButton>
-    <NButton
-      v-if="compareImageA && compareImageB"
-      @click="swapCompareImages"
-    >
+    <NButton v-if="compareImageA && compareImageB" @click="swapCompareImages">
       {{ page.t('actions.swapImages') }}
     </NButton>
   </div>
 
   <template v-if="compareImageA && compareImageB">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.compareMode') }}</span>
-          <NRadioGroup
-            v-model:value="compareMode"
-            size="small"
-          >
+          <NRadioGroup v-model:value="compareMode" size="small">
             <NRadioButton value="sideBySide">
               {{ page.t('labels.sideBySide') }}
             </NRadioButton>
@@ -52,27 +31,22 @@
       </template>
 
       <!-- Side by side -->
-      <div
-        v-if="compareMode === 'sideBySide'"
-        class="compare-side-by-side"
-      >
+      <div v-if="compareMode === 'sideBySide'" class="compare-side-by-side">
         <div class="compare-image-panel">
           <span class="compare-label">{{ page.t('labels.imageA') }}</span>
-          <img
-            :src="compareImageA.dataUri"
-            alt="A"
-            class="compare-image"
+          <img :src="compareImageA.dataUri" alt="A" class="compare-image" />
+          <span class="compare-meta"
+            >{{ compareImageA.width }}×{{ compareImageA.height }} ·
+            {{ formatBytes(compareImageA.size) }}</span
           >
-          <span class="compare-meta">{{ compareImageA.width }}×{{ compareImageA.height }} · {{ formatBytes(compareImageA.size) }}</span>
         </div>
         <div class="compare-image-panel">
           <span class="compare-label">{{ page.t('labels.imageB') }}</span>
-          <img
-            :src="compareImageB.dataUri"
-            alt="B"
-            class="compare-image"
+          <img :src="compareImageB.dataUri" alt="B" class="compare-image" />
+          <span class="compare-meta"
+            >{{ compareImageB.width }}×{{ compareImageB.height }} ·
+            {{ formatBytes(compareImageB.size) }}</span
           >
-          <span class="compare-meta">{{ compareImageB.width }}×{{ compareImageB.height }} · {{ formatBytes(compareImageB.size) }}</span>
         </div>
       </div>
 
@@ -85,25 +59,11 @@
         @mouseup="onSliderMouseUp"
         @mouseleave="onSliderMouseUp"
       >
-        <img
-          :src="compareImageB.dataUri"
-          alt="B"
-          class="compare-slider-img"
-        >
-        <div
-          class="compare-slider-clip"
-          :style="{ width: sliderPos + '%' }"
-        >
-          <img
-            :src="compareImageA.dataUri"
-            alt="A"
-            class="compare-slider-img"
-          >
+        <img :src="compareImageB.dataUri" alt="B" class="compare-slider-img" />
+        <div class="compare-slider-clip" :style="{ width: sliderPos + '%' }">
+          <img :src="compareImageA.dataUri" alt="A" class="compare-slider-img" />
         </div>
-        <div
-          class="compare-slider-handle"
-          :style="{ left: sliderPos + '%' }"
-        />
+        <div class="compare-slider-handle" :style="{ left: sliderPos + '%' }" />
         <div class="compare-slider-labels">
           <span class="compare-label-a">A</span>
           <span class="compare-label-b">B</span>
@@ -111,43 +71,26 @@
       </div>
 
       <!-- Diff overlay -->
-      <div
-        v-else-if="compareMode === 'diffOverlay'"
-        class="compare-diff-overlay"
-      >
-        <img
-          v-if="diffOverlayDataUri"
-          :src="diffOverlayDataUri"
-          alt="Diff"
-          class="compare-image"
-        >
-        <NAlert
-          v-else
-          type="info"
-          :bordered="false"
-        >
+      <div v-else-if="compareMode === 'diffOverlay'" class="compare-diff-overlay">
+        <img v-if="diffOverlayDataUri" :src="diffOverlayDataUri" alt="Diff" class="compare-image" />
+        <NAlert v-else type="info" :bordered="false">
           {{ page.t('labels.diffOverlay') }}
         </NAlert>
         <div class="compare-diff-legend">
-          <span class="diff-legend-item"><span
-            class="diff-legend-color"
-            style="background: rgba(255, 200, 0, 0.8)"
-          /> {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span>
-          <span class="diff-legend-item"><span
-            class="diff-legend-color"
-            style="background: rgba(128, 128, 128, 0.3)"
-          /> {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span>
+          <span class="diff-legend-item"
+            ><span class="diff-legend-color" style="background: rgba(255, 200, 0, 0.8)" />
+            {{ page.t('labels.imageA') }} ≠ {{ page.t('labels.imageB') }}</span
+          >
+          <span class="diff-legend-item"
+            ><span class="diff-legend-color" style="background: rgba(128, 128, 128, 0.3)" />
+            {{ page.t('labels.imageA') }} = {{ page.t('labels.imageB') }}</span
+          >
         </div>
       </div>
     </NCard>
   </template>
 
-  <NCard
-    v-else
-    class="editor-card"
-    :bordered="false"
-    style="margin-top: 16px"
-  >
+  <NCard v-else class="editor-card" :bordered="false" style="margin-top: 16px">
     <div class="result-placeholder">
       {{ page.t('messages.compareNeedTwoImages') }}
     </div>
@@ -156,23 +99,15 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { comparePixels } from '../../utils/image-diff'
 import { NButton, NCard, NRadioGroup, NRadioButton, NAlert, useMessage } from 'naive-ui'
-import { formatBytes, type ImageInfo } from '@dev-tool-kit/shared'
+import { formatBytes } from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
 
 const message = useMessage()
 const page = useToolI18n('imageTools')
 const { invoke } = useIpc()
-
-interface PickedImage {
-  fileName: string
-  filePath: string
-  mimeType: string
-  base64: string
-  dataUri: string
-  size: number
-}
 
 interface CompareImage {
   fileName: string
@@ -195,18 +130,18 @@ async function pickCompareImage(side: 'A' | 'B') {
   const loadingRef = side === 'A' ? compareLoadingA : compareLoadingB
   loadingRef.value = true
   try {
-    const data = await invoke<PickedImage | null>('image-tools:pickImage')
+    const data = await invoke('image-tools:pickImage')
     if (!data) return
     const img: CompareImage = {
       fileName: data.fileName,
       filePath: data.filePath,
-      dataUri: data.dataUri,
+      dataUri: `data:${data.mimeType};base64,${data.base64}`,
       width: 0,
       height: 0,
       size: data.size
     }
     // Get dimensions
-    const info = await invoke<ImageInfo | null>('image-tools:getInfo', data.filePath)
+    const info = await invoke('image-tools:getInfo', data.filePath)
     if (info) {
       img.width = info.width
       img.height = info.height
@@ -245,7 +180,9 @@ function onSliderMouseUp() {
 }
 
 function updateSliderPos(e: MouseEvent) {
-  const container = (e.currentTarget as HTMLElement)?.closest('.compare-slider-container') as HTMLElement
+  const container = (e.currentTarget as HTMLElement)?.closest(
+    '.compare-slider-container'
+  ) as HTMLElement
   if (!container) return
   const rect = container.getBoundingClientRect()
   const x = e.clientX - rect.left
@@ -253,7 +190,6 @@ function updateSliderPos(e: MouseEvent) {
 }
 
 const diffOverlayDataUri = ref('')
-const THRESHOLD = 40
 
 let diffRequestSeq = 0
 
@@ -287,25 +223,7 @@ function computeDiffOverlay() {
     ctx.drawImage(imgB, 0, 0)
     const dataB = ctx.getImageData(0, 0, w, h).data
     const diffData = ctx.createImageData(w, h)
-    for (let i = 0; i < dataA.length; i += 4) {
-      const dr = Math.abs(dataA.data[i] - dataB.data[i])
-      const dg = Math.abs(dataA.data[i + 1] - dataB.data[i + 1])
-      const db = Math.abs(dataA.data[i + 2] - dataB.data[i + 2])
-      const isDiff = dr > THRESHOLD || dg > THRESHOLD || db > THRESHOLD
-      if (isDiff) {
-        // Highlight differences in red
-        diffData.data[i] = 255
-        diffData.data[i + 1] = Math.min(255, (dr + dg + db) / 3)
-        diffData.data[i + 2] = 0
-        diffData.data[i + 3] = 200
-      } else {
-        // Same pixels shown as faded original
-        diffData.data[i] = dataA.data[i]
-        diffData.data[i + 1] = dataA.data[i + 1]
-        diffData.data[i + 2] = dataA.data[i + 2]
-        diffData.data[i + 3] = 80
-      }
-    }
+    diffData.data.set(comparePixels(dataA, dataB))
     ctx.putImageData(diffData, 0, 0)
     diffOverlayDataUri.value = canvas.toDataURL('image/png')
   }
@@ -315,7 +233,7 @@ function computeDiffOverlay() {
   imgB.src = compareImageB.value.dataUri
 }
 
-watch(compareMode, (mode) => {
+watch([compareMode, compareImageA, compareImageB], ([mode]) => {
   if (mode === 'diffOverlay') {
     computeDiffOverlay()
   }

@@ -2,7 +2,7 @@ import { app, screen } from 'electron'
 import { join } from 'path'
 import { mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
-import { readFile, writeFile, unlink } from 'fs/promises'
+import { readJsonFile, writeJsonFile, removeJsonFile } from './atomic-json'
 import { logger } from '../logger'
 import { WindowState, DEFAULT_STATE } from '../window'
 
@@ -17,6 +17,7 @@ async function ensureStoreDir(): Promise<void> {
 }
 
 function isValidWindowState(state: Record<string, unknown>): boolean {
+  if (!state || typeof state !== 'object') return false
   if (typeof state.width !== 'number' || typeof state.height !== 'number') return false
   if (typeof state.isMaximized !== 'boolean') return false
   if (state.width < 100 || state.height < 100) return false
@@ -37,7 +38,7 @@ function isPositionVisible(x: number, y: number): boolean {
 export async function saveWindowState(state: WindowState): Promise<void> {
   try {
     await ensureStoreDir()
-    await writeFile(WINDOW_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8')
+    await writeJsonFile(WINDOW_STATE_FILE, state)
     logger.info(`Window state saved: ${JSON.stringify(state)}`)
   } catch (error) {
     logger.error('Failed to save window state:', error)
@@ -46,20 +47,20 @@ export async function saveWindowState(state: WindowState): Promise<void> {
 
 export async function loadWindowState(): Promise<WindowState> {
   try {
-    if (!existsSync(WINDOW_STATE_FILE)) {
-      logger.info('No saved window state found, using defaults')
-      return { ...DEFAULT_STATE }
-    }
-
-    const data = await readFile(WINDOW_STATE_FILE, 'utf-8')
-    const state = JSON.parse(data) as Record<string, unknown>
+    const state = await readJsonFile<Record<string, unknown>>(WINDOW_STATE_FILE, {
+      ...DEFAULT_STATE
+    })
 
     if (!isValidWindowState(state)) {
       logger.warn('Invalid window state format, using defaults')
       return { ...DEFAULT_STATE }
     }
 
-    if (state.x !== undefined && state.y !== undefined && !isPositionVisible(state.x as number, state.y as number)) {
+    if (
+      state.x !== undefined &&
+      state.y !== undefined &&
+      !isPositionVisible(state.x as number, state.y as number)
+    ) {
       logger.warn('Saved window position is off-screen, using defaults')
       return { ...DEFAULT_STATE }
     }
@@ -74,10 +75,8 @@ export async function loadWindowState(): Promise<WindowState> {
 
 export async function resetWindowState(): Promise<void> {
   try {
-    if (existsSync(WINDOW_STATE_FILE)) {
-      await unlink(WINDOW_STATE_FILE)
-      logger.info('Window state reset')
-    }
+    await removeJsonFile(WINDOW_STATE_FILE)
+    logger.info('Window state reset')
   } catch (error) {
     logger.error('Failed to reset window state:', error)
   }

@@ -117,17 +117,32 @@ export interface IconGenerateResult {
 
 export type BatchOperation = 'compress' | 'resize' | 'convert'
 
-export interface BatchItem {
-  fileName: string
-  filePath: string
-  status: 'pending' | 'processing' | 'done' | 'error'
-  result?: ProcessedImage
-  error?: string
-}
-
 export interface BatchConfig {
   operation: BatchOperation
   compressOptions?: CompressOptions
   resizeOptions?: ResizeOptions
   convertOptions?: ImageConvertOptions
+}
+
+/** Batch task IPC never carries encoded image contents. */
+export interface BatchSource {
+  fileName: string
+  filePath: string
+}
+export interface BatchTaskItem extends BatchSource {
+  status: 'pending' | 'processing' | 'done' | 'error' | 'cancelled'
+  result?: Omit<ProcessedImage, 'data'>
+  error?: string
+}
+export interface BatchProgress {
+  taskId: string
+  index: number
+  item: BatchTaskItem
+  finished: boolean
+}
+export type BatchTaskResult = { success: true } | { success: false; errorCode: string }
+export interface BatchTaskRequest {
+  taskId: string
+  items: BatchSource[]
+  config: BatchConfig
 }

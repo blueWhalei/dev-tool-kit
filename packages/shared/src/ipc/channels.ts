@@ -2,6 +2,7 @@
 
 export const IPC_RECEIVE_CHANNELS = [
   'app:ready',
+  'image-tools:batchProgress',
   'theme:changed',
   'language:changed'
 ] as const
@@ -101,7 +102,11 @@ export const IPC_INVOKE_CHANNELS = [
   'image-tools:extractColors',
   'image-tools:readClipboardImage',
   'image-tools:generateIcons',
-  'image-tools:batchProcess',
+  'image-tools:batchStart',
+  'image-tools:batchCancel',
+  'image-tools:batchRetry',
+  'image-tools:batchSave',
+  'image-tools:batchRelease',
   // Text Diff
   'text-diff:readFile',
   // Certificate Parser
@@ -110,7 +115,7 @@ export const IPC_INVOKE_CHANNELS = [
   // JSON Schema
   'json-schema:validate',
   // Key Pair Generator
-  'key-pair-generator:generate',
+  'key-pair-generator:generate'
 ] as const
 
 export type IpcInvokeChannel = (typeof IPC_INVOKE_CHANNELS)[number]
@@ -132,6 +137,8 @@ export function isValidReceiveChannel(channel: string): channel is IpcReceiveCha
   return (IPC_RECEIVE_CHANNELS as readonly string[]).includes(channel)
 }
 
-export function isValidElectronPathName(name: unknown): name is (typeof ELECTRON_PATH_NAMES)[number] {
+export function isValidElectronPathName(
+  name: unknown
+): name is (typeof ELECTRON_PATH_NAMES)[number] {
   return typeof name === 'string' && (ELECTRON_PATH_NAMES as readonly string[]).includes(name)
 }

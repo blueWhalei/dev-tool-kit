@@ -1,49 +1,29 @@
 <template>
-  <div
-    class="action-bar"
-    style="margin-top: 0; border-top: none; padding-top: 0"
-  >
-    <NButton
-      type="primary"
-      @click="pickBatchImages"
-    >
+  <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
+    <NButton type="primary" :disabled="batchLoading" @click="pickBatchImages">
       {{ page.t('actions.pickImages') }}
     </NButton>
   </div>
 
   <template v-if="batchImages.length > 0">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
-        <span class="card-title">{{ page.t('labels.batchImages') }} ({{ batchImages.length }})</span>
+        <span class="card-title"
+          >{{ page.t('labels.batchImages') }} ({{ batchImages.length }})</span
+        >
       </template>
       <div class="batch-image-list">
-        <div
-          v-for="(img, i) in batchImages"
-          :key="i"
-          class="batch-image-item"
-        >
+        <div v-for="(img, i) in batchImages" :key="i" class="batch-image-item">
           <span class="batch-image-name">{{ img.fileName }}</span>
           <span class="batch-image-size">{{ formatBytes(img.size) }}</span>
-          <NButton
-            size="tiny"
-            quaternary
-            @click="removeBatchImage(i)"
-          >
+          <NButton size="tiny" quaternary :disabled="batchLoading" @click="removeBatchImage(i)">
             ✕
           </NButton>
         </div>
       </div>
     </NCard>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.batchOperation') }}</span>
       </template>
@@ -52,6 +32,7 @@
           <span class="section-label">{{ page.t('labels.batchOperation') }}</span>
           <NSelect
             v-model:value="batchOperation"
+            :disabled="batchLoading"
             :options="batchOperationOptions"
             style="width: 160px"
           />
@@ -61,11 +42,7 @@
           class="option-row"
         >
           <span class="section-label">{{ page.t('labels.outputFormat') }}</span>
-          <NSelect
-            v-model:value="batchFormat"
-            :options="batchFormatOptions"
-            style="width: 120px"
-          />
+          <NSelect v-model:value="batchFormat" :options="batchFormatOptions" style="width: 120px" />
         </div>
         <div
           v-if="batchOperation === 'compress' || batchOperation === 'convert'"
@@ -74,6 +51,7 @@
           <span class="section-label">{{ page.t('labels.quality') }}: {{ batchQuality }}</span>
           <NSlider
             v-model:value="batchQuality"
+            :disabled="batchLoading"
             :min="1"
             :max="100"
             :step="1"
@@ -84,73 +62,58 @@
     </NCard>
 
     <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="batchLoading"
-        @click="handleBatchProcess"
-      >
+      <NButton type="primary" :loading="batchLoading" @click="handleBatchProcess">
         {{ page.t('actions.startBatch') }}
       </NButton>
-      <NButton
-        v-if="batchDoneCount > 0"
-        @click="saveBatchResults"
-      >
+      <NButton v-if="batchLoading" @click="cancelBatch">{{
+        page.t('actions.cancelBatch')
+      }}</NButton>
+      <NButton v-if="!batchLoading && batchRetryCount > 0" @click="retryBatch">{{
+        page.t('actions.retryBatch')
+      }}</NButton>
+      <NButton v-if="batchDoneCount > 0" :disabled="batchLoading" @click="saveBatchResults">
         {{ page.t('actions.saveAll') }}
       </NButton>
     </div>
   </template>
 
   <template v-if="batchItems.length > 0">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.batchResults') }}</span>
-          <NTag
-            v-if="batchDoneCount > 0"
-            type="success"
-            size="small"
-            :bordered="false"
-          >
+          <NTag v-if="batchDoneCount > 0" type="success" size="small" :bordered="false">
             {{ batchDoneCount }}/{{ batchItems.length }}
           </NTag>
-          <NTag
-            v-if="batchErrorCount > 0"
-            type="error"
-            size="small"
-            :bordered="false"
-          >
+          <NTag v-if="batchErrorCount > 0" type="error" size="small" :bordered="false">
             {{ batchErrorCount }}
           </NTag>
         </div>
       </template>
       <div class="batch-result-list">
-        <div
-          v-for="(item, i) in batchItems"
-          :key="i"
-          class="batch-result-item"
-        >
+        <div v-for="(item, i) in batchItems" :key="i" class="batch-result-item">
           <span class="batch-result-name">{{ item.fileName }}</span>
           <NTag
-            :type="item.status === 'done' ? 'success' : item.status === 'error' ? 'error' : 'default'"
+            :type="
+              item.status === 'done' ? 'success' : item.status === 'error' ? 'error' : 'default'
+            "
             size="small"
             :bordered="false"
           >
-            {{ item.status === 'done' ? page.t('labels.result') : item.status === 'error' ? page.t('messages.batchItemFailed') : item.status }}
+            {{
+              item.status === 'done'
+                ? page.t('labels.result')
+                : item.status === 'error'
+                  ? page.t('messages.batchItemFailed')
+                  : page.t('batchStatus.' + item.status)
+            }}
           </NTag>
-          <span
-            v-if="item.result"
-            class="batch-result-meta"
-          >
+          <span v-if="item.result" class="batch-result-meta">
             {{ formatBytes(item.result.size) }}
           </span>
-          <span
-            v-if="item.error"
-            class="batch-result-error"
-          >{{ item.error }}</span>
+          <span v-if="item.error" class="batch-result-error">{{
+            item.error === 'unauthorized_path' ? page.t('messages.batchUnauthorized') : item.error
+          }}</span>
         </div>
       </div>
     </NCard>
@@ -158,9 +121,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { NButton, NCard, NSelect, NSlider, NTag, useMessage } from 'naive-ui'
-import { formatBytes, type BatchConfig, type BatchItem } from '@dev-tool-kit/shared'
+import {
+  formatBytes,
+  type BatchConfig,
+  type BatchTaskItem,
+  type BatchProgress
+} from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
 
@@ -172,14 +140,48 @@ interface BatchImageItem {
   fileName: string
   filePath: string
   mimeType: string
-  base64: string
   size: number
 }
 
 const batchImages = ref<BatchImageItem[]>([])
 const batchOperation = ref<'compress' | 'resize' | 'convert'>('compress')
-const batchItems = ref<BatchItem[]>([])
+const batchItems = ref<BatchTaskItem[]>([])
 const batchLoading = ref(false)
+const taskId = ref('')
+let disposed = false
+const unsubscribe = window.electronAPI?.on('image-tools:batchProgress', value => {
+  const progress = value as BatchProgress
+  if (!progress || progress.taskId !== taskId.value) return
+  batchItems.value[progress.index] = progress.item
+  if (progress.finished) {
+    batchLoading.value = false
+    if (batchItems.value.some(item => item.status === 'error'))
+      message.warning(page.t('messages.batchFailed'))
+    else if (!batchItems.value.some(item => item.status === 'cancelled'))
+      message.success(page.t('messages.batchSuccess'))
+  }
+})
+onUnmounted(() => {
+  disposed = true
+  unsubscribe?.()
+  if (taskId.value) void invoke('image-tools:batchRelease', taskId.value)
+})
+async function releaseBatch() {
+  if (taskId.value) await invoke('image-tools:batchRelease', taskId.value)
+  taskId.value = ''
+}
+async function cancelBatch() {
+  await invoke('image-tools:batchCancel', taskId.value)
+}
+async function retryBatch() {
+  batchLoading.value = true
+  const result = await invoke('image-tools:batchRetry', taskId.value)
+  if (!result?.success) batchLoading.value = false
+}
+const batchRetryCount = computed(
+  () =>
+    batchItems.value.filter(item => item.status === 'error' || item.status === 'cancelled').length
+)
 const batchFormat = ref<'jpeg' | 'webp' | 'png'>('jpeg')
 const batchQuality = ref(80)
 
@@ -200,8 +202,9 @@ const batchErrorCount = computed(() => batchItems.value.filter(i => i.status ===
 
 async function pickBatchImages() {
   try {
-    const images = await invoke<BatchImageItem[] | null>('image-tools:pickImages')
-    if (images && images.length > 0) {
+    const images = await invoke('image-tools:pickImages')
+    if (!disposed && images && images.length > 0) {
+      await releaseBatch()
       batchImages.value = images
       batchItems.value = []
       message.success(page.t('messages.imageLoaded'))
@@ -216,6 +219,7 @@ async function handleBatchProcess() {
     message.warning(page.t('labels.batchNoImages'))
     return
   }
+  if (batchLoading.value) return
   batchLoading.value = true
 
   let config: BatchConfig
@@ -246,42 +250,38 @@ async function handleBatchProcess() {
       filePath: img.filePath,
       status: 'pending' as const
     }))
-    const result = await invoke<BatchItem[] | null>('image-tools:batchProcess', items, config)
-    if (result) {
-      batchItems.value = result
-      const errorCount = result.filter(i => i.status === 'error').length
-      if (errorCount === 0) {
-        message.success(page.t('messages.batchSuccess'))
-      } else {
-        message.warning(page.t('messages.batchFailed'))
-      }
-    } else {
+    await releaseBatch()
+    if (disposed) return
+    taskId.value = crypto.randomUUID()
+    batchItems.value = items
+    const result = await invoke('image-tools:batchStart', {
+      taskId: taskId.value,
+      items,
+      config
+    })
+    if (disposed) {
+      if (result?.success) await releaseBatch()
+      return
+    }
+    if (!result?.success) {
+      batchLoading.value = false
       message.error(page.t('messages.batchFailed'))
     }
   } catch {
-    message.error(page.t('messages.batchFailed'))
-  } finally {
     batchLoading.value = false
+    message.error(page.t('messages.batchFailed'))
   }
 }
 
 async function saveBatchResults() {
-  const doneItems = batchItems.value.filter(i => i.status === 'done' && i.result)
-  if (doneItems.length === 0) return
-  const images = doneItems.map(item => ({
-    data: item.result!.data,
-    fileName: item.result!.fileName
-  }))
-  try {
-    const result = await invoke<{ success: boolean }>('image-tools:saveImages', images)
-    if (result?.success) {
-      message.success(page.t('messages.batchSaveSuccess'))
-    } else {
-      message.error(page.t('messages.batchSaveFailed'))
-    }
-  } catch {
-    message.error(page.t('messages.batchSaveFailed'))
-  }
+  const result = await invoke('image-tools:batchSave', taskId.value)
+  if (result?.cancelled) return
+  if (result?.success) message.success(page.t('messages.batchSaveSuccess'))
+  else if (result?.failed)
+    message.warning(
+      page.t('messages.batchSavePartial', { saved: result.saved ?? 0, failed: result.failed })
+    )
+  else message.error(page.t('messages.batchSaveFailed'))
 }
 
 function removeBatchImage(index: number) {

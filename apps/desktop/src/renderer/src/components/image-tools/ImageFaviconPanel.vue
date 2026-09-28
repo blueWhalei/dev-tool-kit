@@ -1,23 +1,12 @@
 <template>
-  <div
-    class="action-bar"
-    style="margin-top: 0; border-top: none; padding-top: 0"
-  >
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForFavicon"
-    >
+  <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForFavicon">
       {{ page.t('actions.pickImage') }}
     </NButton>
   </div>
 
   <template v-if="pickedImage">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.iconPreset') }}</span>
       </template>
@@ -38,35 +27,25 @@
     </NCard>
 
     <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="faviconLoading"
-        @click="handleGenerateIcons"
-      >
+      <NButton type="primary" :loading="faviconLoading" @click="handleGenerateIcons">
         {{ page.t('actions.generateIcons') }}
       </NButton>
     </div>
 
     <template v-if="faviconResult">
-      <NCard
-        class="editor-card"
-        :bordered="false"
-        style="margin-top: 16px"
-      >
+      <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
         <template #header>
-          <span class="card-title">{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span>
+          <span class="card-title"
+            >{{ page.t('labels.generatedIcons') }} ({{ faviconResult.icons.length }})</span
+          >
         </template>
         <div class="icon-grid">
-          <div
-            v-for="(icon, i) in faviconResult.icons"
-            :key="i"
-            class="icon-item"
-          >
+          <div v-for="(icon, i) in faviconResult.icons" :key="i" class="icon-item">
             <img
               :src="`data:image/png;base64,${icon.data}`"
               :alt="icon.fileName"
               class="icon-preview"
-            >
+            />
             <span class="icon-label">{{ icon.width }}×{{ icon.height }}</span>
             <span class="icon-filename">{{ icon.fileName }}</span>
           </div>
@@ -78,10 +57,7 @@
         >
           <div class="info-item">
             <span class="result-label">{{ page.t('labels.icoFile') }}</span>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
+            <NTag size="small" :bordered="false">
               {{ faviconResult.ico.fileName }}
             </NTag>
             <span class="info-value">{{ formatBytes(faviconResult.ico.size) }}</span>
@@ -120,7 +96,10 @@ const ICON_PRESET_CONFIG: Record<string, { sizes: number[]; includeIco: boolean 
   webFavicon: { sizes: [16, 32, 48], includeIco: true },
   appIcon: { sizes: [57, 60, 72, 76, 114, 120, 144, 152, 180], includeIco: false },
   pwa: { sizes: [72, 96, 128, 144, 152, 192, 384, 512], includeIco: false },
-  allSizes: { sizes: [16, 32, 48, 57, 60, 72, 76, 96, 114, 120, 128, 144, 152, 180, 192, 384, 512], includeIco: true }
+  allSizes: {
+    sizes: [16, 32, 48, 57, 60, 72, 76, 96, 114, 120, 128, 144, 152, 180, 192, 384, 512],
+    includeIco: true
+  }
 }
 
 const faviconPresetOptions = computed(() => [
@@ -143,7 +122,8 @@ async function handleGenerateIcons() {
   faviconLoading.value = true
   try {
     const preset = ICON_PRESET_CONFIG[faviconPreset.value]
-    const result = await invoke<IconGenerateResult | null>('image-tools:generateIcons',
+    const result = await invoke(
+      'image-tools:generateIcons',
       pickedImage.value.filePath,
       preset.sizes,
       faviconIncludeIco.value && preset.includeIco
@@ -171,7 +151,7 @@ async function saveFaviconIcons() {
     images.push({ data: faviconResult.value.ico.data, fileName: faviconResult.value.ico.fileName })
   }
   try {
-    const result = await invoke<{ success: boolean }>('image-tools:saveImages', images)
+    const result = await invoke('image-tools:saveImages', images)
     if (result?.success) {
       message.success(page.t('messages.batchSaveSuccess'))
     } else {

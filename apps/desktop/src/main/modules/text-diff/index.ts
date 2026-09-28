@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { handleIpc } from '../../typed-ipc'
 import { readFile } from 'fs/promises'
 import { basename } from 'path'
 import { logger } from '../../logger'
@@ -12,7 +12,7 @@ export interface TextFileReadResult {
 export function setupTextDiffIPC(): void {
   logger.info('Setting up Text Diff IPC handlers')
 
-  ipcMain.handle('text-diff:readFile', async (_, filePath: unknown) => {
+  handleIpc('text-diff:readFile', async (_, filePath: unknown) => {
     if (typeof filePath !== 'string' || !filePath.trim()) {
       return null
     }

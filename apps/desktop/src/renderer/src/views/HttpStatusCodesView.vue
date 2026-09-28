@@ -20,17 +20,18 @@ const { copy } = useCopyToClipboard()
 const searchQuery = ref('')
 const selectedCategory = ref<HttpStatusCategory | 'all'>('all')
 
-const categoryLabels: Record<HttpStatusCategory, string> = {
+const categoryLabels = computed<Record<HttpStatusCategory, string>>(() => ({
   '1xx': page.t('labels.informational'),
   '2xx': page.t('labels.success'),
   '3xx': page.t('labels.redirection'),
   '4xx': page.t('labels.clientError'),
-  '5xx': page.t('labels.serverError')
-}
+  '5xx': page.t('labels.serverError'),
+  other: page.t('labels.other')
+}))
 
 const categoryOptions = computed(() => [
   { label: page.t('labels.allCategories'), value: 'all' as const },
-  ...HTTP_STATUS_CATEGORIES.map(cat => ({ label: categoryLabels[cat], value: cat }))
+  ...HTTP_STATUS_CATEGORIES.map(cat => ({ label: categoryLabels.value[cat], value: cat }))
 ])
 
 const groupedCodes = computed(() =>
@@ -49,12 +50,16 @@ const totalVisible = computed(() =>
   visibleCategories.value.reduce((sum, cat) => sum + groupedCodes.value[cat].length, 0)
 )
 
-const categoryTagType: Record<HttpStatusCategory, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+const categoryTagType: Record<
+  HttpStatusCategory,
+  'default' | 'info' | 'success' | 'warning' | 'error'
+> = {
   '1xx': 'default',
   '2xx': 'success',
   '3xx': 'info',
   '4xx': 'warning',
-  '5xx': 'error'
+  '5xx': 'error',
+  other: 'default'
 }
 
 function descriptionFor(entry: HttpStatusCode): string {
@@ -77,10 +82,7 @@ async function copyLine(entry: HttpStatusCode) {
     :description="page.description"
     container-class="http-status-codes-view"
   >
-    <NCard
-      class="filter-card"
-      :bordered="false"
-    >
+    <NCard class="filter-card" :bordered="false">
       <div class="filter-row">
         <div class="filter-field search-field">
           <span class="field-label">{{ page.t('labels.search') }}</span>
@@ -92,40 +94,24 @@ async function copyLine(entry: HttpStatusCode) {
         </div>
         <div class="filter-field category-field">
           <span class="field-label">{{ page.t('labels.category') }}</span>
-          <NSelect
-            v-model:value="selectedCategory"
-            :options="categoryOptions"
-          />
+          <NSelect v-model:value="selectedCategory" :options="categoryOptions" />
         </div>
       </div>
     </NCard>
 
-    <p
-      v-if="totalVisible === 0"
-      class="empty-hint"
-    >
+    <p v-if="totalVisible === 0" class="empty-hint">
       {{ page.t('labels.noResults') }}
     </p>
 
-    <section
-      v-for="category in visibleCategories"
-      :key="category"
-      class="category-section"
-    >
+    <section v-for="category in visibleCategories" :key="category" class="category-section">
       <div class="category-header">
-        <NTag
-          size="small"
-          :type="categoryTagType[category]"
-        >
+        <NTag size="small" :type="categoryTagType[category]">
           {{ categoryLabels[category] }}
         </NTag>
         <span class="category-count">{{ groupedCodes[category].length }}</span>
       </div>
 
-      <NCard
-        class="codes-card"
-        :bordered="false"
-      >
+      <NCard class="codes-card" :bordered="false">
         <button
           v-for="entry in groupedCodes[category]"
           :key="entry.code"
@@ -133,10 +119,7 @@ async function copyLine(entry: HttpStatusCode) {
           class="code-row"
           @click="copyLine(entry)"
         >
-          <span
-            class="code-badge"
-            @click="copyCode(entry, $event)"
-          >{{ entry.code }}</span>
+          <span class="code-badge" @click="copyCode(entry, $event)">{{ entry.code }}</span>
           <span class="code-name">{{ entry.name }}</span>
           <span class="code-desc">{{ descriptionFor(entry) }}</span>
         </button>

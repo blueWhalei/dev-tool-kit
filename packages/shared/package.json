@@ -7,35 +7,37 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./types": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.mjs",
-      "require": "./dist/types/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/types/index.js"
     },
     "./utils": {
+      "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.mjs",
-      "require": "./dist/utils/index.js",
-      "types": "./dist/utils/index.d.ts"
+      "require": "./dist/utils/index.js"
     },
     "./constants": {
+      "types": "./dist/constants/index.d.ts",
       "import": "./dist/constants/index.mjs",
-      "require": "./dist/constants/index.js",
-      "types": "./dist/constants/index.d.ts"
+      "require": "./dist/constants/index.js"
     },
     "./ipc": {
+      "types": "./dist/ipc/index.d.ts",
       "import": "./dist/ipc/index.mjs",
-      "require": "./dist/ipc/index.js",
-      "types": "./dist/ipc/index.d.ts"
+      "require": "./dist/ipc/index.js"
     }
   },
   "scripts": {
     "build": "tsup",
-    "dev": "echo \"Use pnpm build:watch to build shared package\"",
-    "typecheck": "tsc --noEmit"
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "node ../../node_modules/eslint/bin/eslint.js --config ../../.eslintrc.js --ext .ts src",
+    "build:watch": "tsup --watch"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

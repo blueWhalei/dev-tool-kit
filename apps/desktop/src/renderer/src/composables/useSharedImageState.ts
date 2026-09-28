@@ -32,11 +32,12 @@ export function useSharedImageState() {
   async function pickImage(): Promise<PickedImage | null> {
     imageLoading.value = true
     try {
-      const data = await invoke<PickedImage | null>('image-tools:pickImage')
+      const data = await invoke('image-tools:pickImage')
       if (!data) return null
-      pickedImage.value = data
+      const image = { ...data, dataUri: `data:${data.mimeType};base64,${data.base64}` }
+      pickedImage.value = image
       message.success(page.t('messages.imageLoaded'))
-      return data
+      return image
     } catch {
       message.error(page.t('messages.imageLoadFailed'))
       return null
@@ -47,7 +48,7 @@ export function useSharedImageState() {
 
   async function fetchInfo(filePath: string): Promise<ImageInfo | null> {
     try {
-      const info = await invoke<ImageInfo | null>('image-tools:getInfo', filePath)
+      const info = await invoke('image-tools:getInfo', filePath)
       infoData.value = info ?? null
       return infoData.value
     } catch {
@@ -58,12 +59,7 @@ export function useSharedImageState() {
 
   async function saveProcessedImage(img: ProcessedImage): Promise<void> {
     try {
-      const result = await invoke<{ success: boolean; path?: string }>(
-        'image-tools:saveImage',
-        img.data,
-        img.fileName,
-        img.mimeType
-      )
+      const result = await invoke('image-tools:saveImage', img.data, img.fileName, img.mimeType)
       if (result?.success) {
         message.success(page.t('messages.saveSuccess'))
       } else {

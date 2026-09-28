@@ -1,5 +1,7 @@
-import { ipcMain, app } from 'electron'
-import { readFile, writeFile, mkdir } from 'fs/promises'
+import { handleIpc } from '../../typed-ipc'
+import { readJsonFile, updateJsonFile } from '../../store/atomic-json'
+import { app } from 'electron'
+import { mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { logger } from '../../logger'
@@ -20,7 +22,7 @@ export interface EnvBackup {
 export function setupEnvManagerIPC(): void {
   logger.info('Setting up Environment Manager IPC handlers')
 
-  ipcMain.handle('env-manager:getSupport', () => {
+  handleIpc('env-manager:getSupport', () => {
     if (IS_WINDOWS) {
       return { supported: true, platform: process.platform, readOnly: false, writeMode: 'registry' }
     }
@@ -30,7 +32,7 @@ export function setupEnvManagerIPC(): void {
     return { supported: false, platform: process.platform, readOnly: true, writeMode: 'none' }
   })
 
-  ipcMain.handle('env-manager:getAll', async () => {
+  handleIpc('env-manager:getAll', async () => {
     try {
       if (IS_WINDOWS) return await windows.getAllWindowsEnv()
       if (IS_UNIX) return await unix.getAllUnixEnv()
@@ -41,7 +43,7 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:get', async (_, name: unknown) => {
+  handleIpc('env-manager:get', async (_, name: unknown) => {
     if (!isValidEnvName(name)) {
       return null
     }
@@ -55,7 +57,7 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:set', async (_, name: unknown, value: unknown) => {
+  handleIpc('env-manager:set', async (_, name: unknown, value: unknown) => {
     if (!isValidEnvName(name) || !isValidEnvValue(value)) {
       return { success: false, error: '无效的环境变量名或值' }
     }
@@ -64,7 +66,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
-  ipcMain.handle('env-manager:delete', async (_, name: unknown) => {
+  handleIpc('env-manager:delete', async (_, name: unknown) => {
     if (!isValidEnvName(name)) {
       return { success: false, error: '无效的环境变量名' }
     }
@@ -73,7 +75,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
-  ipcMain.handle('env-manager:getPath', async () => {
+  handleIpc('env-manager:getPath', async () => {
     try {
       if (IS_WINDOWS) return await windows.getWindowsPath()
       if (IS_UNIX) return await unix.getUnixPath()
@@ -84,7 +86,7 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:setPath', async (_, paths: unknown) => {
+  handleIpc('env-manager:setPath', async (_, paths: unknown) => {
     if (!Array.isArray(paths) || paths.some(p => typeof p !== 'string')) {
       return { success: false, error: '无效的 PATH' }
     }
@@ -93,7 +95,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持环境变量管理' }
   })
 
-  ipcMain.handle('env-manager:previewSet', async (_, name: unknown, value: unknown) => {
+  handleIpc('env-manager:previewSet', async (_, name: unknown, value: unknown) => {
     if (!isValidEnvName(name) || !isValidEnvValue(value)) {
       return { success: false, error: '无效的环境变量名或值' }
     }
@@ -101,7 +103,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持预览' }
   })
 
-  ipcMain.handle('env-manager:previewDelete', async (_, name: unknown) => {
+  handleIpc('env-manager:previewDelete', async (_, name: unknown) => {
     if (!isValidEnvName(name)) {
       return { success: false, error: '无效的环境变量名' }
     }
@@ -109,7 +111,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持预览' }
   })
 
-  ipcMain.handle('env-manager:previewPath', async (_, paths: unknown) => {
+  handleIpc('env-manager:previewPath', async (_, paths: unknown) => {
     if (!Array.isArray(paths) || paths.some(p => typeof p !== 'string')) {
       return { success: false, error: '无效的 PATH' }
     }
@@ -117,7 +119,7 @@ export function setupEnvManagerIPC(): void {
     return { success: false, error: '当前平台不支持预览' }
   })
 
-  ipcMain.handle('env-manager:createBackup', async (_, name: string) => {
+  handleIpc('env-manager:createBackup', async (_, name: string) => {
     if (typeof name !== 'string' || !name.trim()) {
       return { success: false, error: '无效的备份名称' }
     }
@@ -137,14 +139,7 @@ export function setupEnvManagerIPC(): void {
         variables
       }
 
-      const backups = await getBackups()
-      backups.push(backup)
-
-      if (backups.length > 10) {
-        backups.splice(0, backups.length - 10)
-      }
-
-      await saveBackups(backups)
+      await saveBackups(backups => [...backups, backup].slice(-10))
       logger.info(`Backup "${name}" created successfully`)
       return { success: true }
     } catch (error) {
@@ -153,22 +148,22 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:listBackups', async () => {
+  handleIpc('env-manager:listBackups', async () => {
     const backups = await getBackups()
-    return backups.map((b) => ({
+    return backups.map(b => ({
       name: b.name,
       timestamp: b.timestamp,
       count: b.variables.length
     }))
   })
 
-  ipcMain.handle('env-manager:restoreBackup', async (_, timestamp: string) => {
+  handleIpc('env-manager:restoreBackup', async (_, timestamp: string) => {
     if (typeof timestamp !== 'string') {
       return { success: false, error: '无效的时间戳' }
     }
     try {
       const backups = await getBackups()
-      const backup = backups.find((b) => b.timestamp === timestamp)
+      const backup = backups.find(b => b.timestamp === timestamp)
 
       if (!backup) {
         return { success: false, error: '未找到备份' }
@@ -189,30 +184,28 @@ export function setupEnvManagerIPC(): void {
     }
   })
 
-  ipcMain.handle('env-manager:deleteBackup', async (_, timestamp: string) => {
+  handleIpc('env-manager:deleteBackup', async (_, timestamp: string) => {
     if (typeof timestamp !== 'string') {
       return { success: false, error: '无效的时间戳' }
     }
     try {
-      let backups = await getBackups()
-      backups = backups.filter((b) => b.timestamp !== timestamp)
-      await saveBackups(backups)
+      await saveBackups(backups => backups.filter(b => b.timestamp !== timestamp))
       return { success: true }
     } catch {
       return { success: false, error: '删除备份失败' }
     }
   })
 
-  ipcMain.handle('env-manager:export', async (_, variables: EnvVariable[]) => {
+  handleIpc('env-manager:export', async (_, variables: EnvVariable[]) => {
     if (!Array.isArray(variables)) return ''
     const content = variables
       .filter(v => v && typeof v.name === 'string' && typeof v.value === 'string')
-      .map((v) => `${v.name}=${v.value}`)
+      .map(v => `${v.name}=${v.value}`)
       .join('\n')
     return content
   })
 
-  ipcMain.handle('env-manager:import', async (_, content: string) => {
+  handleIpc('env-manager:import', async (_, content: string) => {
     if (IS_UNIX) return []
     if (!IS_WINDOWS) return []
     if (typeof content !== 'string') return []
@@ -232,19 +225,10 @@ async function getConfigPath(filename: string): Promise<string> {
 }
 
 async function getBackups(): Promise<EnvBackup[]> {
-  const backupFile = await getConfigPath('env-backups.json')
-  try {
-    if (existsSync(backupFile)) {
-      const content = await readFile(backupFile, 'utf-8')
-      return JSON.parse(content)
-    }
-  } catch (error) {
-    logger.warn('Failed to load backups:', error)
-  }
-  return []
+  const value = await readJsonFile<EnvBackup[]>(await getConfigPath('env-backups.json'), [])
+  return Array.isArray(value) ? value : []
 }
 
-async function saveBackups(backups: EnvBackup[]): Promise<void> {
-  const backupFile = await getConfigPath('env-backups.json')
-  await writeFile(backupFile, JSON.stringify(backups, null, 2))
+async function saveBackups(update: (items: EnvBackup[]) => EnvBackup[]): Promise<void> {
+  await updateJsonFile<EnvBackup[]>(await getConfigPath('env-backups.json'), [], update)
 }

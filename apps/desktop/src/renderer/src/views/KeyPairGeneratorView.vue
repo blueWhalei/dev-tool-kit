@@ -8,11 +8,7 @@ import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { translateToolError } from '../utils/translateToolError'
-import {
-  KEY_PAIR_ALGORITHMS,
-  type KeyPairAlgorithm,
-  type KeyPairGenerateResult
-} from '@dev-tool-kit/shared'
+import { KEY_PAIR_ALGORITHMS, type KeyPairAlgorithm } from '@dev-tool-kit/shared'
 
 const message = useMessage()
 const router = useRouter()
@@ -37,9 +33,11 @@ const algorithmOptions = computed(() =>
 async function generate() {
   loading.value = true
   try {
-    const result = await invoke<KeyPairGenerateResult>('key-pair-generator:generate', algorithm.value)
+    const result = await invoke('key-pair-generator:generate', algorithm.value)
+    if (!result) return
     if (!result.success) {
-      const err = translateToolError(t, 'keyPairGenerator', result.error) || page.t('messages.generateFailed')
+      const err =
+        translateToolError(t, 'keyPairGenerator', result.error) || page.t('messages.generateFailed')
       message.error(err)
       return
     }
@@ -74,94 +72,47 @@ function usePublicKeyInJwt() {
     :description="page.description"
     container-class="key-pair-generator-view"
   >
-    <NCard
-      class="setting-card"
-      :bordered="false"
-    >
+    <NCard class="setting-card" :bordered="false">
       <div class="setting-row">
         <span class="field-label">{{ page.t('labels.algorithm') }}</span>
-        <NSelect
-          v-model:value="algorithm"
-          :options="algorithmOptions"
-          style="max-width: 240px"
-        />
+        <NSelect v-model:value="algorithm" :options="algorithmOptions" style="max-width: 240px" />
       </div>
-      <NButton
-        type="primary"
-        block
-        size="large"
-        :loading="loading"
-        @click="generate"
-      >
+      <NButton type="primary" block size="large" :loading="loading" @click="generate">
         {{ publicKey ? page.t('buttons.regenerate') : page.t('buttons.generate') }}
       </NButton>
     </NCard>
 
     <template v-if="publicKey">
-      <NCard
-        class="result-card"
-        :bordered="false"
-      >
+      <NCard class="result-card" :bordered="false">
         <div class="key-header">
           <span class="field-label">{{ page.t('labels.publicKey') }}</span>
           <NSpace>
-            <NTag
-              v-if="keyType"
-              size="small"
-              :bordered="false"
-            >
+            <NTag v-if="keyType" size="small" :bordered="false">
               {{ keyType }}
             </NTag>
-            <NButton
-              size="small"
-              @click="copyKey(publicKey)"
-            >
+            <NButton size="small" @click="copyKey(publicKey)">
               {{ t('common.copy') }}
             </NButton>
-            <NButton
-              size="small"
-              @click="usePublicKeyInJwt"
-            >
+            <NButton size="small" @click="usePublicKeyInJwt">
               {{ page.t('buttons.useInJwt') }}
             </NButton>
           </NSpace>
         </div>
-        <NInput
-          :value="publicKey"
-          type="textarea"
-          readonly
-          :rows="6"
-          class="key-textarea"
-        />
+        <NInput :value="publicKey" type="textarea" readonly :rows="6" class="key-textarea" />
       </NCard>
 
-      <NCard
-        class="result-card"
-        :bordered="false"
-      >
+      <NCard class="result-card" :bordered="false">
         <div class="key-header">
           <span class="field-label">{{ page.t('labels.privateKey') }}</span>
-          <NButton
-            size="small"
-            @click="copyKey(privateKey)"
-          >
+          <NButton size="small" @click="copyKey(privateKey)">
             {{ t('common.copy') }}
           </NButton>
         </div>
-        <NInput
-          :value="privateKey"
-          type="textarea"
-          readonly
-          :rows="8"
-          class="key-textarea"
-        />
+        <NInput :value="privateKey" type="textarea" readonly :rows="8" class="key-textarea" />
       </NCard>
     </template>
 
-    <p
-      v-else
-      class="empty-hint"
-    >
+    <p v-else class="empty-hint">
       {{ page.t('empty') }}
     </p>
   </PageLayout>

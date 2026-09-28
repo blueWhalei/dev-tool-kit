@@ -1,3 +1,4 @@
+import type { TypedIpcChannel, IpcArgs, IpcResult } from '../ipc/contracts'
 // Module System Types
 export type ModuleCategory = 'system' | 'developer' | 'utility' | 'network'
 
@@ -44,7 +45,17 @@ export interface OpenDialogOptions {
   defaultPath?: string
   buttonLabel?: string
   filters?: Array<{ name: string; extensions: string[] }>
-  properties?: Array<'openFile' | 'openDirectory' | 'multiSelections' | 'showHiddenFiles' | 'createDirectory' | 'promptToCreate' | 'noResolveAliases' | 'treatPackageAsDirectory' | 'dontAddToRecent'>
+  properties?: Array<
+    | 'openFile'
+    | 'openDirectory'
+    | 'multiSelections'
+    | 'showHiddenFiles'
+    | 'createDirectory'
+    | 'promptToCreate'
+    | 'noResolveAliases'
+    | 'treatPackageAsDirectory'
+    | 'dontAddToRecent'
+  >
   message?: string
   securityScopedBookmarks?: boolean
 }
@@ -57,7 +68,13 @@ export interface SaveDialogOptions {
   message?: string
   nameFieldLabel?: string
   showsTagField?: boolean
-  properties?: Array<'createDirectory' | 'showHiddenFiles' | 'treatPackageAsDirectory' | 'showOverwriteConfirmation' | 'dontAddToRecent'>
+  properties?: Array<
+    | 'createDirectory'
+    | 'showHiddenFiles'
+    | 'treatPackageAsDirectory'
+    | 'showOverwriteConfirmation'
+    | 'dontAddToRecent'
+  >
   securityScopedBookmarks?: boolean
   titleFieldLabel?: string
 }
@@ -120,7 +137,7 @@ export interface ElectronAPI {
   // Event listeners
   on: (channel: string, callback: (...args: unknown[]) => void) => () => void
   once: (channel: string, callback: (...args: unknown[]) => void) => void
-  invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
+  invoke: <C extends TypedIpcChannel>(channel: C, ...args: IpcArgs<C>) => Promise<IpcResult<C>>
 }
 
 // Storage API
@@ -228,17 +245,19 @@ export interface RenamePreview {
   conflict?: string
 }
 
+export interface RenameRule {
+  type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
+  value?: string
+  replaceWith?: string
+  pattern?: string
+  startNumber?: number
+  padding?: number
+  caseType?: 'upper' | 'lower' | 'title'
+}
+
 export interface SavedRenameRule {
   name: string
-  rule: {
-    type: 'prefix' | 'suffix' | 'replace' | 'regex' | 'number' | 'case' | 'date'
-    value?: string
-    replaceWith?: string
-    pattern?: string
-    startNumber?: number
-    padding?: number
-    caseType?: 'upper' | 'lower' | 'title'
-  }
+  rule: RenameRule
 }
 
 export interface RenameResult {
@@ -296,3 +315,5 @@ export interface OperationResult {
 export * from './certificate'
 export * from './key-pair'
 export * from './image'
+
+export { isRenameRule } from './rename'

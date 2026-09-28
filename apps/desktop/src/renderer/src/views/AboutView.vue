@@ -37,9 +37,9 @@ function shortcutLabel(id: string, field: 'action' | 'page') {
 
 onMounted(async () => {
   await loadPlatform()
-  appVersion.value = (await invoke<string>('app:getVersion')) ?? '—'
-  appName.value = (await invoke<string>('app:getName')) ?? APP_NAME
-  const runtime = await invoke<{ electron: string; node: string; chrome: string }>('app:getRuntimeInfo')
+  appVersion.value = (await invoke('app:getVersion')) ?? '—'
+  appName.value = (await invoke('app:getName')) ?? APP_NAME
+  const runtime = await invoke('app:getRuntimeInfo')
   if (runtime) runtimeInfo.value = runtime
 })
 
@@ -57,33 +57,16 @@ async function copyVersion() {
   >
     <div class="about-card">
       <div class="about-hero">
-        <AppLogo
-          :size="64"
-          class="about-logo"
-        />
+        <AppLogo :size="64" class="about-logo" />
         <div class="about-hero-text">
           <h2 class="about-name">
             {{ appName }}
           </h2>
           <div class="about-version-row">
-            <NTag
-              type="info"
-              size="small"
-              round
-            >
-              v{{ appVersion }}
-            </NTag>
-            <NButton
-              size="tiny"
-              quaternary
-              :disabled="appVersion === '—'"
-              @click="copyVersion"
-            >
+            <NTag type="info" size="small" round> v{{ appVersion }} </NTag>
+            <NButton size="tiny" quaternary :disabled="appVersion === '—'" @click="copyVersion">
               <template #icon>
-                <ToolIcon
-                  name="convert"
-                  :size="14"
-                />
+                <ToolIcon name="convert" :size="14" />
               </template>
               {{ t('about.copyVersion') }}
             </NButton>
@@ -91,85 +74,63 @@ async function copyVersion() {
         </div>
       </div>
 
-      <NDescriptions
-        :column="1"
-        label-placement="left"
-        class="about-meta"
-      >
+      <NDescriptions :column="1" label-placement="left" class="about-meta">
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="info"
-              :size="14"
-            /> {{ t('about.runtime') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="info" :size="14" /> {{ t('about.runtime') }}</span
+            >
           </template>
           {{ t('about.runtimeDescription') }}
         </NDescriptionsItem>
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="port"
-              :size="14"
-            /> {{ t('about.platform') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="port" :size="14" /> {{ t('about.platform') }}</span
+            >
           </template>
           {{ platform || '—' }}
         </NDescriptionsItem>
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="convert"
-              :size="14"
-            /> {{ t('about.electron') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="convert" :size="14" /> {{ t('about.electron') }}</span
+            >
           </template>
           {{ runtimeInfo.electron }}
         </NDescriptionsItem>
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="convert"
-              :size="14"
-            /> {{ t('about.node') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="convert" :size="14" /> {{ t('about.node') }}</span
+            >
           </template>
           {{ runtimeInfo.node }}
         </NDescriptionsItem>
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="convert"
-              :size="14"
-            /> {{ t('about.chromium') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="convert" :size="14" /> {{ t('about.chromium') }}</span
+            >
           </template>
           {{ runtimeInfo.chrome }}
         </NDescriptionsItem>
         <NDescriptionsItem>
           <template #label>
-            <span class="meta-label"><ToolIcon
-              name="lock"
-              :size="14"
-            /> {{ t('about.license') }}</span>
+            <span class="meta-label"
+              ><ToolIcon name="lock" :size="14" /> {{ t('about.license') }}</span
+            >
           </template>
           MIT
         </NDescriptionsItem>
       </NDescriptions>
 
-      <section
-        v-for="section in shortcutSections"
-        :key="section.scope"
-        class="shortcuts-section"
-      >
+      <section v-for="section in shortcutSections" :key="section.scope" class="shortcuts-section">
         <h3 class="section-title">
-          <ToolIcon
-            name="key"
-            :size="18"
-          />
+          <ToolIcon name="key" :size="18" />
           {{ t('about.shortcutsTitle', { scope: t(section.scopeKey) }) }}
         </h3>
-        <NTable
-          :bordered="false"
-          :single-line="false"
-          size="small"
-          class="shortcuts-table"
-        >
+        <NTable :bordered="false" :single-line="false" size="small" class="shortcuts-table">
           <thead>
             <tr>
               <th>{{ t('about.shortcutAction') }}</th>
@@ -180,20 +141,11 @@ async function copyVersion() {
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="item in section.items"
-              :key="item.id"
-            >
+            <tr v-for="item in section.items" :key="item.id">
               <td>{{ shortcutLabel(item.id, 'action') }}</td>
               <td class="shortcut-keys">
-                <template
-                  v-for="(key, index) in item.keys"
-                  :key="key"
-                >
-                  <span
-                    v-if="index > 0"
-                    class="key-sep"
-                  >+</span>
+                <template v-for="(key, index) in item.keys" :key="key">
+                  <span v-if="index > 0" class="key-sep">+</span>
                   <kbd>{{ key }}</kbd>
                 </template>
               </td>

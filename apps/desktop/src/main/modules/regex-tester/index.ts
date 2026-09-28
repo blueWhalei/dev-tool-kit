@@ -1,5 +1,5 @@
-import { ipcMain } from 'electron'
-import { Worker } from 'worker_threads'
+import { handleIpc } from '../../typed-ipc'
+import { runWorkerTask } from '../worker-task'
 import { join } from 'path'
 import { logger } from '../../logger'
 import {
@@ -20,18 +20,39 @@ export interface CommonRegex {
 const COMMON_REGEX: CommonRegex[] = [
   { name: '邮箱', pattern: '^[\\w.-]+@[\\w.-]+\\.\\w+$', description: '匹配邮箱地址' },
   { name: '手机号', pattern: '^1[3-9]\\d{9}$', description: '匹配中国手机号' },
-  { name: 'URL', pattern: 'https?:\\/\\/[\\w.-]+(?:\\.[\\w.-]+)+[\\w.-]*', description: '匹配 URL' },
+  {
+    name: 'URL',
+    pattern: 'https?:\\/\\/[\\w.-]+(?:\\.[\\w.-]+)+[\\w.-]*',
+    description: '匹配 URL'
+  },
   { name: 'IP 地址', pattern: '^(?:\\d{1,3}\\.){3}\\d{1,3}$', description: '匹配 IPv4' },
   { name: '日期', pattern: '^\\d{4}-\\d{2}-\\d{2}$', description: '匹配 YYYY-MM-DD' },
   { name: '中文', pattern: '[\\u4e00-\\u9fa5]+', description: '匹配中文字符' },
   { name: '用户名', pattern: '^[a-zA-Z][a-zA-Z0-9_]{2,15}$', description: '匹配用户名' },
-  { name: '密码强度', pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$', description: '强密码' },
-  { name: 'UUID', pattern: '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}', description: '匹配 UUID' },
-  { name: '十六进制颜色', pattern: '^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$', description: '匹配 HEX 颜色' },
+  {
+    name: '密码强度',
+    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$',
+    description: '强密码'
+  },
+  {
+    name: 'UUID',
+    pattern:
+      '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}',
+    description: '匹配 UUID'
+  },
+  {
+    name: '十六进制颜色',
+    pattern: '^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$',
+    description: '匹配 HEX 颜色'
+  },
   { name: '整数', pattern: '^-?\\d+$', description: '匹配整数' },
   { name: 'MAC 地址', pattern: '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}', description: '匹配 MAC 地址' },
   { name: 'HTML 标签', pattern: '<[a-z][\\s\\S]*?>', description: '匹配 HTML 标签' },
-  { name: '信用卡号', pattern: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b', description: '匹配信用卡号格式' }
+  {
+    name: '信用卡号',
+    pattern: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b',
+    description: '匹配信用卡号格式'
+  }
 ]
 
 const REGEX_TIMEOUT_MS = 3000
@@ -44,35 +65,21 @@ function runRegexInWorker(
   mode: 'test' | 'replace',
   replacement?: string
 ): Promise<{ isValid: boolean; matches?: RegexMatch[]; result?: string; error?: string }> {
-  return new Promise((resolve) => {
-    const worker = new Worker(WORKER_PATH, {
-      workerData: { pattern, flags, testString, mode, replacement }
+  return runWorkerTask<{
+    isValid: boolean
+    matches?: RegexMatch[]
+    result?: string
+    error?: string
+  }>(WORKER_PATH, { pattern, flags, testString, mode, replacement }, REGEX_TIMEOUT_MS).catch(
+    error => ({
+      isValid: false,
+      error:
+        error.message === 'workerTimeout' ? '正则执行超时，可能存在灾难性回溯' : '正则工作线程失败'
     })
-
-    const timeout = setTimeout(() => {
-      worker.terminate()
-      resolve({ isValid: false, error: '正则执行超时，可能存在灾难性回溯' })
-    }, REGEX_TIMEOUT_MS)
-
-    worker.on('message', (msg) => {
-      clearTimeout(timeout)
-      worker.terminate()
-      resolve(msg)
-    })
-
-    worker.on('error', (error: Error) => {
-      clearTimeout(timeout)
-      worker.terminate()
-      resolve({ isValid: false, error: error.message })
-    })
-  })
+  )
 }
 
-function validateRegexRequest(
-  pattern: string,
-  flags: string,
-  testString: string
-): string | null {
+function validateRegexRequest(pattern: string, flags: string, testString: string): string | null {
   if (typeof pattern !== 'string' || typeof testString !== 'string') {
     return '无效的输入参数'
   }
@@ -85,7 +92,7 @@ function validateRegexRequest(
 export function setupRegexTesterIPC(): void {
   logger.info('Setting up Regex Tester IPC handlers')
 
-  ipcMain.handle('regex:test', async (_, pattern: string, flags: string, testString: string) => {
+  handleIpc('regex:test', async (_, pattern: string, flags: string, testString: string) => {
     const validationError = validateRegexRequest(pattern, flags, testString)
     if (validationError) {
       return { isValid: false, matches: [], error: validationError } as RegexResult
@@ -98,20 +105,29 @@ export function setupRegexTesterIPC(): void {
     return { isValid: result.isValid, matches: result.matches || [] } as RegexResult
   })
 
-  ipcMain.handle('regex:replace', async (_, pattern: string, flags: string, testString: string, replacement: string) => {
-    const validationError = validateRegexRequest(pattern, flags, testString)
-    if (validationError) {
-      return { success: false, error: validationError }
-    }
+  handleIpc(
+    'regex:replace',
+    async (_, pattern: string, flags: string, testString: string, replacement: string) => {
+      const validationError = validateRegexRequest(pattern, flags, testString)
+      if (validationError) {
+        return { success: false, error: validationError }
+      }
 
-    const result = await runRegexInWorker(pattern, flags, testString, 'replace', replacement ?? '')
-    if (result.error) {
-      return { success: false, error: result.error }
+      const result = await runRegexInWorker(
+        pattern,
+        flags,
+        testString,
+        'replace',
+        replacement ?? ''
+      )
+      if (result.error) {
+        return { success: false, error: result.error }
+      }
+      return { success: true, result: result.result ?? '' }
     }
-    return { success: true, result: result.result ?? '' }
-  })
+  )
 
-  ipcMain.handle('regex:getCommon', () => COMMON_REGEX)
+  handleIpc('regex:getCommon', () => COMMON_REGEX)
 
   logger.info('Regex Tester IPC handlers ready')
 }

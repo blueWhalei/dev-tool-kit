@@ -1,23 +1,12 @@
 <template>
-  <div
-    class="action-bar"
-    style="margin-top: 0; border-top: none; padding-top: 0"
-  >
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForPreset"
-    >
+  <div class="action-bar" style="margin-top: 0; border-top: none; padding-top: 0">
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForPreset">
       {{ page.t('actions.pickImage') }}
     </NButton>
   </div>
 
   <template v-if="pickedImage">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.encodePreset') }}</span>
       </template>
@@ -38,19 +27,11 @@
       </div>
     </NCard>
 
-    <NCard
-      v-if="presetResult"
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard v-if="presetResult" class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.result') }}</span>
-          <NTag
-            size="small"
-            :bordered="false"
-          >
+          <NTag size="small" :bordered="false">
             {{ presetResult.mimeType }}
           </NTag>
         </div>
@@ -60,19 +41,13 @@
           :src="`data:${presetResult.mimeType};base64,${presetResult.data}`"
           :alt="page.t('labels.result')"
           class="image-preview"
-        >
+        />
       </div>
-      <div
-        class="image-meta"
-        style="margin-top: 8px"
-      >
+      <div class="image-meta" style="margin-top: 8px">
         <span>{{ presetResult.width }}×{{ presetResult.height }}</span>
         <span>{{ formatBytes(presetResult.size) }}</span>
       </div>
-      <div
-        class="action-bar"
-        style="margin-top: 12px; border-top: none; padding-top: 0"
-      >
+      <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
         <NButton @click="savePresetResult">
           {{ page.t('actions.save') }}
         </NButton>
@@ -84,7 +59,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { NButton, NCard, NTag, useMessage } from 'naive-ui'
-import { formatBytes, type ProcessedImage, type CompressOptions, type ResizeOptions, type ImageConvertOptions } from '@dev-tool-kit/shared'
+import {
+  formatBytes,
+  type ProcessedImage,
+  type CompressOptions,
+  type ResizeOptions,
+  type ImageConvertOptions
+} from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
 import { useSharedImageState } from '../../composables/useSharedImageState'
@@ -148,13 +129,25 @@ async function applyPreset(preset: PresetConfig) {
     let result: ProcessedImage | null = null
     switch (preset.operation) {
       case 'compress':
-        result = await invoke<ProcessedImage | null>('image-tools:compress', pickedImage.value.filePath, preset.compressOptions!) ?? null
+        result =
+          (await invoke(
+            'image-tools:compress',
+            pickedImage.value.filePath,
+            preset.compressOptions!
+          )) ?? null
         break
       case 'resize':
-        result = await invoke<ProcessedImage | null>('image-tools:resize', pickedImage.value.filePath, preset.resizeOptions!) ?? null
+        result =
+          (await invoke('image-tools:resize', pickedImage.value.filePath, preset.resizeOptions!)) ??
+          null
         break
       case 'convert':
-        result = await invoke<ProcessedImage | null>('image-tools:convert', pickedImage.value.filePath, preset.convertOptions!) ?? null
+        result =
+          (await invoke(
+            'image-tools:convert',
+            pickedImage.value.filePath,
+            preset.convertOptions!
+          )) ?? null
         break
     }
     if (result) {

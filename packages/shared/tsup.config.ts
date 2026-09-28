@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig([
   {
     entry: {
-      'index': 'src/index.ts',
+      index: 'src/index.ts',
       'types/index': 'src/types/index.ts',
       'utils/index': 'src/utils/index.ts',
       'constants/index': 'src/constants/index.ts',
@@ -12,7 +12,8 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
-    clean: true,
+    // Keep initial build artifacts available while desktop starts in watch mode.
+    clean: !process.argv.includes('--watch') && !process.argv.includes('-w'),
     external: ['vue'],
     tsconfig: './tsconfig.build.json'
   }

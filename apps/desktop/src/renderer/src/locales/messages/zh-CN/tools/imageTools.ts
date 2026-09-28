@@ -22,6 +22,8 @@ export default {
     preset: '转码预设'
   },
   actions: {
+    cancelBatch: '取消剩余任务',
+    retryBatch: '重试未完成项',
     pickImage: '选择图片',
     copyBase64: '复制 Base64',
     copyDataUri: '复制 Data URI',
@@ -184,7 +186,10 @@ export default {
     height: '高度',
     dataUrlInput: 'data:image/png;base64,iVBOR...'
   },
+  batchStatus: { pending: '等待中', processing: '处理中', cancelled: '已取消' },
   messages: {
+    batchUnauthorized: '请重新选择此文件以授予访问权限。',
+    batchSavePartial: '已保存 {saved} 个，失败 {failed} 个。不会覆盖已有文件。',
     imageLoaded: '图片已加载',
     imageLoadFailed: '图片读取失败',
     imageCopied: '已复制',

@@ -6,7 +6,9 @@ import type { PortInfo, ProcessInfo, OperationResult } from '@dev-tool-kit/share
 import { buildKillFailureResult } from '@dev-tool-kit/shared'
 import { parseWindowsNetstat } from './netstat-parser'
 
-const execFileAsync = promisify(execFile)
+const execute = promisify(execFile)
+const execFileAsync = (file: string, args: string[], options = {}) =>
+  execute(file, args, { timeout: 10000, windowsHide: true, ...options })
 
 const PORTS_CACHE_TTL_MS = 3000
 
@@ -26,20 +28,34 @@ export function isProtectedPid(pid: number): boolean {
 export class PortScanner {
   private platform = platform()
   private portsCache: { data: PortInfo[]; expiresAt: number } | null = null
-  private processNameCache = new Map<number, string>()
+  private scanInFlight: Promise<PortInfo[]> | null = null
+  private cacheGeneration = 0
 
   private async getCachedPorts(): Promise<PortInfo[]> {
     const now = Date.now()
     if (this.portsCache && now < this.portsCache.expiresAt) {
       return this.portsCache.data
     }
-    const data = await this.scanAllPortsRaw()
-    this.portsCache = { data, expiresAt: now + PORTS_CACHE_TTL_MS }
-    return data
+    if (this.scanInFlight) return this.scanInFlight
+    const generation = this.cacheGeneration
+    const pending = this.scanAllPortsRaw()
+      .then(data => {
+        if (generation === this.cacheGeneration) {
+          this.portsCache = { data, expiresAt: Date.now() + PORTS_CACHE_TTL_MS }
+        }
+        return data
+      })
+      .finally(() => {
+        if (this.scanInFlight === pending) this.scanInFlight = null
+      })
+    this.scanInFlight = pending
+    return pending
   }
 
   invalidateCache(): void {
+    this.cacheGeneration++
     this.portsCache = null
+    this.scanInFlight = null
   }
 
   async getAllPorts(): Promise<PortInfo[]> {
@@ -137,13 +153,13 @@ export class PortScanner {
 
     for (const line of lines) {
       if (line.startsWith('State') || line.startsWith('Netid')) continue
-      
+
       const parts = line.trim().split(/\s+/)
       if (parts.length < 6) continue
 
       const protocol = parts[0].toUpperCase().replace('6', '') as 'TCP' | 'UDP'
       const localAddr = parts[4]
-      
+
       const lastColon = localAddr.lastIndexOf(':')
       if (lastColon === -1) continue
 
@@ -172,14 +188,14 @@ export class PortScanner {
 
     for (const line of lines) {
       if (line.startsWith('Active') || line.startsWith('Proto')) continue
-      
+
       const parts = line.trim().split(/\s+/)
       if (parts.length < 4) continue
 
       const protocol = parts[0].toUpperCase() as 'TCP' | 'UDP'
       const localAddress = parts[3]
       const state = parts.length > 5 ? parts[5] : 'UNKNOWN'
-      
+
       const lastColon = localAddress.lastIndexOf(':')
       if (lastColon === -1) continue
 
@@ -235,16 +251,20 @@ export class PortScanner {
   private async getWindowsProcessInfo(pid: number): Promise<ProcessInfo> {
     try {
       const pidStr = String(Math.floor(pid))
-      const { stdout } = await execFileAsync('tasklist', ['/FI', `PID eq ${pidStr}`, '/FO', 'CSV', '/NH'], {
-        windowsHide: true
-      })
+      const { stdout } = await execFileAsync(
+        'tasklist',
+        ['/FI', `PID eq ${pidStr}`, '/FO', 'CSV', '/NH'],
+        {
+          windowsHide: true
+        }
+      )
 
       const line = stdout.trim()
       if (line) {
         const parts = line.split('","').map((p: string) => p.replace(/"/g, ''))
         const memMatch = parts[4]?.match(/([\d,]+)\s*KB/)
         const memoryKB = memMatch ? parseInt(memMatch[1].replace(/,/g, '')) : 0
-        
+
         return {
           pid,
           name: parts[0] || `Process ${pid}`,
@@ -271,7 +291,7 @@ export class PortScanner {
       const name = stdout.trim() || `Process ${pid}`
 
       const { stdout: argsStdout } = await execFileAsync('ps', ['-p', pidStr, '-o', 'args='])
-      
+
       return {
         pid,
         name,
@@ -293,7 +313,7 @@ export class PortScanner {
       const memoryKB = parseInt(rssStdout.trim()) || 0
 
       const { stdout: userStdout } = await execFileAsync('ps', ['-p', pidStr, '-o', 'user='])
-      
+
       return {
         pid,
         name: nameStdout.trim(),
@@ -327,7 +347,6 @@ export class PortScanner {
         await execFileAsync('kill', [`-${signal}`, pidStr], { timeout: 10000 })
       }
 
-      this.processNameCache.delete(pid)
       this.invalidateCache()
       logger.info(`Process ${pid} terminated successfully`)
       return { success: true }
@@ -355,22 +374,16 @@ export class PortScanner {
 
   private async batchResolveProcessNames(pids: number[]): Promise<Map<number, string>> {
     const result = new Map<number, string>()
-    const uncached = pids.filter(pid => !this.processNameCache.has(pid))
-
-    for (const pid of pids) {
-      const cached = this.processNameCache.get(pid)
-      if (cached) result.set(pid, cached)
-    }
-
+    // Refresh names with each port snapshot: PIDs can be reused by the OS.
+    const uncached = pids
     if (uncached.length === 0) return result
 
     if (this.platform === 'win32') {
       try {
-        const { stdout } = await execFileAsync(
-          'tasklist',
-          ['/FO', 'CSV', '/NH'],
-          { windowsHide: true, maxBuffer: 1024 * 1024 * 10 }
-        )
+        const { stdout } = await execFileAsync('tasklist', ['/FO', 'CSV', '/NH'], {
+          windowsHide: true,
+          maxBuffer: 1024 * 1024 * 10
+        })
         for (const line of stdout.split('\n')) {
           const trimmed = line.trim()
           if (!trimmed) continue
@@ -378,7 +391,6 @@ export class PortScanner {
           const pid = parseInt(parts[1], 10)
           const name = parts[0]
           if (pid > 0 && name) {
-            this.processNameCache.set(pid, name)
             if (uncached.includes(pid)) result.set(pid, name)
           }
         }
@@ -389,17 +401,18 @@ export class PortScanner {
       const batchSize = 20
       for (let i = 0; i < uncached.length; i += batchSize) {
         const batch = uncached.slice(i, i + batchSize)
-        await Promise.all(batch.map(async pid => {
-          try {
-            const info = await this.getProcessInfo(pid)
-            if (info?.name) {
-              this.processNameCache.set(pid, info.name)
-              result.set(pid, info.name)
+        await Promise.all(
+          batch.map(async pid => {
+            try {
+              const info = await this.getProcessInfo(pid)
+              if (info?.name) {
+                result.set(pid, info.name)
+              }
+            } catch {
+              // skip
             }
-          } catch {
-            // skip
-          }
-        }))
+          })
+        )
       }
     }
 

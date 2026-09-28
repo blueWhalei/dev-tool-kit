@@ -22,6 +22,8 @@ export default {
     preset: 'Presets'
   },
   actions: {
+    cancelBatch: 'Cancel remaining',
+    retryBatch: 'Retry unfinished',
     pickImage: 'Pick image',
     copyBase64: 'Copy Base64',
     copyDataUri: 'Copy Data URI',
@@ -89,7 +91,7 @@ export default {
     fitFill: 'Fill',
     fitInside: 'Inside',
     fitOutside: 'Outside',
-    withoutEnlargement: 'Don\'t enlarge',
+    withoutEnlargement: "Don't enlarge",
     targetFormat: 'Target format',
     background: 'Background (for JPEG)',
     original: 'Original',
@@ -184,7 +186,10 @@ export default {
     height: 'Height',
     dataUrlInput: 'data:image/png;base64,iVBOR...'
   },
+  batchStatus: { pending: 'Pending', processing: 'Processing', cancelled: 'Cancelled' },
   messages: {
+    batchUnauthorized: 'Select this file again to grant access.',
+    batchSavePartial: 'Saved {saved}, failed {failed}. Existing files are not overwritten.',
     imageLoaded: 'Image loaded',
     imageLoadFailed: 'Failed to read image',
     imageCopied: 'Copied',

@@ -2,7 +2,17 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
-import { NGrid, NGridItem, NCard, NInput, NButton, NTag, NSwitch, NButtonGroup, useMessage } from 'naive-ui'
+import {
+  NGrid,
+  NGridItem,
+  NCard,
+  NInput,
+  NButton,
+  NTag,
+  NSwitch,
+  NButtonGroup,
+  useMessage
+} from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -26,9 +36,37 @@ const SAMPLE_A = 'line one\nline two\nline three'
 const SAMPLE_B = 'line one\nline 2\nline three\nline four'
 
 const TEXT_FILE_EXTENSIONS = [
-  'txt', 'md', 'json', 'xml', 'html', 'htm', 'css', 'scss', 'less',
-  'js', 'ts', 'jsx', 'tsx', 'vue', 'py', 'java', 'c', 'cpp', 'h', 'hpp',
-  'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'log', 'csv', 'sql', 'sh', 'bat'
+  'txt',
+  'md',
+  'json',
+  'xml',
+  'html',
+  'htm',
+  'css',
+  'scss',
+  'less',
+  'js',
+  'ts',
+  'jsx',
+  'tsx',
+  'vue',
+  'py',
+  'java',
+  'c',
+  'cpp',
+  'h',
+  'hpp',
+  'yaml',
+  'yml',
+  'toml',
+  'ini',
+  'cfg',
+  'conf',
+  'log',
+  'csv',
+  'sql',
+  'sh',
+  'bat'
 ]
 
 const textA = ref('')
@@ -78,10 +116,10 @@ function lineClass(type: DiffLine['type']): string {
   return `diff-line diff-line--${type}`
 }
 
-function openDialogOptions() {
+function openDialogOptions(): import('@dev-tool-kit/shared').OpenDialogOptions {
   return {
     title: page.t('dialogs.openTextFile'),
-    properties: ['openFile'] as const,
+    properties: ['openFile'],
     filters: [
       { name: page.t('dialogs.textFiles'), extensions: TEXT_FILE_EXTENSIONS },
       { name: page.t('dialogs.allFiles'), extensions: ['*'] }
@@ -102,7 +140,7 @@ async function loadFile(side: 'A' | 'B') {
     if (result.canceled || result.filePaths.length === 0) return
 
     const filePath = result.filePaths[0]
-    const data = await invoke<{ content: string; fileName: string } | null>('text-diff:readFile', filePath)
+    const data = await invoke('text-diff:readFile', filePath)
     if (!data) {
       message.error(page.t('messages.loadFileFailed'))
       return
@@ -124,76 +162,41 @@ async function loadFile(side: 'A' | 'B') {
 </script>
 
 <template>
-  <PageLayout
-    :title="page.title"
-    :description="page.description"
-    container-class="text-diff-view"
-  >
+  <PageLayout :title="page.title" :description="page.description" container-class="text-diff-view">
     <template #actions>
-      <NButton
-        size="small"
-        quaternary
-        @click="fillSample"
-      >
+      <NButton size="small" quaternary @click="fillSample">
         {{ t('common.fillSample') }}
       </NButton>
       <NButtonGroup size="small">
-        <NButton
-          :type="diffMode === 'line' ? 'primary' : 'default'"
-          @click="diffMode = 'line'"
-        >
+        <NButton :type="diffMode === 'line' ? 'primary' : 'default'" @click="diffMode = 'line'">
           {{ page.t('buttons.lineMode') }}
         </NButton>
-        <NButton
-          :type="diffMode === 'word' ? 'primary' : 'default'"
-          @click="diffMode = 'word'"
-        >
+        <NButton :type="diffMode === 'word' ? 'primary' : 'default'" @click="diffMode = 'word'">
           {{ page.t('buttons.wordMode') }}
         </NButton>
       </NButtonGroup>
       <label class="option-toggle">
-        <NSwitch
-          v-model:value="ignoreWhitespace"
-          size="small"
-        />
+        <NSwitch v-model:value="ignoreWhitespace" size="small" />
         <span>{{ page.t('labels.ignoreWhitespace') }}</span>
       </label>
       <label class="option-toggle">
-        <NSwitch
-          v-model:value="ignoreCase"
-          size="small"
-        />
+        <NSwitch v-model:value="ignoreCase" size="small" />
         <span>{{ page.t('labels.ignoreCase') }}</span>
       </label>
     </template>
 
-    <NGrid
-      cols="1 768:2"
-      :x-gap="16"
-      :y-gap="16"
-    >
+    <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
       <NGridItem>
-        <NCard
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard class="editor-card" :bordered="false">
           <template #header>
             <div class="card-header">
               <span class="card-title">{{ page.t('labels.textA') }}</span>
-              <NButton
-                size="tiny"
-                quaternary
-                :loading="loadingA"
-                @click="loadFile('A')"
-              >
+              <NButton size="tiny" quaternary :loading="loadingA" @click="loadFile('A')">
                 {{ page.t('buttons.loadFile') }}
               </NButton>
             </div>
           </template>
-          <p
-            v-if="fileNameA"
-            class="file-name"
-          >
+          <p v-if="fileNameA" class="file-name">
             {{ page.t('labels.loadedFile', { name: fileNameA }) }}
           </p>
           <NInput
@@ -206,27 +209,16 @@ async function loadFile(side: 'A' | 'B') {
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard
-          class="editor-card"
-          :bordered="false"
-        >
+        <NCard class="editor-card" :bordered="false">
           <template #header>
             <div class="card-header">
               <span class="card-title">{{ page.t('labels.textB') }}</span>
-              <NButton
-                size="tiny"
-                quaternary
-                :loading="loadingB"
-                @click="loadFile('B')"
-              >
+              <NButton size="tiny" quaternary :loading="loadingB" @click="loadFile('B')">
                 {{ page.t('buttons.loadFile') }}
               </NButton>
             </div>
           </template>
-          <p
-            v-if="fileNameB"
-            class="file-name"
-          >
+          <p v-if="fileNameB" class="file-name">
             {{ page.t('labels.loadedFile', { name: fileNameB }) }}
           </p>
           <NInput
@@ -248,53 +240,31 @@ async function loadFile(side: 'A' | 'B') {
         >
           {{ page.t('buttons.unifiedView') }}
         </NButton>
-        <NButton
-          :type="viewMode === 'split' ? 'primary' : 'default'"
-          @click="viewMode = 'split'"
-        >
+        <NButton :type="viewMode === 'split' ? 'primary' : 'default'" @click="viewMode = 'split'">
           {{ page.t('buttons.splitView') }}
         </NButton>
       </NButtonGroup>
-      <NButton
-        :disabled="!formattedResult"
-        @click="copyResult"
-      >
+      <NButton :disabled="!formattedResult" @click="copyResult">
         {{ page.t('buttons.copyResult') }}
       </NButton>
-      <div
-        v-if="diffLines.length"
-        class="stats"
-      >
+      <div v-if="diffLines.length" class="stats">
         <NTag size="small">
           {{ page.t('labels.equal', { count: stats.equal }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="success"
-        >
+        <NTag size="small" type="success">
           {{ page.t('labels.insert', { count: stats.insert }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="error"
-        >
+        <NTag size="small" type="error">
           {{ page.t('labels.delete', { count: stats.delete }) }}
         </NTag>
       </div>
     </div>
 
-    <NCard
-      v-if="diffLines.length"
-      class="result-card"
-      :bordered="false"
-    >
+    <NCard v-if="diffLines.length" class="result-card" :bordered="false">
       <template #header>
         <div class="result-header">
           <span class="card-title">{{ page.t('labels.result') }}</span>
-          <NButton
-            size="small"
-            @click="copyResult"
-          >
+          <NButton size="small" @click="copyResult">
             {{ t('common.copy') }}
           </NButton>
         </div>
@@ -310,25 +280,20 @@ async function loadFile(side: 'A' | 'B') {
             v-for="(line, index) in diffLines"
             :key="index"
             :class="['diff-word', lineClass(line.type)]"
-          >{{ line.content }}</span>
+            >{{ line.content }}</span
+          >
         </template>
         <template v-else>
-          <div
-            v-for="(line, index) in diffLines"
-            :key="index"
-            :class="lineClass(line.type)"
-          >
-            <span class="line-prefix">{{ line.type === 'equal' ? ' ' : line.type === 'insert' ? '+' : '-' }}</span>
+          <div v-for="(line, index) in diffLines" :key="index" :class="lineClass(line.type)">
+            <span class="line-prefix">{{
+              line.type === 'equal' ? ' ' : line.type === 'insert' ? '+' : '-'
+            }}</span>
             <span class="line-content">{{ line.content }}</span>
           </div>
         </template>
       </div>
 
-      <div
-        v-else
-        class="split-output"
-        :class="{ 'split-output--word': isWordMode }"
-      >
+      <div v-else class="split-output" :class="{ 'split-output--word': isWordMode }">
         <div class="split-header">
           <span>{{ page.t('labels.textA') }}</span>
           <span>{{ page.t('labels.textB') }}</span>
@@ -340,23 +305,21 @@ async function loadFile(side: 'A' | 'B') {
                 v-for="(line, index) in diffLines"
                 :key="`a-${index}`"
                 :class="['diff-word', line.type !== 'insert' ? lineClass(line.type) : '']"
-              >{{ line.type !== 'insert' ? line.content : '' }}</span>
+                >{{ line.type !== 'insert' ? line.content : '' }}</span
+              >
             </div>
             <div class="split-cell split-cell--inline">
               <span
                 v-for="(line, index) in diffLines"
                 :key="`b-${index}`"
                 :class="['diff-word', line.type !== 'delete' ? lineClass(line.type) : '']"
-              >{{ line.type !== 'delete' ? line.content : '' }}</span>
+                >{{ line.type !== 'delete' ? line.content : '' }}</span
+              >
             </div>
           </div>
         </template>
         <template v-else>
-          <div
-            v-for="(line, index) in diffLines"
-            :key="index"
-            class="split-row"
-          >
+          <div v-for="(line, index) in diffLines" :key="index" class="split-row">
             <div
               class="split-cell"
               :class="line.type === 'insert' ? 'split-cell--empty' : lineClass(line.type)"

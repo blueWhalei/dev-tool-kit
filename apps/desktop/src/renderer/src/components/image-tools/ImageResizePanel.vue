@@ -1,28 +1,16 @@
 <template>
   <div class="action-bar">
-    <NButton
-      type="primary"
-      :loading="imageLoading"
-      @click="pickImageForResize"
-    >
+    <NButton type="primary" :loading="imageLoading" @click="pickImageForResize">
       {{ page.t('actions.pickImage') }}
     </NButton>
   </div>
 
   <template v-if="pickedImage">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.original') }}</span>
-          <NTag
-            v-if="infoData"
-            size="small"
-            :bordered="false"
-          >
+          <NTag v-if="infoData" size="small" :bordered="false">
             {{ infoData.width }}×{{ infoData.height }}
           </NTag>
         </div>
@@ -32,24 +20,17 @@
           :src="resizeOriginalPreviewUri"
           :alt="page.t('labels.original')"
           class="image-preview"
-        >
+        />
       </div>
     </NCard>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <span class="card-title">{{ page.t('labels.resizeMode') }}</span>
       </template>
       <div class="resize-options">
         <div class="option-row">
-          <NRadioGroup
-            v-model:value="resizeMode"
-            size="small"
-          >
+          <NRadioGroup v-model:value="resizeMode" size="small">
             <NRadioButton value="preset">
               {{ page.t('labels.presetSizes') }}
             </NRadioButton>
@@ -59,10 +40,7 @@
           </NRadioGroup>
         </div>
 
-        <div
-          v-if="resizeMode === 'preset'"
-          class="option-row"
-        >
+        <div v-if="resizeMode === 'preset'" class="option-row">
           <span class="section-label">{{ page.t('labels.presetSizes') }}</span>
           <NSelect
             v-model:value="resizePreset"
@@ -71,10 +49,7 @@
           />
         </div>
 
-        <div
-          v-if="resizeMode === 'custom'"
-          class="custom-size-row"
-        >
+        <div v-if="resizeMode === 'custom'" class="custom-size-row">
           <div class="custom-size-field">
             <span class="section-label">{{ page.t('labels.width') }}</span>
             <NInput
@@ -107,19 +82,12 @@
 
         <div class="option-row">
           <span class="section-label">{{ page.t('labels.fit') }}</span>
-          <NSelect
-            v-model:value="resizeFit"
-            :options="fitOptions"
-            style="width: 160px"
-          />
+          <NSelect v-model:value="resizeFit" :options="fitOptions" style="width: 160px" />
         </div>
 
         <div class="option-row">
           <span class="section-label">{{ page.t('labels.withoutEnlargement') }}</span>
-          <NRadioGroup
-            v-model:value="resizeWithoutEnlargement"
-            size="small"
-          >
+          <NRadioGroup v-model:value="resizeWithoutEnlargement" size="small">
             <NRadioButton :value="false">
               {{ page.t('labels.no') }}
             </NRadioButton>
@@ -131,19 +99,11 @@
       </div>
     </NCard>
 
-    <NCard
-      v-if="resizeResult"
-      class="editor-card"
-      :bordered="false"
-      style="margin-top: 16px"
-    >
+    <NCard v-if="resizeResult" class="editor-card" :bordered="false" style="margin-top: 16px">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.result') }}</span>
-          <NTag
-            size="small"
-            :bordered="false"
-          >
+          <NTag size="small" :bordered="false">
             {{ resizeResult.width }}×{{ resizeResult.height }}
           </NTag>
         </div>
@@ -153,22 +113,15 @@
           :src="`data:${resizeResult.mimeType};base64,${resizeResult.data}`"
           :alt="page.t('labels.result')"
           class="image-preview"
-        >
+        />
       </div>
     </NCard>
 
     <div class="action-bar">
-      <NButton
-        type="primary"
-        :loading="resizeLoading"
-        @click="handleResize"
-      >
+      <NButton type="primary" :loading="resizeLoading" @click="handleResize">
         {{ page.t('actions.resize') }}
       </NButton>
-      <NButton
-        v-if="resizeResult"
-        @click="saveResized"
-      >
+      <NButton v-if="resizeResult" @click="saveResized">
         {{ page.t('actions.save') }}
       </NButton>
     </div>
@@ -177,8 +130,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { NButton, NCard, NTag, NSelect, NInput, NRadioGroup, NRadioButton, useMessage } from 'naive-ui'
-import { type ProcessedImage, type ResizeOptions, type ImageInfo } from '@dev-tool-kit/shared'
+import {
+  NButton,
+  NCard,
+  NTag,
+  NSelect,
+  NInput,
+  NRadioGroup,
+  NRadioButton,
+  useMessage
+} from 'naive-ui'
+import { type ProcessedImage, type ResizeOptions } from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
 import { useIpc } from '../../composables/useIpc'
 import { useSharedImageState } from '../../composables/useSharedImageState'
@@ -233,7 +195,13 @@ const fitOptions = computed(() => [
 function handleResizeWidthInput(val: string) {
   const w = parseInt(val, 10)
   resizeCustomWidth.value = isNaN(w) ? null : w
-  if (resizeLockAspect.value && pickedImage.value && resizeCustomWidth.value && infoData.value?.width && infoData.value?.height) {
+  if (
+    resizeLockAspect.value &&
+    pickedImage.value &&
+    resizeCustomWidth.value &&
+    infoData.value?.width &&
+    infoData.value?.height
+  ) {
     const origW = infoData.value?.width ?? 1
     const origH = infoData.value?.height ?? 1
     resizeCustomHeight.value = Math.round((resizeCustomWidth.value / origW) * origH)
@@ -243,7 +211,13 @@ function handleResizeWidthInput(val: string) {
 function handleResizeHeightInput(val: string) {
   const h = parseInt(val, 10)
   resizeCustomHeight.value = isNaN(h) ? null : h
-  if (resizeLockAspect.value && pickedImage.value && resizeCustomHeight.value && infoData.value?.width && infoData.value?.height) {
+  if (
+    resizeLockAspect.value &&
+    pickedImage.value &&
+    resizeCustomHeight.value &&
+    infoData.value?.width &&
+    infoData.value?.height
+  ) {
     const origW = infoData.value?.width ?? 1
     const origH = infoData.value?.height ?? 1
     resizeCustomWidth.value = Math.round((resizeCustomHeight.value / origH) * origW)
@@ -256,7 +230,7 @@ async function pickImageForResize() {
   if (!data) return
   // Fetch info for aspect ratio calculations
   try {
-    const info = await invoke<ImageInfo | null>('image-tools:getInfo', data.filePath)
+    const info = await invoke('image-tools:getInfo', data.filePath)
     infoData.value = info ?? null
   } catch {
     // Non-critical — proceed without info
@@ -295,7 +269,7 @@ async function handleResize() {
       fit: resizeFit.value,
       withoutEnlargement: resizeWithoutEnlargement.value || undefined
     }
-    const result = await invoke<ProcessedImage | null>('image-tools:resize', pickedImage.value.filePath, options)
+    const result = await invoke('image-tools:resize', pickedImage.value.filePath, options)
     if (result) {
       resizeResult.value = result
       message.success(page.t('messages.resizeSuccess'))

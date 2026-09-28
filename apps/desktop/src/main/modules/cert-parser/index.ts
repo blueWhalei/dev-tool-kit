@@ -1,4 +1,5 @@
-import { ipcMain, dialog } from 'electron'
+import { handleIpc } from '../../typed-ipc'
+import { dialog } from 'electron'
 import { readFile } from 'fs/promises'
 import { basename } from 'path'
 import type { CertificateFileReadResult, CertificateParseResult } from '@dev-tool-kit/shared'
@@ -10,7 +11,7 @@ const CERT_FILE_EXTENSIONS = ['pem', 'crt', 'cer', 'cert']
 export function setupCertParserIPC(): void {
   logger.info('Setting up Certificate Parser IPC handlers')
 
-  ipcMain.handle('cert-parser:readFile', async (): Promise<CertificateFileReadResult | null> => {
+  handleIpc('cert-parser:readFile', async (): Promise<CertificateFileReadResult | null> => {
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
@@ -31,12 +32,15 @@ export function setupCertParserIPC(): void {
     }
   })
 
-  ipcMain.handle('cert-parser:parsePem', async (_, pemText: unknown): Promise<CertificateParseResult> => {
-    if (typeof pemText !== 'string') {
-      return { success: false, error: '请输入 PEM 证书内容' }
+  handleIpc(
+    'cert-parser:parsePem',
+    async (_, pemText: unknown): Promise<CertificateParseResult> => {
+      if (typeof pemText !== 'string') {
+        return { success: false, error: '请输入 PEM 证书内容' }
+      }
+      return parseCertificatePem(pemText)
     }
-    return parseCertificatePem(pemText)
-  })
+  )
 
   logger.info('Certificate Parser IPC handlers ready')
 }

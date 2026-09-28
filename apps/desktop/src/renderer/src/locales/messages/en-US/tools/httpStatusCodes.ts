@@ -2,6 +2,7 @@ export default {
   title: 'HTTP Status Codes',
   description: 'Offline reference for common HTTP status codes (1xx–5xx)',
   labels: {
+    other: 'Other',
     search: 'Search',
     category: 'Category',
     allCategories: 'All categories',
