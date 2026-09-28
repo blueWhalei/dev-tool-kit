@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const os = require('os')
 const assert = require('assert/strict')
+const { clickReadyControl } = require('./desktop-smoke-controls.cjs')
 const repo = path.resolve(__dirname, '..')
 
 if (!process.versions.electron) {
@@ -84,29 +85,9 @@ if (!process.versions.electron) {
       }, url)
       await waitFor(text => document.body.innerText.includes(text), text)
     }
-    const click = async text => {
-      await waitFor(
-        text =>
-          [...document.querySelectorAll('button, [role="radio"], .n-radio-button')].some(
-            el =>
-              el.textContent.trim() === text &&
-              !el.disabled &&
-              !el.classList.contains('n-button--loading')
-          ),
-        text
-      )
-      assert(
-        await run(text => {
-          const el = [...document.querySelectorAll('button, [role="radio"], .n-radio-button')].find(
-            el => el.textContent.trim() === text
-          )
-          if (!el || el.disabled) return false
-          el.click()
-          return true
-        }, text),
-        'Missing or disabled control: ' + text
-      )
-    }
+    // Check readiness and dispatch the click in one renderer task. Vue may update
+    // disabled/loading state between separate executeJavaScript calls.
+    const click = text => waitFor(clickReadyControl, text)
     const invoke = (channel, ...args) =>
       run((channel, args) => window.electronAPI.invoke(channel, ...args), channel, args)
     await run(() => {
