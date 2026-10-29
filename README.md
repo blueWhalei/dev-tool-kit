@@ -16,6 +16,8 @@
 
 以下为代表性界面截图（端口管理、编码转换、设置）。应用内共 **23 个工具**，完整列表见下方 [功能概览](#功能概览)。
 
+截图基于当前构建生成，端口列表与 JSON 内容为演示数据；文档网站另提供中英文、深浅色版本。
+
 ![端口管理](./screenshots/zh/port-manager.png)
 ![编码转换](./screenshots/zh/code-format-converter.png)
 ![设置页面](./screenshots/zh/settings.png)
@@ -24,11 +26,11 @@
 
 **小而美** — 每个工具页面专注做好一件事；通过搜索与聚合入口避免重复，侧栏保持清晰。
 
-**本地优先** — 所有功能完全在本地运行，无需网络连接。你的数据始终在你的设备上，隐私安全有保障。
+**本地优先** — 工具在本机处理输入，不需要将内容上传到远程服务。安装依赖、下载安装包和打开外部链接需要网络连接。
 
 **优雅体验** — 参考 Apple Human Interface Guidelines，追求简洁的界面、流畅的动画、直觉的操作。
 
-**语言支持** — 完整的双语支持（中文和英文），应用内无缝切换语言。
+**语言支持** — 提供中文和英文界面，可在应用内切换。
 
 ## 功能概览
 
@@ -100,27 +102,37 @@
 
 ### 其他
 
-- 侧栏底部 — 设置 / 关于；顶栏 — 主题切换（浅色 · 深色 · 跟随系统）
-- 设置页 — 配置侧栏收藏、默认首页、主题、配置导入导出
+- 侧栏底部 — 设置 / 关于、语言与主题切换
+- 设置页 — 配置侧栏收藏、默认首页、语言、主题（浅色 · 深色 · 跟随系统）、配置导入导出
 
 完整快捷键列表见应用内 **关于** 页。
 
+macOS 上组合快捷键可使用 `Command` 替代 `Ctrl`。
+
 ## 平台能力矩阵
 
-| 功能                 | Windows  | macOS    | Linux    | 说明                                                   |
-| -------------------- | -------- | -------- | -------- | ------------------------------------------------------ |
-| 端口扫描             | 完整支持 | 完整支持 | 完整支持 | —                                                      |
-| 终止占用进程         | 完整支持 | 部分支持 | 部分支持 | Unix 下可终止用户进程；系统进程可能需 sudo             |
-| 环境变量管理         | 完整支持 | 部分支持 | 部分支持 | Unix 可写入 Shell 配置（自动备份）；Windows 写入注册表 |
-| Hosts 编辑           | 部分支持 | 部分支持 | 部分支持 | 写入可能需管理员权限；失败可复制 sudo 命令             |
-| DNS 刷新             | 完整支持 | 完整支持 | 部分支持 | Linux 依赖 systemd-resolve / nscd                      |
-| 文件重命名           | 完整支持 | 完整支持 | 完整支持 | —                                                      |
-| 编码 / Hash / JWT 等 | 本地可用 | 本地可用 | 本地可用 | 渲染进程本地计算，全平台一致                           |
+| 功能                 | Windows  | macOS    | Linux    | 说明                                                                  |
+| -------------------- | -------- | -------- | -------- | --------------------------------------------------------------------- |
+| 端口扫描             | 完整支持 | 完整支持 | 完整支持 | —                                                                     |
+| 终止占用进程         | 完整支持 | 部分支持 | 部分支持 | Unix 下可终止用户进程；系统进程可能需 sudo                            |
+| 环境变量管理         | 完整支持 | 部分支持 | 部分支持 | Unix 可写入 Shell 配置（自动备份）；Windows 写入注册表                |
+| Hosts 编辑           | 部分支持 | 部分支持 | 部分支持 | 写入可能需管理员权限；Windows 提供管理员操作提示，Unix 提供 sudo 命令 |
+| DNS 刷新             | 完整支持 | 完整支持 | 部分支持 | 可能需要提权；Linux 依赖 systemd-resolve / resolvectl / nscd          |
+| 文件重命名           | 完整支持 | 完整支持 | 完整支持 | —                                                                     |
+| 编码 / Hash / JWT 等 | 本地可用 | 本地可用 | 本地可用 | 本机处理；文件 Hash 在主进程流式计算，Schema 校验使用 Worker          |
+| 图片工具             | 本地可用 | 本地可用 | 本地可用 | 本机处理，部分功能依赖 sharp 原生模块                                 |
+
+矩阵描述实现范围，不代表所有权限和系统环境均已验证。CI 包含 Windows Electron 冒烟测试；macOS/Linux 的系统命令、权限和文件操作还需在目标系统验证。
+
+Windows 系统环境变量写入需要管理员权限，导入和备份恢复只处理用户变量；macOS/Linux 系统变量只读，修改写入所选用户 Shell 配置。Hosts 保存成功但 DNS 刷新失败时会单独提示，无需重复保存。
 
 ## 深链路由
 
+以下为应用内 Hash 路由，例如 `#/code-converter?tab=json`，不是操作系统 URL 协议。简写路径重定向到当前工具页及对应 Tab，不代表独立工具实现。
+
 | 路径                        | 目标                                                                                                                                              |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/code-converter`           | 编码与格式转换（例如 `?tab=json`、`base64`、`yaml`）                                                                                              |
 | `/base64`                   | 编码转换 · Base64 Tab                                                                                                                             |
 | `/url`                      | 编码转换 · URL Tab                                                                                                                                |
 | `/yaml`                     | 编码转换 · YAML Tab                                                                                                                               |
@@ -151,13 +163,13 @@
 
 ### 环境要求
 
-- Node.js >= 18.0.0（CI 使用 Node 24）
-- pnpm >= 9.0.0
+- Node.js 24.x（与 CI 一致）
+- pnpm 9.0.0
 
 ### 安装依赖
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ### 开发模式
@@ -168,7 +180,7 @@ pnpm dev
 
 ### 构建应用
 
-开发构建（编译到 `apps/desktop/out`，不生成安装包）：
+生产构建（编译共享包和桌面应用，桌面产物位于 `apps/desktop/out`，不生成安装包）：
 
 ```bash
 pnpm build
@@ -179,10 +191,10 @@ pnpm build
 在本地打包当前平台的未签名安装包（需先安装依赖）：
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dist          # 当前平台完整安装包（Windows NSIS / macOS DMG / Linux AppImage）
 pnpm dist:dir      # 仅解压目录，用于快速验证打包配置
-pnpm dist:win      # 仅 Windows（可在任意平台交叉构建时指定）
+pnpm dist:win      # Windows 安装包，建议在 Windows 或对应 CI 中构建
 pnpm dist:mac      # 仅 macOS（需在 macOS 上运行，或 CI 构建）
 pnpm dist:linux    # 仅 Linux
 ```
@@ -191,31 +203,36 @@ pnpm dist:linux    # 仅 Linux
 
 **未签名发布说明：**
 
-- **Windows** — 安装包未经代码签名，首次运行可能触发 SmartScreen「未知发布者」提示，选择「仍要运行」即可。
-- **macOS** — 应用未经公证，首次打开请右键 →「打开」，或在「系统设置 → 隐私与安全性」中允许。
+- **Windows** — 安装包未经代码签名，系统可能显示 SmartScreen 或「未知发布者」提示；确认安装包来源后按系统提示处理。
+- **macOS** — 应用未签名、未经公证，系统可能阻止打开；确认安装包来源后按系统提示处理。
 - **Linux** — AppImage 赋予执行权限后直接运行：`chmod +x DevToolkit-*.AppImage && ./DevToolkit-*.AppImage`
 
 预编译安装包请前往 [GitHub Releases](https://github.com/blueWhalei/dev-tool-kit/releases) 下载。
 
 ### 发布新版本
 
-维护者通过 Git 标签触发 CI 自动构建三平台安装包并发布到 GitHub Releases（无需代码签名证书）：
+先同步更新根目录、`apps/desktop` 和 `packages/shared` 的包版本；标签必须与三个包版本一致。Release 会先通过质量检查和 Windows 桌面冒烟，再构建三平台安装包（无需代码签名证书）：
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-也可在 GitHub Actions 中手动运行 **Release** 工作流并填写版本号。
+也可在 GitHub Actions 中手动运行 **Release** 工作流并填写完整标签（如 `v1.0.0`）。打包和发布都会校验构建提交；已存在的标签必须指向该提交，新标签显式指向构建提交。
 
 ### 代码检查
 
 ```bash
+pnpm format:check
 pnpm lint
 pnpm typecheck
-pnpm test
+pnpm test:coverage
 pnpm check:locales
 ```
+
+`pnpm test` 仅运行测试；`test:coverage` 还生成 monorepo 覆盖率报告并检查关键文件门槛。`format:check` 检查脚本支持的已跟踪及未被忽略的新增文件，并遵循 `.prettierignore`；`pnpm format:changed` 格式化相对 HEAD 的变更。
+
+`pnpm dev` 同时监听 shared 与桌面应用；只监听 shared 可运行 `pnpm --filter @dev-tool-kit/shared build:watch`。
 
 桌面回归测试（需图形环境，先构建；使用隐藏窗口、独立临时配置与测试文件）：
 
@@ -226,27 +243,29 @@ pnpm test:desktop
 
 ## 项目结构
 
-Monorepo 架构: `apps/desktop` (Electron 应用) + `packages/shared` (共享工具模块)
+| 目录                        | 用途                               |
+| --------------------------- | ---------------------------------- |
+| `apps/desktop/src/main`     | 主进程、系统操作、文件处理及 IPC   |
+| `apps/desktop/src/preload`  | 受限 IPC 桥接                      |
+| `apps/desktop/src/renderer` | Vue 界面、路由与语言资源           |
+| `packages/shared/src`       | 共享类型、IPC 契约、校验及计算工具 |
+| `scripts`                   | 工程检查与桌面冒烟脚本             |
+| `docs`                      | GitHub Pages 网站及深浅色截图      |
+| `screenshots`               | README 使用的中英文截图            |
+
+## 数据与资源边界
+
+- 桌面主进程维护的 JSON 配置串行、原子写入，保留 `.bak` 恢复副本；主文件及备份均损坏时，基于读取的更新报错并保留原文件。界面偏好保存在 localStorage，可通过设置页导入导出。
+- 图片单图选择限制为 64 MiB。差异比较画布最多 4,194,304 像素、单边最多 8,192 像素，超出时缩小并提示；这不等于原图解码的内存上限。
+- 批量图片每窗口一个任务、每任务并发两张，结果暂存在主进程。取消停止排队项，处理中的项完成后保留结果；重试针对失败或取消项，保存跳过已有文件，退出面板或关闭窗口清理临时文件。
 
 ## 为什么选择 Dev Tool Kit？
 
 - **无网络依赖** — 内网环境、断网状态，随时随地使用
 - **数据隐私** — 所有数据本地处理，不上传任何信息
-- **启动快速** — 轻量级设计，秒开即用
-- **原生体验** — 桌面应用原生性能，无浏览器限制
+- **桌面集成** — 集成本机文件选择、端口扫描和系统配置操作
 - **持续进化** — 更多实用工具持续加入中
 
 ## 许可证
 
 [MIT](LICENSE)
-
-### 开发与验证命令
-
-- `pnpm dev` 同时监听 shared 与桌面应用；也可使用 `pnpm --filter @dev-tool-kit/shared build:watch`。
-- `pnpm test:coverage` 生成整个 monorepo 的覆盖率报告，并检查关键文件门槛。
-- `pnpm format:check` 检查相对 HEAD 的修改和新增文件；`pnpm format:changed` 格式化这些文件。CI 使用目标分支/前次提交作为比较基准。
-- CI 增加 Windows 构建产物的 `pnpm test:desktop` 冒烟测试。
-
-批量图片选择仅传输文件信息，处理结果暂存在主进程，每窗口最多一个任务、每任务并发两张图片。取消会停止排队项，已在处理的图片完成后保留结果；重试只处理失败和取消项，保存跳过已有文件。退出面板或关闭窗口时清理任务临时文件。
-
-用户配置采用串行原子写入，并保留一份 `.bak` 恢复副本；重置窗口状态会同时删除对应副本。

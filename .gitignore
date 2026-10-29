@@ -6,6 +6,7 @@ node_modules/
 dist/
 out/
 release/
+/release-assets/
 *.tsbuildinfo
 *.tgz
 
@@ -62,6 +63,7 @@ package-lock.json
 
 # Local AI workflow instructions and implementation notes
 /AGENTS.md
+/DEVELOPMENT.md
 /.agents/
 /.codex/
 /specs/
