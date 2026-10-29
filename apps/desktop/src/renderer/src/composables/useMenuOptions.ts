@@ -30,20 +30,23 @@ export function useMenuOptions() {
     })
 
     categoryMap.forEach((categoryRoutes: RouteRecordRaw[]) => {
-      categoryRoutes.sort((a: RouteRecordRaw, b: RouteRecordRaw) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
+      categoryRoutes.sort(
+        (a: RouteRecordRaw, b: RouteRecordRaw) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0)
+      )
     })
 
     const sortedCategories = [...categories].sort((a, b) => a.order - b.order)
 
     const categoryMenus: MenuOption[] = sortedCategories
-      .filter((cat) => categoryMap.has(cat.key))
-      .map((category) => ({
+      .filter(cat => categoryMap.has(cat.key))
+      .map(category => ({
         label: t(`nav.category.${category.key}`),
         key: category.key,
-        icon: () => h(ToolIcon, {
-          name: CATEGORY_ICON_MAP[category.key] ?? category.icon,
-          size: 16
-        }),
+        icon: () =>
+          h(ToolIcon, {
+            name: CATEGORY_ICON_MAP[category.key] ?? category.icon,
+            size: 16
+          }),
         children: categoryMap.get(category.key)!.map((route: RouteRecordRaw) => ({
           label: routeTitle(route),
           key: route.name as string,

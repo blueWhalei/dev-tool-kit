@@ -13,28 +13,23 @@ export const NODE_HASH_ALGORITHMS: Record<HashAlgorithm, string> = {
 
 export const FILE_HASH_ALGORITHMS: HashAlgorithm[] = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512']
 
-export function computeFileStreamHash(nodeAlgorithm: string, filePath: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = createHash(nodeAlgorithm)
-    const stream = createReadStream(filePath)
-    stream.on('data', (data) => hash.update(data))
-    stream.on('end', () => resolve(hash.digest('hex')))
-    stream.on('error', reject)
-  })
-}
-
 export async function computeFileHashes(filePath: string): Promise<FileHashResults | null> {
   if (!filePath.trim()) return null
 
   const fileStat = await stat(filePath)
   const fileName = basename(filePath)
 
-  const hashes = await Promise.all(
-    FILE_HASH_ALGORITHMS.map(async (algorithm) => ({
-      algorithm,
-      hash: await computeFileStreamHash(NODE_HASH_ALGORITHMS[algorithm], filePath)
-    }))
-  )
+  const contexts = FILE_HASH_ALGORITHMS.map(algorithm => ({
+    algorithm,
+    context: createHash(NODE_HASH_ALGORITHMS[algorithm])
+  }))
+  for await (const chunk of createReadStream(filePath)) {
+    for (const { context } of contexts) context.update(chunk)
+  }
+  const hashes = contexts.map(({ algorithm, context }) => ({
+    algorithm,
+    hash: context.digest('hex')
+  }))
 
   return { fileName, fileSize: fileStat.size, hashes }
 }

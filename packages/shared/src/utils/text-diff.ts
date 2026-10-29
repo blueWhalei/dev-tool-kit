@@ -149,7 +149,11 @@ function backtrackDiff(
   return result
 }
 
-export function computeLineDiff(textA: string, textB: string, options: DiffOptions = {}): DiffLine[] {
+export function computeLineDiff(
+  textA: string,
+  textB: string,
+  options: DiffOptions = {}
+): DiffLine[] {
   const linesA = textA.split('\n')
   const linesB = textB.split('\n')
   const normalizedA = linesA.map(line => normalizeLine(line, options))
@@ -167,7 +171,11 @@ function tokenizeWords(text: string, options: DiffOptions): string[] {
   return tokens.filter(token => !/^\s+$/.test(token))
 }
 
-export function computeWordDiff(textA: string, textB: string, options: DiffOptions = {}): DiffLine[] {
+export function computeWordDiff(
+  textA: string,
+  textB: string,
+  options: DiffOptions = {}
+): DiffLine[] {
   const tokensA = tokenizeWords(textA, options)
   const tokensB = tokenizeWords(textB, options)
   const normalizedA = tokensA.map(token => normalizeToken(token, options))
@@ -190,9 +198,12 @@ export function formatDiffResult(lines: DiffLine[]): string {
   return lines
     .map(line => {
       switch (line.type) {
-        case 'equal': return `  ${line.content}`
-        case 'insert': return `+ ${line.content}`
-        case 'delete': return `- ${line.content}`
+        case 'equal':
+          return `  ${line.content}`
+        case 'insert':
+          return `+ ${line.content}`
+        case 'delete':
+          return `- ${line.content}`
       }
     })
     .join('\n')

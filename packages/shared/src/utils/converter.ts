@@ -1,7 +1,9 @@
+import { TOOL_ERROR_CODES } from '../constants/tool-errors'
 export interface ConverterResult<T = string> {
   success: boolean
   result?: T
   error?: string
+  errorParams?: Record<string, string | number>
 }
 
 export interface TimestampInfo {
@@ -51,7 +53,7 @@ export function base64Decode(text: string): ConverterResult {
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0))
     return { success: true, result: new TextDecoder().decode(bytes) }
   } catch {
-    return fail('Invalid Base64')
+    return fail(TOOL_ERROR_CODES.base64Invalid)
   }
 }
 
@@ -67,7 +69,7 @@ export function urlDecode(text: string): ConverterResult {
   try {
     return { success: true, result: decodeURIComponent(text) }
   } catch {
-    return fail('Invalid URL encoding')
+    return fail(TOOL_ERROR_CODES.urlInvalid)
   }
 }
 
@@ -87,32 +89,34 @@ export function getJsonParseError(text: string): JsonParseError | null {
   }
 }
 
-function formatJsonError(text: string): string {
+function formatJsonError(text: string): ConverterResult<never> {
   const err = getJsonParseError(text)
-  if (!err) return '无效的 JSON'
-  if (err.line > 0) {
-    return `无效的 JSON（第 ${err.line} 行，第 ${err.column} 列）`
-  }
-  return '无效的 JSON'
+  return err
+    ? {
+        success: false,
+        error: 'jsonInvalidLine',
+        errorParams: { line: err.line, column: err.column }
+      }
+    : fail(TOOL_ERROR_CODES.jsonInvalid)
 }
 
 export function jsonFormat(text: string): ConverterResult {
-  if (!text.trim()) return fail('请输入 JSON 内容')
+  if (!text.trim()) return fail(TOOL_ERROR_CODES.jsonEmpty)
   try {
     const obj = JSON.parse(text)
     return { success: true, result: JSON.stringify(obj, null, 2) }
   } catch {
-    return fail(formatJsonError(text))
+    return formatJsonError(text)
   }
 }
 
 export function jsonMinify(text: string): ConverterResult {
-  if (!text.trim()) return fail('请输入 JSON 内容')
+  if (!text.trim()) return fail(TOOL_ERROR_CODES.jsonEmpty)
   try {
     const obj = JSON.parse(text)
     return { success: true, result: JSON.stringify(obj) }
   } catch {
-    return fail(formatJsonError(text))
+    return formatJsonError(text)
   }
 }
 
@@ -130,17 +134,17 @@ function buildTimestampInfo(date: Date): TimestampInfo {
 }
 
 export function timestampToDate(timestamp: number): ConverterResult<TimestampInfo> {
-  if (!Number.isFinite(timestamp)) return fail('无效的时间戳')
+  if (!Number.isFinite(timestamp)) return fail(TOOL_ERROR_CODES.timestampInvalid)
   const date = new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp)
-  if (isNaN(date.getTime())) return fail('无效的时间戳')
+  if (isNaN(date.getTime())) return fail(TOOL_ERROR_CODES.timestampInvalid)
   return { success: true, result: buildTimestampInfo(date) }
 }
 
 export function dateToTimestamp(dateStr: string): ConverterResult<TimestampInfo> {
   const trimmed = dateStr.trim()
-  if (!trimmed) return fail('请输入日期或时间戳')
+  if (!trimmed) return fail(TOOL_ERROR_CODES.dateEmpty)
   const date = new Date(trimmed)
-  if (isNaN(date.getTime())) return fail('无效的日期')
+  if (isNaN(date.getTime())) return fail(TOOL_ERROR_CODES.dateInvalid)
   return { success: true, result: buildTimestampInfo(date) }
 }
 
@@ -150,7 +154,7 @@ export function parseTimestampInput(input: string | number): ConverterResult<Tim
     return timestampToDate(input)
   }
   const trimmed = input.trim()
-  if (!trimmed) return fail('请输入时间戳或日期')
+  if (!trimmed) return fail(TOOL_ERROR_CODES.timestampOrDateEmpty)
 
   if (/^-?\d+$/.test(trimmed)) {
     return timestampToDate(parseInt(trimmed, 10))
@@ -165,20 +169,23 @@ export function numberBaseConvert(
   toBase: number
 ): ConverterResult {
   if (![2, 8, 10, 16].includes(fromBase) || ![2, 8, 10, 16].includes(toBase)) {
-    return fail('不支持的数据进制')
+    return fail(TOOL_ERROR_CODES.radixUnsupported)
   }
   const str = String(num).trim()
   const validPattern =
-    fromBase === 2 ? /^-?[01]+$/
-      : fromBase === 8 ? /^-?[0-7]+$/
-        : fromBase === 10 ? /^-?\d+$/
+    fromBase === 2
+      ? /^-?[01]+$/
+      : fromBase === 8
+        ? /^-?[0-7]+$/
+        : fromBase === 10
+          ? /^-?\d+$/
           : /^-?[0-9a-fA-F]+$/
   if (!validPattern.test(str)) {
-    return fail('无效的数字')
+    return fail(TOOL_ERROR_CODES.numberInvalid)
   }
   try {
     const decimal = parseInt(str, fromBase)
-    if (isNaN(decimal)) return fail('无效的数字')
+    if (isNaN(decimal)) return fail(TOOL_ERROR_CODES.numberInvalid)
 
     if (toBase === 16) return { success: true, result: decimal.toString(16).toUpperCase() }
     if (toBase === 2) return { success: true, result: decimal.toString(2) }
@@ -220,7 +227,7 @@ export function toTitleCase(text: string): ConverterResult {
 }
 
 export function convertAllCaseFormats(text: string): ConverterResult<CaseFormats> {
-  if (!text.trim()) return fail('请输入需要转换的文本')
+  if (!text.trim()) return fail(TOOL_ERROR_CODES.namingEmpty)
   return {
     success: true,
     result: {
@@ -245,7 +252,7 @@ export function htmlEncode(text: string): ConverterResult {
 export function htmlDecode(text: string): ConverterResult {
   // 码点超过 0x10FFFF 时 fromCodePoint 会抛 RangeError，保留原实体文本不回退
   const decodeCodePoint = (cp: number, raw: string): string =>
-    cp > 0x10FFFF ? raw : String.fromCodePoint(cp)
+    cp > 0x10ffff ? raw : String.fromCodePoint(cp)
 
   const result = text
     .replace(/&lt;/g, '<')

@@ -3,7 +3,15 @@ import { ref, computed, watch, onMounted, h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  NCard, NInput, NSelect, NTabs, NTabPane, NTag, NButton, NDataTable, type DataTableColumns
+  NCard,
+  NInput,
+  NSelect,
+  NTabs,
+  NTabPane,
+  NTag,
+  NButton,
+  NDataTable,
+  type DataTableColumns
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
@@ -58,36 +66,48 @@ onMounted(() => {
   if (!route.query.tab && savedTab) activeTab.value = savedTab
 })
 
-watch(() => route.query.tab, (tab) => {
-  const resolved = resolveTab(tab)
-  if (resolved) activeTab.value = resolved
-})
+watch(
+  () => route.query.tab,
+  tab => {
+    const resolved = resolveTab(tab)
+    if (resolved) activeTab.value = resolved
+  }
+)
 
-watch(activeTab, (tab) => {
+watch(activeTab, tab => {
   safeStorageSet(DEV_REFERENCE_TAB_STORAGE_KEY, tab)
 })
 
 const filteredMime = computed(() => filterMimeTypes(mimeQuery.value, localeKey.value))
 
-const mimeColumns = computed((): DataTableColumns<MimeTypeEntry> => [
-  { title: page.t('labels.extension'), key: 'extension', width: 100 },
-  { title: page.t('labels.mime'), key: 'mime', minWidth: 200 },
-  {
-    title: page.t('labels.description'),
-    key: 'description',
-    render: (row) => localeKey.value === 'zh' ? row.descriptionZh : row.descriptionEn
-  },
-  {
-    title: '',
-    key: 'actions',
-    width: 80,
-    render: (row) => h(NButton, {
-      size: 'small',
-      quaternary: true,
-      onClick: () => { void copy(row.mime, page.t('messages.copiedMime')) }
-    }, { default: () => t('common.copy') })
-  }
-])
+const mimeColumns = computed(
+  (): DataTableColumns<MimeTypeEntry> => [
+    { title: page.t('labels.extension'), key: 'extension', width: 100 },
+    { title: page.t('labels.mime'), key: 'mime', minWidth: 200 },
+    {
+      title: page.t('labels.description'),
+      key: 'description',
+      render: row => (localeKey.value === 'zh' ? row.descriptionZh : row.descriptionEn)
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 80,
+      render: row =>
+        h(
+          NButton,
+          {
+            size: 'small',
+            quaternary: true,
+            onClick: () => {
+              void copy(row.mime, page.t('messages.copiedMime'))
+            }
+          },
+          { default: () => t('common.copy') }
+        )
+    }
+  ]
+)
 
 const filteredGit = computed(() =>
   filterGitCommands(gitQuery.value, gitCategory.value, localeKey.value)
@@ -148,19 +168,9 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
     :description="page.description"
     container-class="dev-reference-view"
   >
-    <NTabs
-      v-model:value="activeTab"
-      type="line"
-      animated
-    >
-      <NTabPane
-        name="mime"
-        :tab="page.t('tabs.mime')"
-      >
-        <NCard
-          class="filter-card"
-          :bordered="false"
-        >
+    <NTabs v-model:value="activeTab" type="line" animated>
+      <NTabPane name="mime" :tab="page.t('tabs.mime')">
+        <NCard class="filter-card" :bordered="false">
           <span class="field-label">{{ page.t('labels.search') }}</span>
           <NInput
             v-model:value="mimeQuery"
@@ -176,22 +186,13 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
           :max-height="520"
           class="ref-table"
         />
-        <p
-          v-if="filteredMime.length === 0"
-          class="empty-hint"
-        >
+        <p v-if="filteredMime.length === 0" class="empty-hint">
           {{ page.t('labels.noResults') }}
         </p>
       </NTabPane>
 
-      <NTabPane
-        name="git"
-        :tab="page.t('tabs.git')"
-      >
-        <NCard
-          class="filter-card"
-          :bordered="false"
-        >
+      <NTabPane name="git" :tab="page.t('tabs.git')">
+        <NCard class="filter-card" :bordered="false">
           <div class="filter-row">
             <div class="filter-field">
               <span class="field-label">{{ page.t('labels.search') }}</span>
@@ -203,17 +204,11 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
             </div>
             <div class="filter-field category-field">
               <span class="field-label">{{ page.t('labels.category') }}</span>
-              <NSelect
-                v-model:value="gitCategory"
-                :options="gitCategoryOptions"
-              />
+              <NSelect v-model:value="gitCategory" :options="gitCategoryOptions" />
             </div>
           </div>
         </NCard>
-        <div
-          v-if="filteredGit.length === 0"
-          class="empty-hint"
-        >
+        <div v-if="filteredGit.length === 0" class="empty-hint">
           {{ page.t('labels.noResults') }}
         </div>
         <NCard
@@ -231,24 +226,16 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
                 {{ gitDescription(template) }}
               </div>
             </div>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
+            <NTag size="small" :bordered="false">
               {{ page.t(`gitCategories.${template.category}`) }}
             </NTag>
           </div>
-          <div
-            v-if="template.params.length"
-            class="git-params"
-          >
+          <div v-if="template.params.length" class="git-params">
             <span class="field-label">{{ page.t('labels.params') }}</span>
-            <div
-              v-for="param in template.params"
-              :key="param.key"
-              class="param-row"
-            >
-              <span class="param-label">{{ localeKey === 'zh' ? param.labelZh : param.labelEn }}</span>
+            <div v-for="param in template.params" :key="param.key" class="param-row">
+              <span class="param-label">{{
+                localeKey === 'zh' ? param.labelZh : param.labelEn
+              }}</span>
               <NInput
                 :value="ensureGitParams(template)[param.key] ?? ''"
                 :placeholder="param.placeholder"
@@ -269,14 +256,8 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
         </NCard>
       </NTabPane>
 
-      <NTabPane
-        name="http-methods"
-        :tab="page.t('tabs.httpMethods')"
-      >
-        <NCard
-          class="filter-card"
-          :bordered="false"
-        >
+      <NTabPane name="http-methods" :tab="page.t('tabs.httpMethods')">
+        <NCard class="filter-card" :bordered="false">
           <span class="field-label">{{ page.t('labels.search') }}</span>
           <NInput
             v-model:value="httpQuery"
@@ -284,10 +265,7 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
             clearable
           />
         </NCard>
-        <div
-          v-if="filteredHttp.length === 0"
-          class="empty-hint"
-        >
+        <div v-if="filteredHttp.length === 0" class="empty-hint">
           {{ page.t('labels.noResults') }}
         </div>
         <NCard
@@ -297,23 +275,15 @@ function httpTypicalUse(entry: HttpMethodEntry): string {
           :bordered="false"
         >
           <div class="http-header">
-            <NTag
-              type="info"
-              size="medium"
-            >
+            <NTag type="info" size="medium">
               {{ entry.method }}
             </NTag>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
+            <NTag size="small" :bordered="false">
               {{ page.t('labels.safe') }}: {{ entry.safe ? page.t('bool.yes') : page.t('bool.no') }}
             </NTag>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
-              {{ page.t('labels.idempotent') }}: {{ entry.idempotent ? page.t('bool.yes') : page.t('bool.no') }}
+            <NTag size="small" :bordered="false">
+              {{ page.t('labels.idempotent') }}:
+              {{ entry.idempotent ? page.t('bool.yes') : page.t('bool.no') }}
             </NTag>
           </div>
           <p class="http-desc">

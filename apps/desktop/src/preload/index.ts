@@ -49,9 +49,12 @@ const electronAPI: ElectronAPI = {
   openPath: (path: string) => ipcRenderer.invoke('shell:openPath', path),
 
   // Dialog
-  showOpenDialog: (options: OpenDialogOptions) => ipcRenderer.invoke('dialog:showOpenDialog', options),
-  showSaveDialog: (options: SaveDialogOptions) => ipcRenderer.invoke('dialog:showSaveDialog', options),
-  showMessageBox: (options: MessageBoxOptions) => ipcRenderer.invoke('dialog:showMessageBox', options),
+  showOpenDialog: (options: OpenDialogOptions) =>
+    ipcRenderer.invoke('dialog:showOpenDialog', options),
+  showSaveDialog: (options: SaveDialogOptions) =>
+    ipcRenderer.invoke('dialog:showSaveDialog', options),
+  showMessageBox: (options: MessageBoxOptions) =>
+    ipcRenderer.invoke('dialog:showMessageBox', options),
 
   // Event listeners - returns cleanup function
   on: (channel: string, callback: (...args: unknown[]) => void) => {

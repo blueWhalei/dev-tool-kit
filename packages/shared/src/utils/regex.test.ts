@@ -37,7 +37,7 @@ describe('regex utils', () => {
     it('finds global matches', () => {
       const result = findRegexMatches('\\d+', 'g', 'a1b22c333')
       expect(result.isValid).toBe(true)
-      expect(result.matches.map((m) => m.match)).toEqual(['1', '22', '333'])
+      expect(result.matches.map(m => m.match)).toEqual(['1', '22', '333'])
     })
 
     it('captures groups', () => {
@@ -106,15 +106,15 @@ describe('regex utils', () => {
     it('highlights matches', () => {
       const { matches } = findRegexMatches('\\d+', 'g', 'a1b2')
       const segments = buildMatchHighlights('a1b2', matches)
-      expect(segments.some((s) => s.kind === 'match' && s.text === '1')).toBe(true)
-      expect(segments.some((s) => s.kind === 'match' && s.text === '2')).toBe(true)
+      expect(segments.some(s => s.kind === 'match' && s.text === '1')).toBe(true)
+      expect(segments.some(s => s.kind === 'match' && s.text === '2')).toBe(true)
     })
 
     it('highlights capture groups separately', () => {
       const { matches } = findRegexMatches('(a)(\\d)', 'g', 'a1')
       const segments = buildMatchHighlights('a1', matches)
-      expect(segments.some((s) => s.kind === 'group' && s.groupIndex === 0)).toBe(true)
-      expect(segments.some((s) => s.kind === 'group' && s.groupIndex === 1)).toBe(true)
+      expect(segments.some(s => s.kind === 'group' && s.groupIndex === 0)).toBe(true)
+      expect(segments.some(s => s.kind === 'group' && s.groupIndex === 1)).toBe(true)
     })
   })
 })

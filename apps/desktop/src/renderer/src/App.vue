@@ -20,7 +20,14 @@ import { usePreferences, type ThemePreference, type LocalePreference } from './s
 
 const isDark = ref(false)
 const theme = ref(lightTheme)
-const { themePreference, localePreference, resolveDark, resolveAppLocale, setThemePreference, setLocalePreference } = usePreferences()
+const {
+  themePreference,
+  localePreference,
+  resolveDark,
+  resolveAppLocale,
+  setThemePreference,
+  setLocalePreference
+} = usePreferences()
 const { locale } = useI18n()
 
 const themeOverrides: GlobalThemeOverrides = {
@@ -64,17 +71,21 @@ provide('localePreference', localePreference)
 provide('selectThemePreference', selectThemePreference)
 provide('selectLocalePreference', selectLocalePreference)
 
-watch(isDark, (dark) => {
+watch(isDark, dark => {
   updateMessageTheme(dark)
 })
 
-watch(themePreference, (preference) => {
+watch(themePreference, preference => {
   applyTheme(resolveDark(preference))
 })
 
-watch(localePreference, (preference) => {
-  applyLocale(preference)
-}, { immediate: true })
+watch(
+  localePreference,
+  preference => {
+    applyLocale(preference)
+  },
+  { immediate: true }
+)
 
 let cleanupThemeListener: (() => void) | null = null
 let cleanupMediaQuery: (() => void) | null = null
@@ -124,7 +135,9 @@ onUnmounted(() => {
 </template>
 
 <style>
-html, body, #app {
+html,
+body,
+#app {
   margin: 0;
   padding: 0;
   width: 100%;

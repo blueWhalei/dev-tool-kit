@@ -19,7 +19,7 @@
     "dist:linux": "turbo run build --filter=@dev-tool-kit/desktop... && pnpm --filter @dev-tool-kit/desktop run pack:linux",
     "test:coverage": "vitest run --coverage",
     "format:check": "node scripts/check-format.cjs",
-    "format:changed": "node scripts/check-format.cjs --write"
+    "format:changed": "node scripts/check-format.cjs --changed --write"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -37,8 +37,8 @@
     "vue-eslint-parser": "^9.4.3"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=24.0.0 <25",
+    "pnpm": ">=9.0.0 <10"
   },
   "pnpm": {
     "overrides": {

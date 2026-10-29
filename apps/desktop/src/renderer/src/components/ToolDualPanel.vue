@@ -8,32 +8,37 @@ import { useKeyboardShortcut, isModKey } from '../composables/useKeyboardShortcu
 const input = defineModel<string>('input', { default: '' })
 const output = defineModel<string>('output', { default: '' })
 
-const props = withDefaults(defineProps<{
-  inputPlaceholder?: string
-  outputPlaceholder?: string
-  inputRows?: number
-  outputRows?: number
-  inputLabel?: string
-  outputLabel?: string
-  outputReadonly?: boolean
-  showCopy?: boolean
-}>(), {
-  inputPlaceholder: undefined,
-  outputPlaceholder: undefined,
-  inputLabel: undefined,
-  outputLabel: undefined,
-  inputRows: 8,
-  outputRows: 8,
-  outputReadonly: true,
-  showCopy: true
-})
+const props = withDefaults(
+  defineProps<{
+    inputPlaceholder?: string
+    outputPlaceholder?: string
+    inputRows?: number
+    outputRows?: number
+    inputLabel?: string
+    outputLabel?: string
+    outputReadonly?: boolean
+    showCopy?: boolean
+  }>(),
+  {
+    inputPlaceholder: undefined,
+    outputPlaceholder: undefined,
+    inputLabel: undefined,
+    outputLabel: undefined,
+    inputRows: 8,
+    outputRows: 8,
+    outputReadonly: true,
+    showCopy: true
+  }
+)
 
 const { t } = useI18n()
 
 const inputLabelText = computed(() => props.inputLabel ?? t('common.input'))
 const outputLabelText = computed(() => props.outputLabel ?? t('common.output'))
 const inputPlaceholderText = computed(() => props.inputPlaceholder ?? t('common.inputPlaceholder'))
-const outputPlaceholderText = computed(() => props.outputPlaceholder ?? t('common.outputPlaceholder'))
+const outputPlaceholderText = computed(
+  () => props.outputPlaceholder ?? t('common.outputPlaceholder')
+)
 const copyTitle = computed(() => t('common.copyWithShortcut', { shortcut: 'Ctrl+Shift+C' }))
 
 const { copy } = useCopyToClipboard()
@@ -42,7 +47,7 @@ async function copyOutput() {
   if (output.value) await copy(output.value)
 }
 
-useKeyboardShortcut((event) => {
+useKeyboardShortcut(event => {
   if (isModKey(event) && event.shiftKey && event.key.toLowerCase() === 'c') {
     event.preventDefault()
     void copyOutput()
@@ -51,16 +56,9 @@ useKeyboardShortcut((event) => {
 </script>
 
 <template>
-  <NGrid
-    cols="1 768:2"
-    :x-gap="16"
-    :y-gap="16"
-  >
+  <NGrid cols="1 768:2" :x-gap="16" :y-gap="16">
     <NGridItem>
-      <NCard
-        class="tool-panel-card"
-        :bordered="false"
-      >
+      <NCard class="tool-panel-card" :bordered="false">
         <template #header>
           <span class="card-title">{{ inputLabelText }}</span>
         </template>
@@ -74,10 +72,7 @@ useKeyboardShortcut((event) => {
       </NCard>
     </NGridItem>
     <NGridItem>
-      <NCard
-        class="tool-panel-card"
-        :bordered="false"
-      >
+      <NCard class="tool-panel-card" :bordered="false">
         <template #header>
           <div class="card-header-flex">
             <span class="card-title">{{ outputLabelText }}</span>

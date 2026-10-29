@@ -20,7 +20,7 @@ module.exports = {
   plugins: ['@typescript-eslint', 'vue'],
   rules: {
     // TypeScript
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',

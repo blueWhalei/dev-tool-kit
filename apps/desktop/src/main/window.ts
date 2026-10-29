@@ -44,10 +44,10 @@ export function centerWindow(window: BrowserWindow): void {
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
   const [windowWidth, windowHeight] = window.getSize()
-  
+
   const x = Math.floor((screenWidth - windowWidth) / 2)
   const y = Math.floor((screenHeight - windowHeight) / 2)
-  
+
   window.setPosition(x, y)
   logger.info(`Window centered at ${x}, ${y}`)
 }

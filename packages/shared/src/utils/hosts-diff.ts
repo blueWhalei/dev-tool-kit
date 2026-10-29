@@ -18,14 +18,18 @@ function describeChanges(before: HostsEntry, after: HostsEntry): string[] {
   const changes: string[] = []
   if (before.ip !== after.ip) changes.push(`IP: ${before.ip} → ${after.ip}`)
   if (before.enabled !== after.enabled) changes.push(before.enabled ? '启用 → 禁用' : '禁用 → 启用')
-  if (before.group !== after.group) changes.push(`分组: ${before.group ?? '无'} → ${after.group ?? '无'}`)
+  if (before.group !== after.group)
+    changes.push(`分组: ${before.group ?? '无'} → ${after.group ?? '无'}`)
   if ((before.comment ?? '') !== (after.comment ?? '')) {
     changes.push(`备注: ${before.comment || '—'} → ${after.comment || '—'}`)
   }
   return changes
 }
 
-export function diffHostsEntries(current: HostsEntry[], incoming: HostsEntry[]): HostsEntryChange[] {
+export function diffHostsEntries(
+  current: HostsEntry[],
+  incoming: HostsEntry[]
+): HostsEntryChange[] {
   const currentMap = new Map(current.map(entry => [entryKey(entry), entry]))
   const incomingMap = new Map(incoming.map(entry => [entryKey(entry), entry]))
   const keys = new Set([...currentMap.keys(), ...incomingMap.keys()])

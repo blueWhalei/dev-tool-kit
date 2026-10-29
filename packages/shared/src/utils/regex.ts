@@ -155,7 +155,7 @@ export function buildMatchHighlights(
 
     const fullEnd = m.index + m.match.length
     let offset = 0
-    const hasGroups = m.groups.some((g) => g !== undefined && g !== '')
+    const hasGroups = m.groups.some(g => g !== undefined && g !== '')
 
     if (hasGroups && m.groups.length > 0) {
       let searchFrom = m.index

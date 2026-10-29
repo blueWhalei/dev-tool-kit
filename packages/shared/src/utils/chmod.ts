@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '../constants/tool-errors'
 import type { ConverterResult } from './converter'
 
 export interface PermissionBits {
@@ -72,7 +73,11 @@ function formatExecuteSymbolic(
   return execute ? 'x' : '-'
 }
 
-function formatTripletSymbolic(bits: PermissionBits, specialActive: boolean, specialKind: 'setuid' | 'setgid' | 'sticky'): string {
+function formatTripletSymbolic(
+  bits: PermissionBits,
+  specialActive: boolean,
+  specialKind: 'setuid' | 'setgid' | 'sticky'
+): string {
   return (
     (bits.read ? 'r' : '-') +
     (bits.write ? 'w' : '-') +
@@ -106,10 +111,10 @@ export function chmodFromPermissions(permissions: ChmodPermissions): ChmodInfo {
 export function parseChmodOctal(input: string): ConverterResult<ChmodInfo> {
   const trimmed = input.trim()
   if (!trimmed) {
-    return fail('请输入八进制权限，例如 755')
+    return fail(TOOL_ERROR_CODES.octalEmpty)
   }
   if (!/^[0-7]{3,4}$/.test(trimmed)) {
-    return fail('八进制权限无效，应为 3 或 4 位八进制数字')
+    return fail(TOOL_ERROR_CODES.octalInvalid)
   }
 
   let special = digitToSpecial(0)
@@ -145,7 +150,10 @@ function parseExecuteChar(
   return null
 }
 
-function parseTriplet(chars: string, specialKind: 'setuid' | 'setgid' | 'sticky'): { bits: PermissionBits; special: boolean } | null {
+function parseTriplet(
+  chars: string,
+  specialKind: 'setuid' | 'setgid' | 'sticky'
+): { bits: PermissionBits; special: boolean } | null {
   if (chars.length !== 3) return null
 
   const read = chars[0] === 'r'
@@ -165,7 +173,7 @@ function parseTriplet(chars: string, specialKind: 'setuid' | 'setgid' | 'sticky'
 export function parseChmodSymbolic(input: string): ConverterResult<ChmodInfo> {
   let trimmed = input.trim()
   if (!trimmed) {
-    return fail('请输入符号权限，例如 rwxr-xr-x')
+    return fail(TOOL_ERROR_CODES.symbolicEmpty)
   }
 
   if (trimmed.length >= 10 && /^[dlcbps-]/.test(trimmed[0])) {
@@ -173,7 +181,7 @@ export function parseChmodSymbolic(input: string): ConverterResult<ChmodInfo> {
   }
 
   if (trimmed.length !== 9) {
-    return fail('符号权限格式无效，例如 rwxr-xr-x')
+    return fail(TOOL_ERROR_CODES.symbolicInvalid)
   }
 
   const ownerParsed = parseTriplet(trimmed.slice(0, 3), 'setuid')
@@ -181,7 +189,7 @@ export function parseChmodSymbolic(input: string): ConverterResult<ChmodInfo> {
   const otherParsed = parseTriplet(trimmed.slice(6, 9), 'sticky')
 
   if (!ownerParsed || !groupParsed || !otherParsed) {
-    return fail('符号权限格式无效，例如 rwxr-xr-x')
+    return fail(TOOL_ERROR_CODES.symbolicInvalid)
   }
 
   return {

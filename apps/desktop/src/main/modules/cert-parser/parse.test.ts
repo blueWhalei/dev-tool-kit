@@ -12,8 +12,8 @@ describe('parseCertificatePem', () => {
     expect(result.certificates).toHaveLength(1)
     const cert = result.certificates[0]
 
-    expect(cert.subject.some((attr) => attr.shortName === 'CN' && attr.value === 'agent1')).toBe(true)
-    expect(cert.issuer.some((attr) => attr.shortName === 'CN' && attr.value === 'ca1')).toBe(true)
+    expect(cert.subject.some(attr => attr.shortName === 'CN' && attr.value === 'agent1')).toBe(true)
+    expect(cert.issuer.some(attr => attr.shortName === 'CN' && attr.value === 'ca1')).toBe(true)
     expect(cert.serialNumber).toBe('147D36C1C2F74206DE9FAB5F2226D78ADB00A426')
     expect(cert.publicKey.type).toBe('rsa')
     expect(cert.publicKey.bits).toBe(2048)
@@ -30,14 +30,14 @@ describe('parseCertificatePem', () => {
     const result = parseCertificatePem('   ')
     expect(result.success).toBe(false)
     if (result.success) return
-    expect(result.error).toBe('请输入 PEM 证书内容')
+    expect(result.error).toBe('pemEmpty')
   })
 
   it('returns error when no PEM block is found', () => {
     const result = parseCertificatePem('not a certificate')
     expect(result.success).toBe(false)
     if (result.success) return
-    expect(result.error).toBe('未找到有效的 PEM 证书块')
+    expect(result.error).toBe('pemNotFound')
   })
 
   it('returns error for invalid PEM content', () => {

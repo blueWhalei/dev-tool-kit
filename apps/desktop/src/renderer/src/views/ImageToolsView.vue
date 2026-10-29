@@ -25,7 +25,20 @@ const { pickedImage } = useSharedImageState()
 
 // ─── Tab / Category management ───────────────────────────────────────────────
 
-const VALID_TABS = ['base64', 'info', 'dataUrl', 'compress', 'resize', 'svg', 'convert', 'color', 'favicon', 'batch', 'compare', 'preset'] as const
+const VALID_TABS = [
+  'base64',
+  'info',
+  'dataUrl',
+  'compress',
+  'resize',
+  'svg',
+  'convert',
+  'color',
+  'favicon',
+  'batch',
+  'compare',
+  'preset'
+] as const
 type TabName = (typeof VALID_TABS)[number]
 
 type CategoryName = 'basic' | 'optimize' | 'convert' | 'batch'
@@ -37,11 +50,7 @@ const TAB_CATEGORIES: Record<CategoryName, readonly TabName[]> = {
   batch: ['batch']
 }
 
-const {
-  activeTab,
-  activeCategory,
-  showTab
-} = useTabNavigation({
+const { activeTab, activeCategory, showTab } = useTabNavigation({
   validTabs: VALID_TABS,
   tabCategories: TAB_CATEGORIES,
   defaultCategory: 'basic',
@@ -125,7 +134,6 @@ function handlePaste(e: ClipboardEvent) {
     }
   }
 }
-
 </script>
 
 <template>
@@ -142,10 +150,7 @@ function handlePaste(e: ClipboardEvent) {
       @drop="handleDrop"
       @paste="handlePaste"
     >
-      <NRadioGroup
-        v-model:value="activeCategory"
-        class="category-tabs"
-      >
+      <NRadioGroup v-model:value="activeCategory" class="category-tabs">
         <NRadioButton value="basic">
           {{ page.t('categories.basic') }}
         </NRadioButton>
@@ -160,97 +165,44 @@ function handlePaste(e: ClipboardEvent) {
         </NRadioButton>
       </NRadioGroup>
 
-      <NTabs
-        v-model:value="activeTab"
-        type="line"
-        animated
-        class="converter-tabs"
-      >
+      <NTabs v-model:value="activeTab" type="line" animated class="converter-tabs">
         <!-- ─── Base64 Tab ──────────────────────────────────────────────── -->
-        <NTabPane
-          v-if="showTab('base64')"
-          name="base64"
-          :tab="page.t('tabs.base64')"
-        >
+        <NTabPane v-if="showTab('base64')" name="base64" :tab="page.t('tabs.base64')">
           <ImageBase64Panel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('info')"
-          name="info"
-          :tab="page.t('tabs.info')"
-        >
+        <NTabPane v-if="showTab('info')" name="info" :tab="page.t('tabs.info')">
           <ImageInfoPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('compress')"
-          name="compress"
-          :tab="page.t('tabs.compress')"
-        >
+        <NTabPane v-if="showTab('compress')" name="compress" :tab="page.t('tabs.compress')">
           <ImageCompressPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('resize')"
-          name="resize"
-          :tab="page.t('tabs.resize')"
-        >
+        <NTabPane v-if="showTab('resize')" name="resize" :tab="page.t('tabs.resize')">
           <ImageResizePanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('convert')"
-          name="convert"
-          :tab="page.t('tabs.convert')"
-        >
+        <NTabPane v-if="showTab('convert')" name="convert" :tab="page.t('tabs.convert')">
           <ImageConvertPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('dataUrl')"
-          name="dataUrl"
-          :tab="page.t('tabs.dataUrl')"
-        >
+        <NTabPane v-if="showTab('dataUrl')" name="dataUrl" :tab="page.t('tabs.dataUrl')">
           <ImageDataUrlPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('svg')"
-          name="svg"
-          :tab="page.t('tabs.svg')"
-        >
+        <NTabPane v-if="showTab('svg')" name="svg" :tab="page.t('tabs.svg')">
           <ImageSvgPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('color')"
-          name="color"
-          :tab="page.t('tabs.color')"
-        >
+        <NTabPane v-if="showTab('color')" name="color" :tab="page.t('tabs.color')">
           <ImageColorPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('favicon')"
-          name="favicon"
-          :tab="page.t('tabs.favicon')"
-        >
+        <NTabPane v-if="showTab('favicon')" name="favicon" :tab="page.t('tabs.favicon')">
           <ImageFaviconPanel />
         </NTabPane>
-        <NTabPane
-          v-if="showTab('batch')"
-          name="batch"
-          :tab="page.t('tabs.batch')"
-        >
+        <NTabPane v-if="showTab('batch')" name="batch" :tab="page.t('tabs.batch')">
           <ImageBatchPanel />
         </NTabPane>
         <!-- ─── Compare Tab ──────────────────────────────────────────── -->
-        <NTabPane
-          v-if="showTab('compare')"
-          name="compare"
-          :tab="page.t('tabs.compare')"
-        >
+        <NTabPane v-if="showTab('compare')" name="compare" :tab="page.t('tabs.compare')">
           <ImageComparePanel />
         </NTabPane>
         <!-- ─── Preset Tab ──────────────────────────────────────────── -->
-        <NTabPane
-          v-if="showTab('preset')"
-          name="preset"
-          :tab="page.t('tabs.preset')"
-        >
+        <NTabPane v-if="showTab('preset')" name="preset" :tab="page.t('tabs.preset')">
           <ImagePresetPanel />
         </NTabPane>
       </NTabs>
@@ -861,7 +813,9 @@ function handlePaste(e: ClipboardEvent) {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .preset-card:hover {

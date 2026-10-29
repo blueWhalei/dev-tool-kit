@@ -128,7 +128,11 @@ function exportJson() {
     message.warning(page.t('messages.generateFirst'))
     return
   }
-  downloadTextFile(`mock-data-${records.value.length}.json`, jsonOutput.value, 'application/json;charset=utf-8')
+  downloadTextFile(
+    `mock-data-${records.value.length}.json`,
+    jsonOutput.value,
+    'application/json;charset=utf-8'
+  )
   message.success(page.t('messages.exportedJson'))
 }
 
@@ -137,7 +141,11 @@ function exportCsv() {
     message.warning(page.t('messages.generateFirst'))
     return
   }
-  downloadTextFile(`mock-data-${records.value.length}.csv`, recordsToCsv(records.value), 'text/csv;charset=utf-8')
+  downloadTextFile(
+    `mock-data-${records.value.length}.csv`,
+    recordsToCsv(records.value),
+    'text/csv;charset=utf-8'
+  )
   message.success(page.t('messages.exportedCsv'))
 }
 
@@ -160,9 +168,15 @@ const exportMenuOptions = computed<DropdownOption[]>(() => [
 
 function handleExportMenu(key: string) {
   switch (key) {
-    case 'json': exportJson(); break
-    case 'csv': exportCsv(); break
-    case 'sql': exportSql(); break
+    case 'json':
+      exportJson()
+      break
+    case 'csv':
+      exportCsv()
+      break
+    case 'sql':
+      exportSql()
+      break
   }
 }
 
@@ -227,22 +241,12 @@ generate()
       />
       <div class="count-control">
         <span class="control-label">{{ page.t('labels.count') }}</span>
-        <NInputNumber
-          v-model:value="count"
-          :min="1"
-          :max="1000"
-        />
+        <NInputNumber v-model:value="count" :min="1" :max="1000" />
       </div>
-      <NButton
-        type="primary"
-        @click="generate"
-      >
+      <NButton type="primary" @click="generate">
         {{ page.t('buttons.generate') }}
       </NButton>
-      <NButton
-        :disabled="!records.length"
-        @click="copyJson"
-      >
+      <NButton :disabled="!records.length" @click="copyJson">
         {{ page.t('buttons.copyJson') }}
       </NButton>
       <NDropdown
@@ -256,27 +260,17 @@ generate()
       </NDropdown>
     </template>
 
-    <NCard
-      class="fields-card"
-      :bordered="false"
-    >
+    <NCard class="fields-card" :bordered="false">
       <template #header>
         <div class="fields-header">
           <span class="card-title">{{ page.t('labels.fieldConfig') }}</span>
-          <NButton
-            size="small"
-            @click="addField"
-          >
+          <NButton size="small" @click="addField">
             {{ page.t('buttons.addField') }}
           </NButton>
         </div>
       </template>
       <div class="fields-list">
-        <div
-          v-for="(field, index) in fields"
-          :key="index"
-          class="field-row"
-        >
+        <div v-for="(field, index) in fields" :key="index" class="field-row">
           <NInput
             v-model:value="field.name"
             :placeholder="page.t('placeholders.fieldName')"
@@ -296,18 +290,11 @@ generate()
             class="field-options"
             @update:value="onFieldNameChange"
           />
-          <NButton
-            quaternary
-            type="error"
-            @click="removeField(index)"
-          >
+          <NButton quaternary type="error" @click="removeField(index)">
             {{ page.t('buttons.delete') }}
           </NButton>
         </div>
-        <p
-          v-if="fields.some(f => f.type === 'enum')"
-          class="enum-hint"
-        >
+        <p v-if="fields.some(f => f.type === 'enum')" class="enum-hint">
           {{ page.t('hints.enumOptions') }}
         </p>
       </div>
@@ -321,25 +308,15 @@ generate()
       </div>
     </NCard>
 
-    <NCard
-      v-if="records.length"
-      class="result-card"
-      :bordered="false"
-    >
+    <NCard v-if="records.length" class="result-card" :bordered="false">
       <template #header>
         <div class="result-header">
           <span class="card-title">{{ page.t('labels.preview', { count: records.length }) }}</span>
           <div class="result-actions">
-            <NButton
-              size="small"
-              @click="copyJson"
-            >
+            <NButton size="small" @click="copyJson">
               {{ page.t('buttons.copyJson') }}
             </NButton>
-            <NDropdown
-              :options="exportMenuOptions"
-              @select="handleExportMenu"
-            >
+            <NDropdown :options="exportMenuOptions" @select="handleExportMenu">
               <NButton size="small">
                 {{ page.t('buttons.exportMenu') }}
               </NButton>
@@ -355,10 +332,7 @@ generate()
         :max-height="360"
         virtual-scroll
       />
-      <p
-        v-if="records.length > 20"
-        class="preview-hint"
-      >
+      <p v-if="records.length > 20" class="preview-hint">
         {{ page.t('hints.previewLimit') }}
       </p>
     </NCard>

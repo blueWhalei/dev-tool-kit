@@ -2,14 +2,17 @@
 import { computed } from 'vue'
 import { TOOL_ICON_PATHS, resolveToolIcon, type ToolIconName } from './icons/tool-icons'
 
-const props = withDefaults(defineProps<{
-  name: string
-  size?: number
-  strokeWidth?: number
-}>(), {
-  size: 18,
-  strokeWidth: 1.75
-})
+const props = withDefaults(
+  defineProps<{
+    name: string
+    size?: number
+    strokeWidth?: number
+  }>(),
+  {
+    size: 18,
+    strokeWidth: 1.75
+  }
+)
 
 const iconName = computed((): ToolIconName => resolveToolIcon(props.name))
 const path = computed(() => TOOL_ICON_PATHS[iconName.value])

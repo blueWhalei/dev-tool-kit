@@ -9,9 +9,11 @@ import type {
   ProcessInfo,
   OperationResult,
   EnvVariable,
+  EnvScope,
   PathEntry,
   ShellEnvDiffLine,
   HostsEntry,
+  HostsOperationResult,
   HostsGroup,
   HostsScheme,
   DnsFlushResult,
@@ -96,11 +98,11 @@ export interface IpcContracts {
   'env-manager:getAll': { args: []; result: EnvVariable[] }
   'env-manager:get': { args: [name: string]; result: EnvVariable | null }
   'env-manager:set': {
-    args: [name: string, value: string]
+    args: [name: string, value: string, scope: EnvScope]
     result: { success: boolean; error?: string | undefined }
   }
   'env-manager:delete': {
-    args: [name: string]
+    args: [name: string, scope: EnvScope]
     result: { success: boolean; error?: string | undefined }
   }
   'env-manager:getPath': { args: []; result: PathEntry[] }
@@ -163,24 +165,24 @@ export interface IpcContracts {
   'hosts:getAll': { args: []; result: HostsEntry[] }
   'hosts:add': {
     args: [entry: Omit<HostsEntry, 'id'>]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:update': {
     args: [id: string, updates: Partial<HostsEntry>]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:delete': {
     args: [id: string]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:toggle': {
     args: [id: string]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:getGroups': { args: []; result: HostsGroup[] }
   'hosts:setGroup': {
     args: [id: string, group: string | undefined]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:saveScheme': {
     args: [name: string]
@@ -192,7 +194,7 @@ export interface IpcContracts {
   }
   'hosts:loadScheme': {
     args: [id: string]
-    result: { success: boolean; error?: string; sudoCommand?: string; backupPath?: string }
+    result: HostsOperationResult
   }
   'hosts:deleteScheme': {
     args: [id: string]
@@ -240,13 +242,16 @@ export interface IpcContracts {
   'hash-generator:computeFileHash': { args: [filePath: string]; result: FileHashResults | null }
   'image-tools:pickImage': {
     args: []
-    result: {
-      fileName: string
-      filePath: string
-      mimeType: string
-      base64: string
-      size: number
-    } | null
+    result:
+      | {
+          fileName: string
+          filePath: string
+          mimeType: string
+          base64: string
+          size: number
+        }
+      | { error: 'imageTooLarge' | 'imageLoadFailed' }
+      | null
   }
   'image-tools:pickImages': {
     args: []

@@ -30,7 +30,8 @@ export const PLATFORM_CAPABILITIES: PlatformCapabilityRow[] = [
     win32: 'full',
     darwin: 'partial',
     linux: 'partial',
-    notes: 'Unix 支持读取与写入 Shell 配置文件（~/.zshrc、~/.bashrc 等），写入前自动备份并预览 diff；Windows 写入注册表'
+    notes:
+      'Unix 支持读取与写入 Shell 配置文件（~/.zshrc、~/.bashrc 等），写入前自动备份并预览 diff；Windows 写入注册表'
   },
   {
     feature: 'Hosts 编辑',
@@ -76,9 +77,13 @@ export const PLATFORM_LABELS: Record<PlatformId, string> = {
 
 export function getCapabilityLabel(level: CapabilityLevel): string {
   switch (level) {
-    case 'full': return '完整支持'
-    case 'partial': return '部分支持'
-    case 'local': return '本地可用'
-    case 'none': return '不支持'
+    case 'full':
+      return '完整支持'
+    case 'partial':
+      return '部分支持'
+    case 'local':
+      return '本地可用'
+    case 'none':
+      return '不支持'
   }
 }

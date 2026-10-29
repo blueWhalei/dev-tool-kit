@@ -11,10 +11,9 @@ export async function digestSha(
 }
 
 const MD5_S = [
-  7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
-  5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
-  4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
-  6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
+  7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14,
+  20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6,
+  10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 ]
 
 function leftRotate(value: number, shift: number): number {
@@ -26,9 +25,9 @@ function md5Words(bytes: Uint8Array): number[] {
   for (let i = 0; i < bytes.length; i += 4) {
     words.push(
       bytes[i] |
-      ((bytes[i + 1] ?? 0) << 8) |
-      ((bytes[i + 2] ?? 0) << 16) |
-      ((bytes[i + 3] ?? 0) << 24)
+        ((bytes[i + 1] ?? 0) << 8) |
+        ((bytes[i + 2] ?? 0) << 16) |
+        ((bytes[i + 3] ?? 0) << 24)
     )
   }
   return words
@@ -69,8 +68,9 @@ function md5Block(block: number[], state: number[]): void {
   state[3] = (state[3] + d) >>> 0
 }
 
-const MD5_K: number[] = Array.from({ length: 64 }, (_, i) =>
-  Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000) >>> 0
+const MD5_K: number[] = Array.from(
+  { length: 64 },
+  (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000) >>> 0
 )
 
 function toHexLE(n: number): string {

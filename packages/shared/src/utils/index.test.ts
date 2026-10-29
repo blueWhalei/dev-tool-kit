@@ -251,8 +251,12 @@ describe('chunk', () => {
 
 // --- debounce ---
 describe('debounce', () => {
-  beforeEach(() => { vi.useFakeTimers() })
-  afterEach(() => { vi.useRealTimers() })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('delays function call', () => {
     const fn = vi.fn()
@@ -276,8 +280,12 @@ describe('debounce', () => {
 
 // --- throttle ---
 describe('throttle', () => {
-  beforeEach(() => { vi.useFakeTimers() })
-  afterEach(() => { vi.useRealTimers() })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('calls function immediately on first call', () => {
     const fn = vi.fn()

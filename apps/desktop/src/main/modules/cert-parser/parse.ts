@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '@dev-tool-kit/shared'
 import { X509Certificate } from 'node:crypto'
 import type {
   CertificateNameAttribute,
@@ -94,7 +95,7 @@ function parseSubjectAltNames(raw?: string): string[] {
   if (!raw?.trim()) return []
   return raw
     .split(',')
-    .map((part) => part.trim())
+    .map(part => part.trim())
     .filter(Boolean)
 }
 
@@ -158,16 +159,16 @@ function parseSingleCertificate(pem: string): ParsedCertificateInfo {
 export function parseCertificatePem(text: string): CertificateParseResult {
   const trimmed = text.trim()
   if (!trimmed) {
-    return { success: false, error: '请输入 PEM 证书内容' }
+    return { success: false, error: TOOL_ERROR_CODES.pemEmpty }
   }
 
   const blocks = extractPemBlocks(trimmed)
   if (blocks.length === 0) {
-    return { success: false, error: '未找到有效的 PEM 证书块' }
+    return { success: false, error: TOOL_ERROR_CODES.pemNotFound }
   }
 
   try {
-    const certificates = blocks.map((block) => parseSingleCertificate(block))
+    const certificates = blocks.map(block => parseSingleCertificate(block))
     return { success: true, certificates }
   } catch (error) {
     const message = error instanceof Error ? error.message : '证书解析失败'

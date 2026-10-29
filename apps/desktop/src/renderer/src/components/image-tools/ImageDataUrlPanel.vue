@@ -1,9 +1,6 @@
 <template>
   <div class="image-base64-panel">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-    >
+    <NCard class="editor-card" :bordered="false">
       <template #header>
         <span class="card-title">{{ page.t('labels.dataUrlInput') }}</span>
       </template>
@@ -14,14 +11,8 @@
         :placeholder="page.t('placeholders.dataUrlInput')"
         class="code-input"
       />
-      <div
-        class="action-bar"
-        style="margin-top: 12px; border-top: none; padding-top: 0"
-      >
-        <NButton
-          type="primary"
-          @click="handleParseDataUrl"
-        >
+      <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
+        <NButton type="primary" @click="handleParseDataUrl">
           {{ page.t('actions.parseDataUrl') }}
         </NButton>
         <NButton @click="pickImageForDataUrl">
@@ -30,26 +21,15 @@
       </div>
     </NCard>
 
-    <NCard
-      v-if="dataUrlParseResult"
-      class="editor-card"
-      :bordered="false"
-    >
+    <NCard v-if="dataUrlParseResult" class="editor-card" :bordered="false">
       <template #header>
         <span class="card-title">{{ page.t('labels.parseResult') }}</span>
       </template>
-      <NGrid
-        cols="1 640:2"
-        :x-gap="16"
-        :y-gap="12"
-      >
+      <NGrid cols="1 640:2" :x-gap="16" :y-gap="12">
         <NGridItem>
           <div class="info-item">
             <span class="result-label">{{ page.t('labels.mimeType') }}</span>
-            <NTag
-              size="small"
-              :bordered="false"
-            >
+            <NTag size="small" :bordered="false">
               {{ dataUrlParseResult.mimeType }}
             </NTag>
           </div>
@@ -68,7 +48,11 @@
               :bordered="false"
               :type="dataUrlParseResult.isBase64 ? 'info' : 'default'"
             >
-              {{ dataUrlParseResult.isBase64 ? page.t('labels.base64Encoded') : page.t('labels.textEncoded') }}
+              {{
+                dataUrlParseResult.isBase64
+                  ? page.t('labels.base64Encoded')
+                  : page.t('labels.textEncoded')
+              }}
             </NTag>
           </div>
         </NGridItem>
@@ -101,27 +85,14 @@
         />
       </div>
 
-      <div
-        v-if="dataUrlParseResult.mimeType.startsWith('image/')"
-        style="margin-top: 12px"
-      >
+      <div v-if="dataUrlParseResult.mimeType.startsWith('image/')" style="margin-top: 12px">
         <span class="section-label">{{ page.t('labels.preview') }}</span>
-        <div
-          class="image-preview-wrap"
-          style="margin-top: 4px"
-        >
-          <img
-            :src="dataUrlInput"
-            :alt="page.t('labels.preview')"
-            class="image-preview"
-          >
+        <div class="image-preview-wrap" style="margin-top: 4px">
+          <img :src="dataUrlInput" :alt="page.t('labels.preview')" class="image-preview" />
         </div>
       </div>
 
-      <div
-        class="action-bar"
-        style="margin-top: 12px; border-top: none; padding-top: 0"
-      >
+      <div class="action-bar" style="margin-top: 12px; border-top: none; padding-top: 0">
         <NButton @click="copy(dataUrlInput, page.t('messages.imageCopied'))">
           {{ page.t('actions.copyDataUri') }}
         </NButton>
@@ -162,7 +133,9 @@ function parseDataUrl(input: string): DataUrlParseResult | null {
   if (charsetMatch) charset = charsetMatch[1]
 
   const mimeType = fullMediaType.split(';')[0].trim()
-  const dataByteSize = isBase64 ? Math.ceil((data.length * 3) / 4) : new TextEncoder().encode(data).length
+  const dataByteSize = isBase64
+    ? Math.ceil((data.length * 3) / 4)
+    : new TextEncoder().encode(data).length
 
   let rawText = ''
   if (isBase64) {

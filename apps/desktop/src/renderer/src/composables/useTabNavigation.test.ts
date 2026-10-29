@@ -13,7 +13,7 @@ const STORAGE_KEY = 'test-tab-nav-key'
 interface Harness {
   app: App
   router: Router
-  nav: TabNavigationReturn<typeof VALID_TABS[number], keyof typeof TAB_CATEGORIES>
+  nav: TabNavigationReturn<(typeof VALID_TABS)[number], keyof typeof TAB_CATEGORIES>
   unmount: () => void
 }
 
@@ -25,7 +25,8 @@ async function mountHarness(query: Record<string, string> = {}): Promise<Harness
   await router.push({ path: '/', query })
   await router.isReady()
 
-  let nav: TabNavigationReturn<typeof VALID_TABS[number], keyof typeof TAB_CATEGORIES> | null = null
+  let nav: TabNavigationReturn<(typeof VALID_TABS)[number], keyof typeof TAB_CATEGORIES> | null =
+    null
   const Comp = defineComponent({
     setup() {
       nav = useTabNavigation({

@@ -112,10 +112,12 @@ function parseAuthorityManually(trimmed: string, protocol: string): ParsedConnec
   const rest = trimmed.slice(prefixMatch[0].length)
   const queryIndex = rest.indexOf('?')
   const hashIndex = rest.indexOf('#')
-  const endIndex = [queryIndex, hashIndex].filter(i => i >= 0).sort((a, b) => a - b)[0] ?? rest.length
+  const endIndex =
+    [queryIndex, hashIndex].filter(i => i >= 0).sort((a, b) => a - b)[0] ?? rest.length
 
   const pathAndAuth = rest.slice(0, endIndex)
-  const query = queryIndex >= 0 ? rest.slice(queryIndex, hashIndex >= 0 ? hashIndex : undefined) : ''
+  const query =
+    queryIndex >= 0 ? rest.slice(queryIndex, hashIndex >= 0 ? hashIndex : undefined) : ''
 
   const slashIndex = pathAndAuth.indexOf('/')
   const authority = slashIndex >= 0 ? pathAndAuth.slice(0, slashIndex) : pathAndAuth
@@ -140,14 +142,12 @@ function parseAuthorityManually(trimmed: string, protocol: string): ParsedConnec
   const { host, port } = resolveHostPort(hostPort)
   if (!host) return null
 
-  const database = databaseRaw
-    ? decodeComponent(databaseRaw.split('/')[0]) || null
-    : null
+  const database = databaseRaw ? decodeComponent(databaseRaw.split('/')[0]) || null : null
 
   return {
     protocol,
     host: decodeComponent(host),
-    port: port ?? (DEFAULT_PORTS[protocol] ?? null),
+    port: port ?? DEFAULT_PORTS[protocol] ?? null,
     user,
     password,
     database,
@@ -156,9 +156,7 @@ function parseAuthorityManually(trimmed: string, protocol: string): ParsedConnec
 }
 
 function buildResultFromUrl(url: URL, protocol: string, host: string): ParsedConnectionString {
-  const port = url.port
-    ? Number.parseInt(url.port, 10)
-    : (DEFAULT_PORTS[protocol] ?? null)
+  const port = url.port ? Number.parseInt(url.port, 10) : (DEFAULT_PORTS[protocol] ?? null)
 
   const user = url.username ? decodeComponent(url.username) : null
   const password = url.password ? decodeComponent(url.password) : null
@@ -250,7 +248,10 @@ function encodeUriComponent(value: string): string {
   return encodeURIComponent(value)
 }
 
-function buildUserInfoAuthority(user: string | null | undefined, password: string | null | undefined): string {
+function buildUserInfoAuthority(
+  user: string | null | undefined,
+  password: string | null | undefined
+): string {
   const trimmedUser = user?.trim()
   const hasUser = Boolean(trimmedUser)
   const hasPassword = password != null && password !== ''
@@ -294,7 +295,9 @@ function buildQueryString(queryParams: Record<string, string> | undefined): stri
   return `?${new URLSearchParams(entries).toString()}`
 }
 
-export function buildConnectionString(input: ConnectionStringBuildInput): ConnectionStringBuildResult {
+export function buildConnectionString(
+  input: ConnectionStringBuildInput
+): ConnectionStringBuildResult {
   const protocol = normalizeProtocol(input.protocol)
   if (!SUPPORTED_PROTOCOLS.has(protocol)) {
     return { success: false, error: 'unsupported_protocol' }

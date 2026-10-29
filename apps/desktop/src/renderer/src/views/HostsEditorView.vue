@@ -203,12 +203,7 @@ function translateError(error: string | undefined, fallbackKey: string): string 
   return translateToolError(t, 'hostsEditor', error) || page.t(fallbackKey)
 }
 
-interface HostsOperationResponse {
-  success: boolean
-  error?: string
-  sudoCommand?: string
-  backupPath?: string
-}
+type HostsOperationResponse = import('@dev-tool-kit/shared').IpcResult<'hosts:add'>
 
 function handleHostsOperationResult(
   result: HostsOperationResponse | null | undefined,
@@ -216,10 +211,12 @@ function handleHostsOperationResult(
   fallbackErrorKey: string
 ): boolean {
   if (result?.success) {
+    if ('dnsFlushed' in result && result.dnsFlushed === false)
+      message.warning(page.t('messages.dnsFlushWarning'))
     message.success(page.t(successKey))
     return true
   }
-  if (result?.error === 'HOSTS_PERMISSION_DENIED' && result.sudoCommand) {
+  if (result?.error === 'permissionDenied' && result.sudoCommand) {
     dialog.warning({
       title: page.t('dialogs.permissionTitle'),
       content: () =>

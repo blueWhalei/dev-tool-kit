@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '../constants/tool-errors'
 import type { ErrorObject } from 'ajv'
 import Ajv from 'ajv'
 import type { ConverterResult } from './converter'
@@ -13,6 +14,7 @@ export interface SchemaValidationResult {
   valid?: boolean
   errors?: SchemaValidationError[]
   error?: string
+  errorParams?: Record<string, string | number>
 }
 
 function fail(error: string): ConverterResult<never> {
@@ -20,28 +22,32 @@ function fail(error: string): ConverterResult<never> {
 }
 
 export function parseJsonValue(text: string): ConverterResult<unknown> {
-  if (!text.trim()) return fail('请输入 JSON 内容')
+  if (!text.trim()) return fail(TOOL_ERROR_CODES.jsonEmpty)
   try {
     return { success: true, result: JSON.parse(text) }
   } catch {
     const err = getJsonParseError(text)
     if (err && err.line > 0) {
-      return fail(`无效的 JSON（第 ${err.line} 行，第 ${err.column} 列）`)
+      return {
+        success: false,
+        error: 'jsonInvalidLine',
+        errorParams: { line: err.line, column: err.column }
+      }
     }
-    return fail('无效的 JSON')
+    return fail(TOOL_ERROR_CODES.jsonInvalid)
   }
 }
 
 export function parseJsonSchema(schemaText: string): ConverterResult<object> {
-  if (!schemaText.trim()) return fail('请输入 JSON Schema')
+  if (!schemaText.trim()) return fail(TOOL_ERROR_CODES.schemaEmpty)
   try {
     const schema = JSON.parse(schemaText) as unknown
     if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) {
-      return fail('JSON Schema 必须是对象')
+      return fail(TOOL_ERROR_CODES.schemaNotObject)
     }
     return { success: true, result: schema }
   } catch {
-    return fail('无效的 JSON Schema')
+    return fail(TOOL_ERROR_CODES.schemaInvalid)
   }
 }
 
@@ -81,21 +87,21 @@ export function validateAgainstSchema(data: unknown, schemaText: string): Schema
     validate = ajv.compile(schemaResult.result!)
   } catch {
     // JSON 合法但 Schema 结构非法（如 {"type":123}）时 ajv.compile 会抛异常
-    return { success: false, error: 'Schema 结构无效' }
+    return { success: false, error: TOOL_ERROR_CODES.schemaInvalid }
   }
 
   let valid: boolean
   try {
     valid = validate(data)
   } catch {
-    return { success: false, error: 'Schema 校验失败' }
+    return { success: false, error: 'schemaWorkerFailed' }
   }
 
   if (valid) {
     return { success: true, valid: true }
   }
 
-  const errors = (validate.errors ?? []).map((err) => ({
+  const errors = (validate.errors ?? []).map(err => ({
     path: formatAjvPath(err.instancePath),
     message: formatAjvMessage(err)
   }))

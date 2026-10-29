@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '../constants/tool-errors'
 import type { ConverterResult } from './converter'
 
 export type IpVersion = 'ipv4' | 'ipv6'
@@ -39,12 +40,7 @@ function ipToNumber(ip: string): number | null {
 }
 
 function numberToIp(num: number): string {
-  return [
-    (num >>> 24) & 255,
-    (num >>> 16) & 255,
-    (num >>> 8) & 255,
-    num & 255
-  ].join('.')
+  return [(num >>> 24) & 255, (num >>> 16) & 255, (num >>> 8) & 255, num & 255].join('.')
 }
 
 function prefixToMask(prefix: number): number {
@@ -119,7 +115,7 @@ function hextetsFromBigInt(num: bigint): string[] {
 
 /** RFC 5952 compress longest zero run (min length 2) */
 export function compressIpv6(hextets: string[]): string {
-  const normalized = hextets.map((h) => {
+  const normalized = hextets.map(h => {
     const stripped = h.replace(/^0+(?!$)/, '') || '0'
     return stripped.toLowerCase()
   })
@@ -162,13 +158,13 @@ function pow2BigInt(exp: number): bigint {
 }
 
 function parseIpv4Cidr(ip: string, prefix: number): ConverterResult<SubnetInfo> {
-  if (prefix < 0 || prefix > 32) return fail('前缀长度必须在 0-32 之间')
+  if (prefix < 0 || prefix > 32) return fail(TOOL_ERROR_CODES.cidrPrefixInvalid)
 
   const ipNum = ipToNumber(ip)
-  if (ipNum === null) return fail('IP 地址无效')
+  if (ipNum === null) return fail(TOOL_ERROR_CODES.ipInvalid)
 
   const mask = prefixToMask(prefix)
-  const wildcard = (~mask) >>> 0
+  const wildcard = ~mask >>> 0
   const network = (ipNum & mask) >>> 0
   const broadcast = (network | wildcard) >>> 0
   const totalHosts = prefix === 32 ? 1 : Math.pow(2, 32 - prefix)
@@ -207,13 +203,13 @@ function parseIpv4Cidr(ip: string, prefix: number): ConverterResult<SubnetInfo> 
 }
 
 function parseIpv6Cidr(ip: string, prefix: number): ConverterResult<SubnetInfo> {
-  if (prefix < 0 || prefix > 128) return fail('前缀长度必须在 0-128 之间')
+  if (prefix < 0 || prefix > 128) return fail(TOOL_ERROR_CODES.cidrPrefixInvalidV6)
 
   const ipNum = parseIpv6Address(ip)
-  if (ipNum === null) return fail('IPv6 地址无效')
+  if (ipNum === null) return fail(TOOL_ERROR_CODES.ipv6Invalid)
 
   const mask = ipv6PrefixMask(prefix)
-  const wildcard = (~mask) & IPV6_MAX
+  const wildcard = ~mask & IPV6_MAX
   const network = ipNum & mask
   const last = network | wildcard
   const hostBits = 128 - prefix
@@ -259,26 +255,26 @@ function detectVersion(addr: string): IpVersion | null {
 
 export function parseCidr(input: string): ConverterResult<SubnetInfo> {
   const trimmed = input.trim()
-  if (!trimmed) return fail('请输入 CIDR，例如 192.168.1.0/24')
+  if (!trimmed) return fail(TOOL_ERROR_CODES.cidrEmpty)
 
   const slashIndex = trimmed.lastIndexOf('/')
   if (slashIndex <= 0 || slashIndex === trimmed.length - 1) {
-    return fail('CIDR 格式无效，应为 IP/前缀长度，例如 192.168.1.0/24')
+    return fail(TOOL_ERROR_CODES.cidrInvalid)
   }
 
   const addr = trimmed.slice(0, slashIndex)
   const prefixStr = trimmed.slice(slashIndex + 1)
   if (!/^\d{1,3}$/.test(prefixStr)) {
-    return fail('CIDR 格式无效，应为 IP/前缀长度，例如 192.168.1.0/24')
+    return fail(TOOL_ERROR_CODES.cidrInvalid)
   }
   const prefix = parseInt(prefixStr, 10)
 
   const version = detectVersion(addr)
-  if (version === null) return fail('CIDR 格式无效，应为 IP/前缀长度，例如 192.168.1.0/24')
+  if (version === null) return fail(TOOL_ERROR_CODES.cidrInvalid)
 
   if (version === 'ipv4') {
     if (!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(addr)) {
-      return fail('CIDR 格式无效，应为 IP/前缀长度，例如 192.168.1.0/24')
+      return fail(TOOL_ERROR_CODES.cidrInvalid)
     }
     return parseIpv4Cidr(addr, prefix)
   }
@@ -313,12 +309,12 @@ export function splitVlsm(baseCidr: string, hostCounts: number[]): ConverterResu
     return { success: false, error: base.error ?? '请输入有效的 CIDR' }
   }
   if (base.result.version !== 'ipv4') {
-    return { success: false, error: 'VLSM 拆分仅支持 IPv4' }
+    return { success: false, error: TOOL_ERROR_CODES.vlsmIpv6 }
   }
 
   const counts = hostCounts.filter(n => Number.isInteger(n) && n > 0)
   if (counts.length === 0) {
-    return { success: false, error: '请至少输入一个有效的主机数量' }
+    return { success: false, error: TOOL_ERROR_CODES.vlsmEmpty }
   }
 
   const baseNetwork = ipToNumber(base.result.network)
@@ -331,7 +327,7 @@ export function splitVlsm(baseCidr: string, hostCounts: number[]): ConverterResu
   for (const count of counts) {
     const prefix = hostsToPrefix(count)
     if (prefix === null || prefix < base.result.prefix) {
-      return { success: false, error: '主机数量超出父网可用范围' }
+      return { success: false, error: TOOL_ERROR_CODES.vlsmHostOverflow }
     }
     prefixes.push(prefix)
   }
@@ -345,14 +341,14 @@ export function splitVlsm(baseCidr: string, hostCounts: number[]): ConverterResu
     const blockSize = 1 << (32 - prefix)
     const offset = cursor - baseNetwork
     if (offset % blockSize !== 0) {
-      return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+      return { success: false, error: TOOL_ERROR_CODES.vlsmOverflow }
     }
     const network = cursor
-    const broadcast = (network | ((~mask) >>> 0)) >>> 0
+    const broadcast = (network | (~mask >>> 0)) >>> 0
     const blockEnd = broadcast
 
     if (network < baseNetwork || blockEnd > baseBroadcast) {
-      return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+      return { success: false, error: TOOL_ERROR_CODES.vlsmOverflow }
     }
 
     const totalHosts = 1 << (32 - prefix)
@@ -376,7 +372,7 @@ export function splitVlsm(baseCidr: string, hostCounts: number[]): ConverterResu
   }
 
   if (cursor - 1 > baseBroadcast) {
-    return { success: false, error: '子网分配超出父网范围，请减少主机数量或子网数' }
+    return { success: false, error: TOOL_ERROR_CODES.vlsmOverflow }
   }
 
   return { success: true, result: subnets }

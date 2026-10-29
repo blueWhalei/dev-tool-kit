@@ -37,7 +37,14 @@ export const CRON_FIELD_DEFS: Record<CronFieldKey, CronFieldDef> = {
   week: { key: 'week', min: 0, max: 6 }
 }
 
-const FIELD_ORDER_WITH_SECONDS: CronFieldKey[] = ['second', 'minute', 'hour', 'day', 'month', 'week']
+const FIELD_ORDER_WITH_SECONDS: CronFieldKey[] = [
+  'second',
+  'minute',
+  'hour',
+  'day',
+  'month',
+  'week'
+]
 const FIELD_ORDER_WITHOUT_SECONDS: CronFieldKey[] = ['minute', 'hour', 'day', 'month', 'week']
 
 export const COMMON_TIMEZONES = [
@@ -156,8 +163,8 @@ export function parseCronField(token: string): CronField {
   }
 
   if (trimmed.includes(',')) {
-    const values = trimmed.split(',').map((part) => Number(part.trim()))
-    if (values.every((value) => Number.isInteger(value))) {
+    const values = trimmed.split(',').map(part => Number(part.trim()))
+    if (values.every(value => Number.isInteger(value))) {
       return { type: 'list', values }
     }
     return { type: 'custom', raw: trimmed }
@@ -193,10 +200,7 @@ function getFieldOrder(includeSeconds: boolean): CronFieldKey[] {
   return includeSeconds ? FIELD_ORDER_WITH_SECONDS : FIELD_ORDER_WITHOUT_SECONDS
 }
 
-export function parseCronFields(
-  expression: string,
-  includeSeconds: boolean
-): CronFields | null {
+export function parseCronFields(expression: string, includeSeconds: boolean): CronFields | null {
   const parts = expression.trim().split(/\s+/)
   const expectedLength = includeSeconds ? 6 : 5
   if (parts.length !== expectedLength) return null
@@ -211,7 +215,7 @@ export function parseCronFields(
 
 export function buildCronExpression(fields: CronFields, includeSeconds: boolean): string {
   const order = getFieldOrder(includeSeconds)
-  return order.map((key) => buildCronField(fields[key])).join(' ')
+  return order.map(key => buildCronField(fields[key])).join(' ')
 }
 
 export function formatRelativeRunTime(target: Date, now = new Date()): string {
@@ -267,16 +271,44 @@ function resolveDescribeKey(expression: string, includeSeconds: boolean): string
 
   if (len === 6 && includeSeconds) {
     const [second, minute, hour, day, month, week] = parts
-    if (second === '*' && minute === '*' && hour === '*' && day === '*' && month === '*' && week === '*') {
+    if (
+      second === '*' &&
+      minute === '*' &&
+      hour === '*' &&
+      day === '*' &&
+      month === '*' &&
+      week === '*'
+    ) {
       return 'everySecond'
     }
-    if (second === '0' && minute === '0' && hour === '9' && day === '*' && month === '*' && week === '*') {
+    if (
+      second === '0' &&
+      minute === '0' &&
+      hour === '9' &&
+      day === '*' &&
+      month === '*' &&
+      week === '*'
+    ) {
       return 'dailyAt9'
     }
-    if (second === '0' && minute === '0' && hour === '0' && day === '*' && month === '*' && week === '*') {
+    if (
+      second === '0' &&
+      minute === '0' &&
+      hour === '0' &&
+      day === '*' &&
+      month === '*' &&
+      week === '*'
+    ) {
       return 'dailyMidnight'
     }
-    if (second === '0' && minute === '0' && hour === '0' && day === '*' && month === '*' && week === '1') {
+    if (
+      second === '0' &&
+      minute === '0' &&
+      hour === '0' &&
+      day === '*' &&
+      month === '*' &&
+      week === '1'
+    ) {
       return 'weeklyMonday'
     }
   } else if (len === 5) {

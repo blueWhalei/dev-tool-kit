@@ -52,11 +52,53 @@ export function xmlMinify(text: string): ConverterResult {
 }
 
 const SQL_KEYWORDS = [
-  'SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'FULL', 'CROSS',
-  'ON', 'AND', 'OR', 'NOT', 'IN', 'IS', 'NULL', 'AS', 'ORDER', 'BY', 'GROUP', 'HAVING',
-  'LIMIT', 'OFFSET', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE',
-  'TABLE', 'ALTER', 'DROP', 'INDEX', 'VIEW', 'UNION', 'ALL', 'DISTINCT', 'CASE', 'WHEN',
-  'THEN', 'ELSE', 'END', 'BETWEEN', 'LIKE', 'EXISTS'
+  'SELECT',
+  'FROM',
+  'WHERE',
+  'JOIN',
+  'LEFT',
+  'RIGHT',
+  'INNER',
+  'OUTER',
+  'FULL',
+  'CROSS',
+  'ON',
+  'AND',
+  'OR',
+  'NOT',
+  'IN',
+  'IS',
+  'NULL',
+  'AS',
+  'ORDER',
+  'BY',
+  'GROUP',
+  'HAVING',
+  'LIMIT',
+  'OFFSET',
+  'INSERT',
+  'INTO',
+  'VALUES',
+  'UPDATE',
+  'SET',
+  'DELETE',
+  'CREATE',
+  'TABLE',
+  'ALTER',
+  'DROP',
+  'INDEX',
+  'VIEW',
+  'UNION',
+  'ALL',
+  'DISTINCT',
+  'CASE',
+  'WHEN',
+  'THEN',
+  'ELSE',
+  'END',
+  'BETWEEN',
+  'LIKE',
+  'EXISTS'
 ]
 
 const SQL_KEYWORD_SET = new Set(SQL_KEYWORDS)
@@ -74,8 +116,25 @@ export function sqlFormat(text: string): ConverterResult {
       normalized = normalized.replace(re, kw)
     }
 
-    const breakBefore = ['SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN',
-      'ORDER BY', 'GROUP BY', 'HAVING', 'LIMIT', 'OFFSET', 'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM']
+    const breakBefore = [
+      'SELECT',
+      'FROM',
+      'WHERE',
+      'JOIN',
+      'LEFT JOIN',
+      'RIGHT JOIN',
+      'INNER JOIN',
+      'ORDER BY',
+      'GROUP BY',
+      'HAVING',
+      'LIMIT',
+      'OFFSET',
+      'INSERT INTO',
+      'VALUES',
+      'UPDATE',
+      'SET',
+      'DELETE FROM'
+    ]
 
     for (const clause of breakBefore) {
       const re = new RegExp(`\\s+(${clause.replace(' ', '\\s+')})\\b`, 'g')

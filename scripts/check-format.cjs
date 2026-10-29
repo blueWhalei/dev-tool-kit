@@ -3,7 +3,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const prettier = require('prettier')
 async function main() {
-  const base = process.env.FORMAT_BASE || 'HEAD'
+  const base = process.env.FORMAT_BASE || (process.argv.includes('--changed') ? 'HEAD' : '0000000')
   const diffArgs = /^0+$/.test(base)
     ? ['ls-files', '-z']
     : ['diff', '--name-only', '-z', '--diff-filter=ACMR', base, '--']

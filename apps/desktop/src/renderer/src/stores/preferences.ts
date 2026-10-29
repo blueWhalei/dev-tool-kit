@@ -35,7 +35,8 @@ export function getDefaultHomeRoute(): string {
 }
 
 export function pushRecentTool(routeName: string) {
-  if (!routeName || routeName === 'NotFound' || routeName === 'About' || routeName === 'Settings') return
+  if (!routeName || routeName === 'NotFound' || routeName === 'About' || routeName === 'Settings')
+    return
   const filtered = recentTools.value.filter(name => name !== routeName)
   recentTools.value = [routeName, ...filtered].slice(0, MAX_RECENT_TOOLS)
 }
@@ -103,7 +104,10 @@ export function usePreferences() {
     }
   }
 
-  function importPreferencesData(data: unknown): { success: boolean; error?: PreferencesImportError } {
+  function importPreferencesData(data: unknown): {
+    success: boolean
+    error?: PreferencesImportError
+  } {
     if (!data || typeof data !== 'object') {
       return { success: false, error: 'invalidConfig' }
     }
@@ -114,14 +118,19 @@ export function usePreferences() {
     if (payload.themePreference && ['light', 'dark', 'system'].includes(payload.themePreference)) {
       themePreference.value = payload.themePreference
     }
-    if (payload.localePreference && ['zh-CN', 'en-US', 'system'].includes(payload.localePreference)) {
+    if (
+      payload.localePreference &&
+      ['zh-CN', 'en-US', 'system'].includes(payload.localePreference)
+    ) {
       localePreference.value = payload.localePreference
     }
     if (typeof payload.defaultHomeRoute === 'string' && payload.defaultHomeRoute) {
       defaultHomeRoute.value = payload.defaultHomeRoute
     }
     if (Array.isArray(payload.pinnedTools)) {
-      pinnedTools.value = payload.pinnedTools.filter((item): item is string => typeof item === 'string')
+      pinnedTools.value = payload.pinnedTools.filter(
+        (item): item is string => typeof item === 'string'
+      )
     }
     if (Array.isArray(payload.recentTools)) {
       recentTools.value = payload.recentTools

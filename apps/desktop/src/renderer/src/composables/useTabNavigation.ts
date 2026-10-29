@@ -38,7 +38,9 @@ export function useTabNavigation<TTab extends string, TCategory extends string>(
   }
 
   function showTab(tab: TTab): boolean {
-    return (config.tabCategories as Record<string, readonly TTab[]>)[activeCategory.value].includes(tab)
+    return (config.tabCategories as Record<string, readonly TTab[]>)[activeCategory.value].includes(
+      tab
+    )
   }
 
   function syncCategoryFromTab(tab: TTab): void {
@@ -71,7 +73,7 @@ export function useTabNavigation<TTab extends string, TCategory extends string>(
     syncCategoryFromTab(activeTab.value)
   })
 
-  watch(activeTab, (tab) => {
+  watch(activeTab, tab => {
     safeStorageSet(config.storageKey, tab)
     syncCategoryFromTab(tab)
   })
@@ -82,7 +84,7 @@ export function useTabNavigation<TTab extends string, TCategory extends string>(
 
   watch(
     () => route.query.tab,
-    (tab) => {
+    tab => {
       const resolved = resolveTab(tab)
       if (resolved) {
         activeTab.value = resolved

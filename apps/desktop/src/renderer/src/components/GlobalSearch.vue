@@ -62,10 +62,12 @@ function resolveTabForItem(item: SearchItem, query: string): string | undefined 
   const trimmed = query.trim().toLowerCase()
   if (item.tabKeywords && trimmed) {
     for (const { tab, keywords } of item.tabKeywords) {
-      if (keywords.some(kw => {
-        const lower = kw.toLowerCase()
-        return lower.includes(trimmed) || trimmed.includes(lower)
-      })) {
+      if (
+        keywords.some(kw => {
+          const lower = kw.toLowerCase()
+          return lower.includes(trimmed) || trimmed.includes(lower)
+        })
+      ) {
         return tab
       }
     }
@@ -113,9 +115,7 @@ const displayGroups = computed((): DisplayGroup[] => {
   ]
 })
 
-const flatDisplayItems = computed(() =>
-  displayGroups.value.flatMap(group => group.items)
-)
+const flatDisplayItems = computed(() => displayGroups.value.flatMap(group => group.items))
 
 watch(flatDisplayItems, () => {
   selectedIndex.value = 0
@@ -166,14 +166,17 @@ function handleOverlayClick(e: MouseEvent) {
   }
 }
 
-watch(() => props.show, (isOpen) => {
-  if (isOpen) {
-    window.addEventListener('keydown', handleKeydown)
-    nextTick(() => inputRef.value?.focus())
-  } else {
-    window.removeEventListener('keydown', handleKeydown)
+watch(
+  () => props.show,
+  isOpen => {
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeydown)
+      nextTick(() => inputRef.value?.focus())
+    } else {
+      window.removeEventListener('keydown', handleKeydown)
+    }
   }
-})
+)
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
@@ -183,17 +186,10 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <Transition name="search-fade">
-      <div
-        v-if="show"
-        class="search-overlay"
-        @click="handleOverlayClick"
-      >
+      <div v-if="show" class="search-overlay" @click="handleOverlayClick">
         <div class="search-container">
           <div class="search-input-wrapper">
-            <span class="search-icon"><ToolIcon
-              name="search"
-              :size="20"
-            /></span>
+            <span class="search-icon"><ToolIcon name="search" :size="20" /></span>
             <input
               ref="inputRef"
               v-model="searchQuery"
@@ -201,36 +197,24 @@ onUnmounted(() => {
               class="search-input"
               :placeholder="t('nav.searchPlaceholder')"
               autofocus
-            >
+            />
             <span class="search-shortcut">⌘K</span>
           </div>
-          
-          <div
-            v-if="flatDisplayItems.length > 0"
-            class="search-results"
-          >
-            <template
-              v-for="(group, groupIndex) in displayGroups"
-              :key="group.label ?? groupIndex"
-            >
-              <div
-                v-if="group.label"
-                class="search-group-label"
-              >
+
+          <div v-if="flatDisplayItems.length > 0" class="search-results">
+            <template v-for="(group, groupIndex) in displayGroups" :key="group.label ?? groupIndex">
+              <div v-if="group.label" class="search-group-label">
                 {{ group.label }}
               </div>
               <div
                 v-for="item in group.items"
                 :key="item.id"
                 class="search-result-item"
-                :class="{ 'selected': getFlatIndex(item) === selectedIndex }"
+                :class="{ selected: getFlatIndex(item) === selectedIndex }"
                 @click="selectItem(item)"
                 @mouseenter="selectedIndex = getFlatIndex(item)"
               >
-                <span class="result-icon"><ToolIcon
-                  :name="item.icon"
-                  :size="22"
-                /></span>
+                <span class="result-icon"><ToolIcon :name="item.icon" :size="22" /></span>
                 <div class="result-content">
                   <span class="result-name">{{ item.name }}</span>
                   <span class="result-category">{{ item.category }}</span>
@@ -238,23 +222,16 @@ onUnmounted(() => {
               </div>
             </template>
           </div>
-          
-          <div
-            v-else
-            class="search-empty"
-          >
-            <span class="empty-icon"><ToolIcon
-              name="search"
-              :size="28"
-            /></span>
+
+          <div v-else class="search-empty">
+            <span class="empty-icon"><ToolIcon name="search" :size="28" /></span>
             <span class="empty-text">{{ t('search.empty') }}</span>
           </div>
-          
+
           <div class="search-footer">
             <span class="footer-hint">
-              <kbd>↑</kbd><kbd>↓</kbd> {{ t('search.navigate') }}
-              <kbd>Enter</kbd> {{ t('search.select') }}
-              <kbd>Esc</kbd> {{ t('search.close') }}
+              <kbd>↑</kbd><kbd>↓</kbd> {{ t('search.navigate') }} <kbd>Enter</kbd>
+              {{ t('search.select') }} <kbd>Esc</kbd> {{ t('search.close') }}
             </span>
           </div>
         </div>
@@ -441,7 +418,9 @@ onUnmounted(() => {
 
 .search-fade-enter-active .search-container,
 .search-fade-leave-active .search-container {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .search-fade-enter-from,

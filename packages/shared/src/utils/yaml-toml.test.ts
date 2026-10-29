@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  yamlToJson,
-  jsonToYaml,
-  tomlToJson,
-  jsonToToml,
-  yamlFormat
-} from './yaml-toml'
+import { yamlToJson, jsonToYaml, tomlToJson, jsonToToml, yamlFormat } from './yaml-toml'
 
 describe('yamlToJson / jsonToYaml', () => {
   it('converts YAML to JSON', () => {

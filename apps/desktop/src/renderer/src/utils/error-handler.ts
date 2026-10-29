@@ -15,7 +15,7 @@ export function createError(
     message,
     code: options?.code,
     details: options?.details,
-    userMessage: options?.userMessage,
+    userMessage: options?.userMessage
   }
 }
 
@@ -27,7 +27,7 @@ export function parseError(error: unknown): AppError {
   if (error instanceof Error) {
     const appError: AppError = {
       message: error.message,
-      details: error.stack,
+      details: error.stack
     }
 
     if (error.message.includes('net::ERR') || error.message.includes('Network')) {
@@ -53,7 +53,7 @@ export function parseError(error: unknown): AppError {
       return {
         message: String(errorObj.message),
         userMessage: String(errorObj.message),
-        details: error,
+        details: error
       }
     }
   }
@@ -92,7 +92,7 @@ export function handleAsyncError<T>(
   fallbackValue: T,
   errorMessage?: string
 ): Promise<T> {
-  return promise.catch((error) => {
+  return promise.catch(error => {
     showError(error, errorMessage)
     return fallbackValue
   })
@@ -110,13 +110,13 @@ export function setupGlobalErrorHandler() {
       source,
       lineno,
       colno,
-      error,
+      error
     })
     showError(error || message, '程序发生错误')
     return true
   }
 
-  window.onunhandledrejection = (event) => {
+  window.onunhandledrejection = event => {
     console.error('[Unhandled Rejection]', event.reason)
     showError(event.reason, '异步操作失败')
     event.preventDefault()

@@ -37,7 +37,23 @@ export const MOCK_FIELD_TYPES: MockFieldType[] = [
 ]
 
 const FIRST_NAMES = ['张', '李', '王', '刘', '陈', '杨', '赵', '黄', '周', '吴']
-const LAST_NAMES = ['伟', '芳', '娜', '敏', '静', '丽', '强', '磊', '军', '洋', '勇', '艳', '杰', '涛', '明']
+const LAST_NAMES = [
+  '伟',
+  '芳',
+  '娜',
+  '敏',
+  '静',
+  '丽',
+  '强',
+  '磊',
+  '军',
+  '洋',
+  '勇',
+  '艳',
+  '杰',
+  '涛',
+  '明'
+]
 const DOMAINS = ['example.com', 'test.io', 'demo.dev', 'mock.local']
 const CITIES = ['北京市', '上海市', '广州市', '深圳市', '杭州市', '成都市', '武汉市', '南京市']
 const DISTRICTS = ['朝阳区', '海淀区', '浦东新区', '天河区', '南山区', '西湖区', '武侯区', '江汉区']
@@ -84,7 +100,22 @@ function generateEmail(): string {
 }
 
 function generatePhone(): string {
-  const prefixes = ['130', '131', '132', '133', '135', '136', '137', '138', '139', '150', '151', '152', '186', '188']
+  const prefixes = [
+    '130',
+    '131',
+    '132',
+    '133',
+    '135',
+    '136',
+    '137',
+    '138',
+    '139',
+    '150',
+    '151',
+    '152',
+    '186',
+    '188'
+  ]
   return `${pick(prefixes)}${String(randomInt(0, 99999999)).padStart(8, '0')}`
 }
 
@@ -113,7 +144,10 @@ function generateIp(): string {
 
 function parseEnumOptions(options?: string): string[] {
   if (!options?.trim()) return ['option1', 'option2', 'option3']
-  const parsed = options.split(',').map(o => o.trim()).filter(Boolean)
+  const parsed = options
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean)
   return parsed.length > 0 ? parsed : ['option1']
 }
 
@@ -127,19 +161,32 @@ function generateText(): string {
 
 function generateFieldValue(field: MockField, recordIndex: number): unknown {
   switch (field.type) {
-    case 'name': return generateName()
-    case 'email': return generateEmail()
-    case 'phone': return generatePhone()
-    case 'uuid': return generateUuid()
-    case 'number': return randomInt(1, 10000)
-    case 'date': return generateDate()
-    case 'boolean': return Math.random() > 0.5
-    case 'address': return generateAddress()
-    case 'company': return generateCompany()
-    case 'ip': return generateIp()
-    case 'enum': return generateEnum(field.options)
-    case 'increment': return recordIndex + 1
-    case 'text': return generateText()
+    case 'name':
+      return generateName()
+    case 'email':
+      return generateEmail()
+    case 'phone':
+      return generatePhone()
+    case 'uuid':
+      return generateUuid()
+    case 'number':
+      return randomInt(1, 10000)
+    case 'date':
+      return generateDate()
+    case 'boolean':
+      return Math.random() > 0.5
+    case 'address':
+      return generateAddress()
+    case 'company':
+      return generateCompany()
+    case 'ip':
+      return generateIp()
+    case 'enum':
+      return generateEnum(field.options)
+    case 'increment':
+      return recordIndex + 1
+    case 'text':
+      return generateText()
   }
 }
 
@@ -271,7 +318,11 @@ export function recordsToSqlInsert(
   return lines.join('\n')
 }
 
-export function downloadTextFile(filename: string, content: string, mime = 'text/plain;charset=utf-8'): void {
+export function downloadTextFile(
+  filename: string,
+  content: string,
+  mime = 'text/plain;charset=utf-8'
+): void {
   const blob = new Blob([content], { type: mime })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')

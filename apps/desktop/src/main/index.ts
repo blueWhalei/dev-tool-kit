@@ -65,7 +65,7 @@ async function createWindow(): Promise<void> {
     mainWindow?.webContents.send('theme:changed', isDark)
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  mainWindow.webContents.setWindowOpenHandler(details => {
     const url = details.url
     if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
       shell.openExternal(url)
@@ -117,7 +117,7 @@ async function createWindow(): Promise<void> {
 }
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   logger.error('Uncaught exception:', error)
   if (app.isReady()) {
     app.quit()
@@ -126,7 +126,7 @@ process.on('uncaughtException', (error) => {
   }
 })
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   logger.error('Unhandled rejection:', reason)
 })
 

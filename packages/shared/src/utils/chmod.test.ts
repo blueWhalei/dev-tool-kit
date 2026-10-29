@@ -17,7 +17,11 @@ describe('parseChmodOctal', () => {
     expect(result.result?.permissions.owner).toEqual({ read: true, write: true, execute: true })
     expect(result.result?.permissions.group).toEqual({ read: true, write: false, execute: true })
     expect(result.result?.permissions.other).toEqual({ read: true, write: false, execute: true })
-    expect(result.result?.permissions.special).toEqual({ setuid: false, setgid: false, sticky: false })
+    expect(result.result?.permissions.special).toEqual({
+      setuid: false,
+      setgid: false,
+      sticky: false
+    })
   })
 
   it('parses 4-digit octal with setuid 4755', () => {

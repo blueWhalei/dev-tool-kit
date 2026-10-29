@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '../constants/tool-errors'
 import type { ConverterResult } from './converter'
 
 export interface JwtDecodedParts {
@@ -59,29 +60,36 @@ function base64UrlDecode(str: string): ConverterResult<string> {
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0))
     return { success: true, result: new TextDecoder().decode(bytes) }
   } catch {
-    return fail('无效的 Base64URL 编码')
+    return fail(TOOL_ERROR_CODES.invalidBase64Url)
   }
 }
 
-function parseJsonPart(part: string, label: string): ConverterResult<Record<string, unknown>> {
+function parseJsonPart(
+  part: string,
+  label: 'Header' | 'Payload'
+): ConverterResult<Record<string, unknown>> {
   const decoded = base64UrlDecode(part)
   if (!decoded.success || decoded.result === undefined) {
-    return fail(decoded.error ?? `无法解码 JWT ${label}`)
+    return fail(decoded.error ?? TOOL_ERROR_CODES.invalidBase64Url)
   }
   try {
     const parsed = JSON.parse(decoded.result) as unknown
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      return fail(`JWT ${label} 必须是 JSON 对象`)
+      return fail(
+        label === 'Header' ? TOOL_ERROR_CODES.headerNotObject : TOOL_ERROR_CODES.payloadNotObject
+      )
     }
     return { success: true, result: parsed as Record<string, unknown> }
   } catch {
-    return fail(`JWT ${label} 不是有效的 JSON`)
+    return fail(
+      label === 'Header' ? TOOL_ERROR_CODES.headerInvalidJson : TOOL_ERROR_CODES.payloadInvalidJson
+    )
   }
 }
 
 export function decodeJwt(token: string): ConverterResult<JwtDecodedParts> {
   const trimmed = token.trim()
-  if (!trimmed) return fail('请输入 JWT Token')
+  if (!trimmed) return fail(TOOL_ERROR_CODES.tokenEmpty)
 
   const parts = trimmed.split('.')
   if (parts.length !== 3) return fail('JWT 格式无效，应包含 header.payload.signature 三部分')
@@ -133,13 +141,9 @@ export function getJwtTimeInfo(payload: Record<string, unknown>): JwtTimeInfo {
 
 async function importHmacKey(secret: string, hash: string): Promise<CryptoKey> {
   const encoder = new TextEncoder()
-  return crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash },
-    false,
-    ['sign']
-  )
+  return crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash }, false, [
+    'sign'
+  ])
 }
 
 function base64UrlEncodeBytes(bytes: ArrayBuffer): string {
@@ -155,19 +159,24 @@ function base64UrlEncodeString(str: string): string {
 
 export function parseJwtPartJson(
   json: string,
-  label: string
+  label: 'Header' | 'Payload'
 ): ConverterResult<Record<string, unknown>> {
   const trimmed = json.trim()
-  if (!trimmed) return fail(`请输入 JWT ${label}`)
+  if (!trimmed)
+    return fail(label === 'Header' ? TOOL_ERROR_CODES.headerEmpty : TOOL_ERROR_CODES.payloadEmpty)
 
   try {
     const parsed = JSON.parse(trimmed) as unknown
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      return fail(`JWT ${label} 必须是 JSON 对象`)
+      return fail(
+        label === 'Header' ? TOOL_ERROR_CODES.headerNotObject : TOOL_ERROR_CODES.payloadNotObject
+      )
     }
     return { success: true, result: parsed as Record<string, unknown> }
   } catch {
-    return fail(`JWT ${label} 不是有效的 JSON`)
+    return fail(
+      label === 'Header' ? TOOL_ERROR_CODES.headerInvalidJson : TOOL_ERROR_CODES.payloadInvalidJson
+    )
   }
 }
 
@@ -177,7 +186,7 @@ export async function signJwtHmac(
   secret: string,
   algorithm: JwtHmacAlgorithm = 'HS256'
 ): Promise<ConverterResult<string>> {
-  if (!secret.trim()) return fail('请输入 Secret 以签名')
+  if (!secret.trim()) return fail(TOOL_ERROR_CODES.signSecretEmpty)
 
   if (!isHmacAlgorithm(algorithm)) {
     return fail(`不支持的签名算法: ${algorithm}，目前仅支持 HS256/HS384/HS512`)
@@ -203,7 +212,7 @@ export async function verifyJwtHmac(
   token: string,
   secret: string
 ): Promise<ConverterResult<JwtVerifyResult>> {
-  if (!secret.trim()) return fail('请输入 Secret 以验签')
+  if (!secret.trim()) return fail(TOOL_ERROR_CODES.secretEmpty)
 
   const decoded = decodeJwt(token)
   if (!decoded.success || !decoded.result) return fail(decoded.error!)

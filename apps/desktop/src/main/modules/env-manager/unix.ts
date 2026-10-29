@@ -1,7 +1,8 @@
+import { randomUUID } from 'crypto'
 import { homedir } from 'os'
-import { readFile, writeFile, mkdir, copyFile, readdir, unlink } from 'fs/promises'
+import { readFile, writeFile, mkdir, copyFile, readdir, unlink, realpath } from 'fs/promises'
 import { existsSync } from 'fs'
-import { join, dirname } from 'path'
+import { join } from 'path'
 import { app } from 'electron'
 import { logger } from '../../logger'
 import type { EnvVariable, PathEntry } from '@dev-tool-kit/shared'
@@ -14,7 +15,9 @@ import {
   buildShellEnvDiff,
   type ShellEnvDiffLine
 } from '@dev-tool-kit/shared'
-import { isValidEnvName, isValidEnvValue } from './validation'
+import { serializeFile, replaceFile } from '../../store/atomic-json'
+import { isEnvVariableArray } from '@dev-tool-kit/shared'
+import { isValidShellEnvName as isValidEnvName, isValidEnvValue } from '@dev-tool-kit/shared'
 
 const IS_DARWIN = process.platform === 'darwin'
 const MAX_SHELL_BACKUPS = 20
@@ -53,8 +56,8 @@ async function readFileIfExists(filePath: string): Promise<string> {
   try {
     return await readFile(filePath, 'utf-8')
   } catch (error) {
-    logger.warn(`[EnvManager] Failed to read ${filePath}:`, error)
-    return ''
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return ''
+    throw error
   }
 }
 
@@ -70,7 +73,7 @@ async function backupShellConfigFile(configPath: string): Promise<string> {
   const backupDir = await getShellBackupDir()
   const baseName = configPath.replace(/[/\\:]/g, '_')
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const backupPath = join(backupDir, `${baseName}-${timestamp}.bak`)
+  const backupPath = join(backupDir, `${baseName}-${timestamp}-${randomUUID()}.bak`)
 
   if (existsSync(configPath)) {
     await copyFile(configPath, backupPath)
@@ -79,9 +82,7 @@ async function backupShellConfigFile(configPath: string): Promise<string> {
   }
 
   try {
-    const files = (await readdir(backupDir))
-      .filter((f) => f.endsWith('.bak'))
-      .sort()
+    const files = (await readdir(backupDir)).filter(f => f.endsWith('.bak')).sort()
     while (files.length > MAX_SHELL_BACKUPS) {
       const oldest = files.shift()
       if (oldest) await unlink(join(backupDir, oldest))
@@ -143,7 +144,7 @@ function getSessionVars(systemNames: Set<string>): EnvVariable[] {
 export async function getAllUnixEnv(): Promise<EnvVariable[]> {
   const shellVars = await getShellConfigVars()
   const systemVars = await getSystemFileVars()
-  const systemNames = new Set(systemVars.map((v) => v.name))
+  const systemNames = new Set(systemVars.map(v => v.name))
   const sessionVars = getSessionVars(systemNames)
 
   const merged = new Map<string, EnvVariable>()
@@ -173,7 +174,7 @@ export async function getAllUnixEnv(): Promise<EnvVariable[]> {
 
 export async function getUnixEnv(name: string): Promise<EnvVariable | null> {
   const all = await getAllUnixEnv()
-  return all.find((v) => v.name === name) || null
+  return all.find(v => v.name === name) || null
 }
 
 export async function getUnixPath(): Promise<PathEntry[]> {
@@ -192,7 +193,7 @@ export async function previewUnixEnvSet(
   value: string
 ): Promise<{ success: true; preview: UnixEnvPreview } | { success: false; error: string }> {
   if (!isValidEnvName(name) || !isValidEnvValue(value)) {
-    return { success: false, error: '无效的环境变量名或值' }
+    return { success: false, error: 'invalidEnv' }
   }
   const { path: configFile, content } = await readPrimaryShellConfig()
   const after = updateShellEnvAssignment(content, name, value)
@@ -211,7 +212,7 @@ export async function previewUnixEnvDelete(
   name: string
 ): Promise<{ success: true; preview: UnixEnvPreview } | { success: false; error: string }> {
   if (!isValidEnvName(name)) {
-    return { success: false, error: '无效的环境变量名' }
+    return { success: false, error: 'invalidEnv' }
   }
   const { path: configFile, content } = await readPrimaryShellConfig()
   const after = removeShellEnvAssignment(content, name)
@@ -229,98 +230,81 @@ export async function previewUnixEnvDelete(
 export async function previewUnixPath(
   paths: string[]
 ): Promise<{ success: true; preview: UnixEnvPreview } | { success: false; error: string }> {
-  if (!Array.isArray(paths) || paths.some((p) => typeof p !== 'string' || p.includes('\0') || p.includes('\r') || p.includes('\n'))) {
-    return { success: false, error: '无效的 PATH 条目' }
+  if (
+    !Array.isArray(paths) ||
+    paths.some(p => !isValidEnvValue(p) || p.includes(':') || !p.trim())
+  ) {
+    return { success: false, error: 'invalidEnv' }
   }
   const pathValue = joinUnixPath(paths)
   return previewUnixEnvSet('PATH', pathValue)
 }
 
-async function writeShellPreview(preview: UnixEnvPreview): Promise<{ success: boolean; error?: string }> {
+async function editShellConfig(
+  transform: (content: string) => string,
+  apply: () => void
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const configDir = dirname(preview.configFile)
-    if (configDir && !existsSync(configDir)) {
-      await mkdir(configDir, { recursive: true })
-    }
-    await backupShellConfigFile(preview.configFile)
-    await writeFile(preview.configFile, preview.after, 'utf-8')
-    return { success: true }
+    const selected = resolvePrimaryShellConfigPath()
+    const configFile = existsSync(selected) ? await realpath(selected) : selected
+    return await serializeFile(configFile, async () => {
+      const before = await readFileIfExists(configFile)
+      const after = transform(before)
+      await backupShellConfigFile(configFile)
+      if ((await readFileIfExists(configFile)) !== before)
+        return { success: false, error: 'configChanged' }
+      await replaceFile(configFile, after)
+      apply()
+      return { success: true }
+    })
   } catch (error) {
-    logger.error('[EnvManager] Failed to write shell config:', error)
-    return { success: false, error: '写入 Shell 配置文件失败' }
+    logger.error('Shell configuration write failed', error)
+    return { success: false, error: 'shellWriteFailed' }
   }
 }
 
-export async function setUnixEnv(
-  name: string,
-  value: string
-): Promise<{ success: boolean; error?: string }> {
-  const previewResult = await previewUnixEnvSet(name, value)
-  if (!previewResult.success) return previewResult
-  const result = await writeShellPreview(previewResult.preview)
-  if (result.success) {
-    process.env[name] = value
-    logger.info(`[EnvManager] Unix env var ${name} written to ${previewResult.preview.configFile}`)
-  }
-  return result
-}
-
-export async function deleteUnixEnv(
-  name: string
-): Promise<{ success: boolean; error?: string }> {
-  const previewResult = await previewUnixEnvDelete(name)
-  if (!previewResult.success) return previewResult
-  const result = await writeShellPreview(previewResult.preview)
-  if (result.success) {
-    delete process.env[name]
-    logger.info(`[EnvManager] Unix env var ${name} removed from ${previewResult.preview.configFile}`)
-  }
-  return result
-}
-
-export async function setUnixPath(
-  paths: string[]
-): Promise<{ success: boolean; error?: string }> {
-  const previewResult = await previewUnixPath(paths)
-  if (!previewResult.success) return previewResult
-  const result = await writeShellPreview(previewResult.preview)
-  if (result.success) {
-    process.env.PATH = joinUnixPath(paths)
-    logger.info('[EnvManager] Unix PATH written to shell config')
-  }
-  return result
-}
-
-export async function restoreUnixBackup(
-  variables: EnvVariable[]
-): Promise<{ success: boolean; error?: string }> {
-  const { path: configFile, content } = await readPrimaryShellConfig()
-  let next = content
-  for (const v of variables) {
-    if (isValidEnvName(v.name) && isValidEnvValue(v.value)) {
-      next = updateShellEnvAssignment(next, v.name, v.value)
+export async function setUnixEnv(name: string, value: string) {
+  if (!isValidEnvName(name) || !isValidEnvValue(value))
+    return { success: false, error: 'invalidEnv' }
+  return editShellConfig(
+    content => updateShellEnvAssignment(content, name, value),
+    () => {
+      process.env[name] = value
     }
-  }
-  const preview: UnixEnvPreview = {
-    configFile,
-    before: content,
-    after: next,
-    diff: buildShellEnvDiff(content, next)
-  }
-  const result = await writeShellPreview(preview)
-  if (result.success) {
-    for (const v of variables) {
-      if (isValidEnvName(v.name) && isValidEnvValue(v.value)) {
-        process.env[v.name] = v.value
-      }
+  )
+}
+export async function deleteUnixEnv(name: string) {
+  if (!isValidEnvName(name)) return { success: false, error: 'invalidEnv' }
+  return editShellConfig(
+    content => removeShellEnvAssignment(content, name),
+    () => {
+      delete process.env[name]
     }
-  }
-  return result
+  )
+}
+export async function setUnixPath(paths: string[]) {
+  if (!Array.isArray(paths) || paths.some(p => !isValidEnvValue(p) || p.includes(':') || !p.trim()))
+    return { success: false, error: 'invalidEnv' }
+  return setUnixEnv('PATH', joinUnixPath(paths))
+}
+export async function restoreUnixBackup(variables: EnvVariable[]) {
+  if (
+    !isEnvVariableArray(variables) ||
+    variables.some(v => v.type !== 'user' || !isValidEnvName(v.name))
+  )
+    return { success: false, error: 'invalidEnv' }
+  return editShellConfig(
+    content =>
+      variables.reduce((next, v) => updateShellEnvAssignment(next, v.name, v.value), content),
+    () => {
+      for (const v of variables) process.env[v.name] = v.value
+    }
+  )
 }
 
 export async function getUnixUserVarsForBackup(): Promise<EnvVariable[]> {
   const shellVars = await getShellConfigVars()
-  const systemNames = new Set((await getSystemFileVars()).map((v) => v.name))
+  const systemNames = new Set((await getSystemFileVars()).map(v => v.name))
   const sessionVars = getSessionVars(systemNames)
 
   const merged = new Map<string, EnvVariable>()

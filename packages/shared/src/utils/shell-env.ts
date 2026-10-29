@@ -71,11 +71,11 @@ function findInlineCommentIndex(value: string): number {
 }
 
 export function splitUnixPath(pathValue: string): string[] {
-  return pathValue.split(':').filter((p) => p.length > 0)
+  return pathValue.split(':').filter(p => p.length > 0)
 }
 
 export function joinUnixPath(paths: string[]): string {
-  return paths.filter((p) => p.trim()).join(':')
+  return paths.filter(p => p.trim()).join(':')
 }
 
 export function escapeShellDoubleQuoted(value: string): string {
@@ -107,7 +107,6 @@ export function updateShellEnvAssignment(content: string, name: string, value: s
     if (matchesEnvAssignmentLine(lines[i], name)) {
       lines[i] = newLine
       found = true
-      break
     }
   }
 
@@ -125,7 +124,7 @@ export function updateShellEnvAssignment(content: string, name: string, value: s
 export function removeShellEnvAssignment(content: string, name: string): string {
   return content
     .split('\n')
-    .filter((line) => !matchesEnvAssignmentLine(line, name))
+    .filter(line => !matchesEnvAssignmentLine(line, name))
     .join('\n')
 }
 

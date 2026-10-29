@@ -20,8 +20,14 @@ const { t } = useI18n()
 const isDark = inject<Ref<boolean>>('isDark', ref(false))
 const themePreference = inject<Ref<ThemePreference>>('themePreference', ref('system'))
 const localePreference = inject<Ref<LocalePreference>>('localePreference', ref('system'))
-const selectThemePreference = inject<(preference: ThemePreference) => void>('selectThemePreference', () => {})
-const selectLocalePreference = inject<(preference: LocalePreference) => void>('selectLocalePreference', () => {})
+const selectThemePreference = inject<(preference: ThemePreference) => void>(
+  'selectThemePreference',
+  () => {}
+)
+const selectLocalePreference = inject<(preference: LocalePreference) => void>(
+  'selectLocalePreference',
+  () => {}
+)
 
 const showSearch = ref(false)
 
@@ -43,11 +49,12 @@ const themeIconName = computed(() => {
 })
 
 const themeTitle = computed(() => {
-  const mode = themePreference.value === 'system'
-    ? t('theme.system')
-    : themePreference.value === 'dark'
-      ? t('theme.dark')
-      : t('theme.light')
+  const mode =
+    themePreference.value === 'system'
+      ? t('theme.system')
+      : themePreference.value === 'dark'
+        ? t('theme.dark')
+        : t('theme.light')
   return t('theme.label', { mode })
 })
 
@@ -106,23 +113,11 @@ function handleMenuSelect(key: string) {
 </script>
 
 <template>
-  <NLayout
-    class="app-layout"
-    has-sider
-    position="absolute"
-  >
-    <NLayoutSider
-      bordered
-      :width="220"
-      :native-scrollbar="false"
-      class="sidebar"
-    >
+  <NLayout class="app-layout" has-sider position="absolute">
+    <NLayoutSider bordered :width="220" :native-scrollbar="false" class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
-          <AppLogo
-            :size="24"
-            class="sidebar-logo-img"
-          />
+          <AppLogo :size="24" class="sidebar-logo-img" />
           <span class="sidebar-logo-text">DevToolkit</span>
         </div>
         <button
@@ -131,11 +126,7 @@ function handleMenuSelect(key: string) {
           :title="t('nav.searchTitle', { shortcut: searchShortcut })"
           @click="openSearch"
         >
-          <ToolIcon
-            name="search"
-            :size="16"
-            class="sidebar-search-icon"
-          />
+          <ToolIcon name="search" :size="16" class="sidebar-search-icon" />
           <span class="sidebar-search-label">{{ t('nav.searchPlaceholder') }}</span>
           <kbd class="sidebar-search-kbd">{{ searchShortcut }}</kbd>
         </button>
@@ -159,10 +150,7 @@ function handleMenuSelect(key: string) {
             @click="router.push({ name: 'Settings' })"
           >
             <template #icon>
-              <ToolIcon
-                name="settings"
-                :size="16"
-              />
+              <ToolIcon name="settings" :size="16" />
             </template>
             {{ t('common.settings') }}
           </NButton>
@@ -174,45 +162,30 @@ function handleMenuSelect(key: string) {
             @click="router.push({ name: 'About' })"
           >
             <template #icon>
-              <ToolIcon
-                name="info"
-                :size="16"
-              />
+              <ToolIcon name="info" :size="16" />
             </template>
             {{ t('common.about') }}
           </NButton>
           <div class="sidebar-preferences">
-            <NDropdown
-              trigger="click"
-              :options="localeOptions"
-              @select="handleLocaleSelect"
-            >
+            <NDropdown trigger="click" :options="localeOptions" @select="handleLocaleSelect">
               <button
                 type="button"
                 class="sidebar-pref-btn"
-                :title="localePreference === 'system' ? t('locale.system') : localePreference === 'en-US' ? t('locale.enUS') : t('locale.zhCN')"
+                :title="
+                  localePreference === 'system'
+                    ? t('locale.system')
+                    : localePreference === 'en-US'
+                      ? t('locale.enUS')
+                      : t('locale.zhCN')
+                "
               >
-                <ToolIcon
-                  name="convert"
-                  :size="14"
-                />
+                <ToolIcon name="convert" :size="14" />
                 <span>{{ localeShortLabel }}</span>
               </button>
             </NDropdown>
-            <NDropdown
-              trigger="click"
-              :options="themeOptions"
-              @select="handleThemeSelect"
-            >
-              <button
-                type="button"
-                class="sidebar-pref-btn"
-                :title="themeTitle"
-              >
-                <ToolIcon
-                  :name="themeIconName"
-                  :size="14"
-                />
+            <NDropdown trigger="click" :options="themeOptions" @select="handleThemeSelect">
+              <button type="button" class="sidebar-pref-btn" :title="themeTitle">
+                <ToolIcon :name="themeIconName" :size="14" />
               </button>
             </NDropdown>
           </div>
@@ -221,25 +194,16 @@ function handleMenuSelect(key: string) {
     </NLayoutSider>
 
     <NLayout>
-      <NLayoutContent
-        class="app-content"
-        :content-style="{ padding: '16px' }"
-      >
+      <NLayoutContent class="app-content" :content-style="{ padding: '16px' }">
         <router-view v-slot="{ Component }">
-          <transition
-            name="page"
-            mode="out-in"
-          >
+          <transition name="page" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
       </NLayoutContent>
     </NLayout>
 
-    <GlobalSearch
-      v-model:show="showSearch"
-      @close="closeSearch"
-    />
+    <GlobalSearch v-model:show="showSearch" @close="closeSearch" />
   </NLayout>
 </template>
 
@@ -300,7 +264,10 @@ function handleMenuSelect(key: string) {
   color: var(--color-text-secondary);
   font-size: var(--font-size-caption);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sidebar-search-trigger:hover {
@@ -378,7 +345,9 @@ function handleMenuSelect(key: string) {
   color: var(--color-text-secondary);
   font-size: var(--font-size-caption);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sidebar-pref-btn:hover {
@@ -464,7 +433,9 @@ function handleMenuSelect(key: string) {
 
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 200ms ease, transform 200ms ease;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 
 .page-enter-from {

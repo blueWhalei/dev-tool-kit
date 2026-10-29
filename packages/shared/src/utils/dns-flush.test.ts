@@ -18,10 +18,6 @@ describe('getDnsFlushPlatformInfo', () => {
   it('returns multiple Linux flush methods', () => {
     const info = getDnsFlushPlatformInfo('linux')
     expect(info.platform).toBe('linux')
-    expect(info.methods.map(m => m.method)).toEqual([
-      'systemd-resolve',
-      'resolvectl',
-      'nscd'
-    ])
+    expect(info.methods.map(m => m.method)).toEqual(['systemd-resolve', 'resolvectl', 'nscd'])
   })
 })

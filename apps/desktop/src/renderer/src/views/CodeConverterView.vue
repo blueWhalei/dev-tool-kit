@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, type Ref } from 'vue'
+import { ref, watch, onUnmounted, onMounted, computed, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
@@ -142,18 +142,26 @@ const caseFormatRows = computed(() => {
   ]
 })
 
-function translateError(error: string | undefined): string {
-  return translateToolError(t, 'codeConverter', error) || error || ''
+function translateError(
+  error: string | undefined,
+  params?: Record<string, string | number>
+): string {
+  return translateToolError(t, 'codeConverter', error, params) || error || ''
 }
 
 function setOutput(
-  result: { success: boolean; result?: string; error?: string },
+  result: {
+    success: boolean
+    result?: string
+    error?: string
+    errorParams?: Record<string, string | number>
+  },
   target: Ref<string>
 ) {
   if (result.success) {
     target.value = result.result ?? ''
   } else {
-    const errorMsg = translateError(result.error)
+    const errorMsg = translateError(result.error, result.errorParams)
     target.value = errorMsg
     if (errorMsg) message.warning(errorMsg)
   }
@@ -192,7 +200,22 @@ function updateJsonParsedValue() {
   }
 }
 
+let schemaRequestSeq = 0
+watch(
+  [jsonInput, jsonSchemaInput],
+  () => {
+    schemaRequestSeq++
+    schemaValidationValid.value = null
+    schemaValidationError.value = ''
+    schemaValidationErrors.value = null
+  },
+  { flush: 'sync' }
+)
+onUnmounted(() => {
+  schemaRequestSeq++
+})
 async function runSchemaValidation() {
+  const seq = ++schemaRequestSeq
   schemaValidationErrors.value = null
   schemaValidationValid.value = null
   schemaValidationError.value = ''
@@ -201,17 +224,19 @@ async function runSchemaValidation() {
 
   const dataResult = parseJsonValue(jsonInput.value)
   if (!dataResult.success) {
-    schemaValidationError.value = translateError(dataResult.error)
+    schemaValidationError.value = translateError(dataResult.error, dataResult.errorParams)
     return
   }
 
-  // ajv 在主进程执行（渲染进程 CSP 无 unsafe-eval）
+  // Schema compilation and validation run in an isolated worker.
   const result = await invoke('json-schema:validate', {
     data: dataResult.result,
     schemaText: jsonSchemaInput.value
   })
+  if (seq !== schemaRequestSeq) return
   if (!result?.success) {
-    schemaValidationError.value = translateError(result?.error) || page.t('errors.schemaInvalid')
+    schemaValidationError.value =
+      translateError(result?.error, result?.errorParams) || page.t('errors.schemaInvalid')
     return
   }
 
@@ -231,7 +256,7 @@ function handleTimestampConvert() {
   if (result.success) timestampResult.value = result.result ?? null
   else {
     timestampResult.value = null
-    const errorMsg = translateError(result.error)
+    const errorMsg = translateError(result.error, result.errorParams)
     if (errorMsg) message.warning(errorMsg)
   }
 }
@@ -240,7 +265,7 @@ function handleNumberBase() {
   const result = numberBaseConvert(numberInput.value, fromBase.value, toBase.value)
   if (result.success) numberOutput.value = result.result ?? ''
   else {
-    const errorMsg = translateError(result.error)
+    const errorMsg = translateError(result.error, result.errorParams)
     numberOutput.value = errorMsg
     if (errorMsg) message.warning(errorMsg)
   }
@@ -251,7 +276,7 @@ function handleCaseConvertAll() {
   if (result.success) caseFormats.value = result.result ?? null
   else {
     caseFormats.value = null
-    const errorMsg = translateError(result.error)
+    const errorMsg = translateError(result.error, result.errorParams)
     if (errorMsg) message.warning(errorMsg)
   }
 }

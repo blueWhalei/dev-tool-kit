@@ -21,8 +21,8 @@
           :class="{ 'preset-card--loading': presetLoading }"
           @click="applyPreset(preset)"
         >
-          <span class="preset-name">{{ page.t(`labels.${preset.key}` as any) }}</span>
-          <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc` as any) }}</span>
+          <span class="preset-name">{{ page.t(`labels.${preset.key}`) }}</span>
+          <span class="preset-desc">{{ page.t(`labels.${preset.key}Desc`) }}</span>
         </div>
       </div>
     </NCard>

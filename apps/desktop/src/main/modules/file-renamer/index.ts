@@ -1,3 +1,4 @@
+import { isSavedRenameRuleArray } from '@dev-tool-kit/shared'
 import { isRenameRule } from '@dev-tool-kit/shared/types'
 import { handleIpc } from '../../typed-ipc'
 import { readJsonFile, updateJsonFile } from '../../store/atomic-json'
@@ -58,10 +59,7 @@ async function getRulesPath(): Promise<string> {
 
 async function readSavedRules(): Promise<SavedRenameRule[]> {
   const rulesPath = await getRulesPath()
-  const parsed = await readJsonFile<SavedRenameRule[]>(rulesPath, [])
-  if (!parsed.every(item => item && typeof item.name === 'string' && isRenameRule(item.rule))) {
-    throw new Error('invalidRule')
-  }
+  const parsed = await readJsonFile(rulesPath, [], isSavedRenameRuleArray)
   return parsed
 }
 
@@ -273,17 +271,22 @@ export function setupFileRenamerIPC(): void {
       return { success: false, error: '无效的规则名称' }
     }
     try {
-      await updateJsonFile<SavedRenameRule[]>(await getRulesPath(), [], rules => {
-        const trimmedName = name.trim()
-        const existingIndex = rules.findIndex(item => item.name === trimmedName)
-        const nextRule: SavedRenameRule = { name: trimmedName, rule }
-        if (existingIndex >= 0) {
-          rules[existingIndex] = nextRule
-        } else {
-          rules.push(nextRule)
-        }
-        return rules
-      })
+      await updateJsonFile<SavedRenameRule[]>(
+        await getRulesPath(),
+        [],
+        rules => {
+          const trimmedName = name.trim()
+          const existingIndex = rules.findIndex(item => item.name === trimmedName)
+          const nextRule: SavedRenameRule = { name: trimmedName, rule }
+          if (existingIndex >= 0) {
+            rules[existingIndex] = nextRule
+          } else {
+            rules.push(nextRule)
+          }
+          return rules
+        },
+        isSavedRenameRuleArray
+      )
       return { success: true }
     } catch (error) {
       logger.error('Failed to save rename rule:', error)
@@ -305,8 +308,11 @@ export function setupFileRenamerIPC(): void {
       return { success: false, error: '无效的规则名称' }
     }
     try {
-      await updateJsonFile<SavedRenameRule[]>(await getRulesPath(), [], rules =>
-        rules.filter(item => item.name !== name.trim())
+      await updateJsonFile<SavedRenameRule[]>(
+        await getRulesPath(),
+        [],
+        rules => rules.filter(item => item.name !== name.trim()),
+        isSavedRenameRuleArray
       )
       return { success: true }
     } catch (error) {

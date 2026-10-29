@@ -2,7 +2,20 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { NDataTable, NButton, NTag, NInput, NPopconfirm, useMessage, useDialog, NEmpty, NSpin, NButtonGroup, NCard, NAlert } from 'naive-ui'
+import {
+  NDataTable,
+  NButton,
+  NTag,
+  NInput,
+  NPopconfirm,
+  useMessage,
+  useDialog,
+  NEmpty,
+  NSpin,
+  NButtonGroup,
+  NCard,
+  NAlert
+} from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
@@ -10,7 +23,12 @@ import { usePlatform } from '../composables/usePlatform'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut } from '../composables/useKeyboardShortcut'
 import { logError } from '../utils/error-handler'
-import { buildKillCommand, PLATFORM_LABELS, type OperationResult, type PlatformId } from '@dev-tool-kit/shared'
+import {
+  buildKillCommand,
+  PLATFORM_LABELS,
+  type OperationResult,
+  type PlatformId
+} from '@dev-tool-kit/shared'
 import {
   type PortInfo,
   type CommonPort,
@@ -51,9 +69,10 @@ const filteredPorts = computed(() => {
   }
   if (processFilter.value) {
     const keyword = processFilter.value.toLowerCase()
-    list = list.filter(p =>
-      (p.service && p.service.toLowerCase().includes(keyword)) ||
-      p.pid.toString().includes(keyword)
+    list = list.filter(
+      p =>
+        (p.service && p.service.toLowerCase().includes(keyword)) ||
+        p.pid.toString().includes(keyword)
     )
   }
   if (pidFilter.value) {
@@ -97,7 +116,12 @@ function showKillFailure(pid: number, result: OperationResult) {
       platform: platform.value || 'linux'
     })
 
-  if (result.killCommand || result.needSudo || result.errorCode === 'permission_denied' || result.errorCode === 'access_denied') {
+  if (
+    result.killCommand ||
+    result.needSudo ||
+    result.errorCode === 'permission_denied' ||
+    result.errorCode === 'access_denied'
+  ) {
     dialog.warning({
       title: page.t('dialogs.killFailedTitle'),
       content: page.t('dialogs.killFailedContent', {
@@ -166,7 +190,8 @@ const columns = computed(() => [
     key: 'state',
     width: 100,
     render: (row: PortInfo) => {
-      const type = row.state === 'LISTENING' ? 'success' : row.state === 'ESTABLISHED' ? 'warning' : 'default'
+      const type =
+        row.state === 'LISTENING' ? 'success' : row.state === 'ESTABLISHED' ? 'warning' : 'default'
       return h(NTag, { type, size: 'small', round: true }, { default: () => row.state })
     }
   },
@@ -176,15 +201,24 @@ const columns = computed(() => [
     width: 80,
     render: (row: PortInfo) => {
       const confirmKey = isWindows() ? 'messages.killConfirm' : 'messages.killConfirmUnix'
-      return h(NPopconfirm, { onPositiveClick: () => handleKillProcess(row.pid) }, {
-        trigger: () => h(NButton, {
-          size: 'small',
-          quaternary: true,
-          type: 'error',
-          disabled: row.state !== 'LISTENING'
-        }, { default: () => page.t('buttons.kill') }),
-        default: () => page.t(confirmKey, { pid: row.pid })
-      })
+      return h(
+        NPopconfirm,
+        { onPositiveClick: () => handleKillProcess(row.pid) },
+        {
+          trigger: () =>
+            h(
+              NButton,
+              {
+                size: 'small',
+                quaternary: true,
+                type: 'error',
+                disabled: row.state !== 'LISTENING'
+              },
+              { default: () => page.t('buttons.kill') }
+            ),
+          default: () => page.t(confirmKey, { pid: row.pid })
+        }
+      )
     }
   }
 ])
@@ -260,7 +294,7 @@ onMounted(async () => {
   await fetchPorts('all')
 })
 
-useKeyboardShortcut((event) => {
+useKeyboardShortcut(event => {
   const tag = (event.target as HTMLElement)?.tagName
   if (tag === 'INPUT' || tag === 'TEXTAREA') return
   if (event.key === 'r' || event.key === 'R') {
@@ -320,10 +354,7 @@ useKeyboardShortcut((event) => {
         style="width: 160px"
         clearable
       />
-      <NButton
-        quaternary
-        @click="clearSearch"
-      >
+      <NButton quaternary @click="clearSearch">
         {{ t('common.clear') }}
       </NButton>
     </div>
@@ -333,42 +364,25 @@ useKeyboardShortcut((event) => {
       type="info"
       :title="page.t('hints.partialSupportTitle')"
       :bordered="false"
-      style="margin-bottom: 16px; border-radius: 8px;"
+      style="margin-bottom: 16px; border-radius: 8px"
     >
       {{ platformHint }}
     </NAlert>
 
     <div class="port-filter-bar">
       <div class="port-stats">
-        <NTag
-          size="small"
-          :bordered="false"
-        >
+        <NTag size="small" :bordered="false">
           {{ page.t('stats.total', { count: portStats.total }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="success"
-          :bordered="false"
-        >
+        <NTag size="small" type="success" :bordered="false">
           {{ page.t('stats.listening', { count: portStats.listening }) }}
         </NTag>
-        <NTag
-          size="small"
-          type="warning"
-          :bordered="false"
-        >
+        <NTag size="small" type="warning" :bordered="false">
           {{ page.t('stats.established', { count: portStats.established }) }}
         </NTag>
       </div>
-      <NButtonGroup
-        size="small"
-        class="state-filter"
-      >
-        <NButton
-          :type="stateFilter === 'all' ? 'primary' : 'default'"
-          @click="stateFilter = 'all'"
-        >
+      <NButtonGroup size="small" class="state-filter">
+        <NButton :type="stateFilter === 'all' ? 'primary' : 'default'" @click="stateFilter = 'all'">
           {{ page.t('filters.allWithCount', { count: portStats.total }) }}
         </NButton>
         <NButton
@@ -386,10 +400,7 @@ useKeyboardShortcut((event) => {
       </NButtonGroup>
     </div>
 
-    <NCard
-      class="content-card"
-      :bordered="false"
-    >
+    <NCard class="content-card" :bordered="false">
       <NSpin :show="loading && ports.length === 0">
         <NDataTable
           v-if="filteredPorts.length > 0"
@@ -402,10 +413,7 @@ useKeyboardShortcut((event) => {
           :row-key="(row: PortInfo) => `${row.port}-${row.pid}`"
           class="port-table"
         />
-        <NEmpty
-          v-else-if="!loading"
-          :description="page.t('empty')"
-        />
+        <NEmpty v-else-if="!loading" :description="page.t('empty')" />
       </NSpin>
     </NCard>
   </PageLayout>

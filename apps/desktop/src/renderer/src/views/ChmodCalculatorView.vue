@@ -36,9 +36,21 @@ const breakdownRows = computed(() => {
   const fmt = (bits: PermissionBits) =>
     `${bits.read ? 'r' : '-'}${bits.write ? 'w' : '-'}${bits.execute ? 'x' : '-'}`
   return [
-    { label: page.t('labels.owner'), value: fmt(p.owner), octal: String((p.owner.read ? 4 : 0) + (p.owner.write ? 2 : 0) + (p.owner.execute ? 1 : 0)) },
-    { label: page.t('labels.group'), value: fmt(p.group), octal: String((p.group.read ? 4 : 0) + (p.group.write ? 2 : 0) + (p.group.execute ? 1 : 0)) },
-    { label: page.t('labels.other'), value: fmt(p.other), octal: String((p.other.read ? 4 : 0) + (p.other.write ? 2 : 0) + (p.other.execute ? 1 : 0)) }
+    {
+      label: page.t('labels.owner'),
+      value: fmt(p.owner),
+      octal: String((p.owner.read ? 4 : 0) + (p.owner.write ? 2 : 0) + (p.owner.execute ? 1 : 0))
+    },
+    {
+      label: page.t('labels.group'),
+      value: fmt(p.group),
+      octal: String((p.group.read ? 4 : 0) + (p.group.write ? 2 : 0) + (p.group.execute ? 1 : 0))
+    },
+    {
+      label: page.t('labels.other'),
+      value: fmt(p.other),
+      octal: String((p.other.read ? 4 : 0) + (p.other.write ? 2 : 0) + (p.other.execute ? 1 : 0))
+    }
   ]
 })
 
@@ -70,7 +82,8 @@ function applyOctal() {
   if (syncSource) return
   const parsed = parseChmodOctal(octalInput.value)
   if (!parsed.success) {
-    const errorMsg = translateToolError(t, 'chmodCalculator', parsed.error) || page.t('errors.parseFailed')
+    const errorMsg =
+      translateToolError(t, 'chmodCalculator', parsed.error) || page.t('errors.parseFailed')
     message.warning(errorMsg)
     octalInput.value = info.value.octal
     return
@@ -85,7 +98,8 @@ function applySymbolic() {
   if (syncSource) return
   const parsed = parseChmodSymbolic(symbolicInput.value)
   if (!parsed.success) {
-    const errorMsg = translateToolError(t, 'chmodCalculator', parsed.error) || page.t('errors.parseFailed')
+    const errorMsg =
+      translateToolError(t, 'chmodCalculator', parsed.error) || page.t('errors.parseFailed')
     message.warning(errorMsg)
     symbolicInput.value = info.value.symbolic
     return
@@ -116,7 +130,11 @@ async function copyResult() {
     `${page.t('labels.symbolic')}: ${info.value.symbolic}`,
     ...breakdownRows.value.map(r => `${r.label}: ${r.value} (${r.octal})`)
   ]
-  if (permissions.value.special.setuid || permissions.value.special.setgid || permissions.value.special.sticky) {
+  if (
+    permissions.value.special.setuid ||
+    permissions.value.special.setgid ||
+    permissions.value.special.sticky
+  ) {
     const s = permissions.value.special
     const parts: string[] = []
     if (s.setuid) parts.push(page.t('labels.setuid'))
@@ -134,10 +152,7 @@ async function copyResult() {
     :description="page.description"
     container-class="chmod-calculator-view"
   >
-    <NCard
-      class="input-card"
-      :bordered="false"
-    >
+    <NCard class="input-card" :bordered="false">
       <div class="input-row">
         <div class="input-field">
           <span class="field-label">{{ page.t('labels.octal') }}</span>
@@ -165,23 +180,12 @@ async function copyResult() {
       </div>
     </NCard>
 
-    <NCard
-      class="matrix-card"
-      :bordered="false"
-    >
+    <NCard class="matrix-card" :bordered="false">
       <div class="matrix-header">
         <span class="matrix-corner" />
-        <span
-          v-for="bit in bits"
-          :key="bit.key"
-          class="matrix-col-label"
-        >{{ bit.label }}</span>
+        <span v-for="bit in bits" :key="bit.key" class="matrix-col-label">{{ bit.label }}</span>
       </div>
-      <div
-        v-for="subject in subjects"
-        :key="subject.key"
-        class="matrix-row"
-      >
+      <div v-for="subject in subjects" :key="subject.key" class="matrix-row">
         <span class="matrix-row-label">{{ subject.label }}</span>
         <NCheckbox
           v-for="bit in bits"
@@ -213,19 +217,9 @@ async function copyResult() {
       </div>
     </NCard>
 
-    <NCard
-      class="result-card"
-      :bordered="false"
-    >
-      <NGrid
-        :cols="2"
-        :x-gap="16"
-        :y-gap="12"
-      >
-        <NGridItem
-          v-for="row in breakdownRows"
-          :key="row.label"
-        >
+    <NCard class="result-card" :bordered="false">
+      <NGrid :cols="2" :x-gap="16" :y-gap="12">
+        <NGridItem v-for="row in breakdownRows" :key="row.label">
           <div class="result-row">
             <span class="result-label">{{ row.label }}</span>
             <code class="result-value">{{ row.value }} ({{ row.octal }})</code>

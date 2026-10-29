@@ -17,7 +17,15 @@ export interface GitCommandTemplate {
   params: GitCommandParam[]
 }
 
-export const GIT_COMMAND_CATEGORIES = ['stash', 'branch', 'commit', 'rebase', 'reset', 'remote', 'other'] as const
+export const GIT_COMMAND_CATEGORIES = [
+  'stash',
+  'branch',
+  'commit',
+  'rebase',
+  'reset',
+  'remote',
+  'other'
+] as const
 export type GitCommandCategory = (typeof GIT_COMMAND_CATEGORIES)[number]
 
 export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
@@ -29,7 +37,15 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Save uncommitted changes to stash',
     descriptionZh: '将未提交的修改存入 stash',
     template: 'git stash push -m "{message}"',
-    params: [{ key: 'message', labelEn: 'Message', labelZh: '说明', placeholder: 'WIP: feature', defaultValue: 'WIP' }]
+    params: [
+      {
+        key: 'message',
+        labelEn: 'Message',
+        labelZh: '说明',
+        placeholder: 'WIP: feature',
+        defaultValue: 'WIP'
+      }
+    ]
   },
   {
     id: 'stash-pop',
@@ -69,7 +85,15 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Rebase last N commits interactively',
     descriptionZh: '交互式变基最近 N 个提交',
     template: 'git rebase -i HEAD~{count}',
-    params: [{ key: 'count', labelEn: 'Commit count', labelZh: '提交数量', placeholder: '3', defaultValue: '3' }]
+    params: [
+      {
+        key: 'count',
+        labelEn: 'Commit count',
+        labelZh: '提交数量',
+        placeholder: '3',
+        defaultValue: '3'
+      }
+    ]
   },
   {
     id: 'rebase-onto',
@@ -79,7 +103,15 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Rebase current branch onto another',
     descriptionZh: '将当前分支变基到目标分支',
     template: 'git rebase {target}',
-    params: [{ key: 'target', labelEn: 'Target branch', labelZh: '目标分支', placeholder: 'main', defaultValue: 'main' }]
+    params: [
+      {
+        key: 'target',
+        labelEn: 'Target branch',
+        labelZh: '目标分支',
+        placeholder: 'main',
+        defaultValue: 'main'
+      }
+    ]
   },
   {
     id: 'reset-soft',
@@ -89,7 +121,9 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Reset HEAD, keep changes staged',
     descriptionZh: '移动 HEAD，保留暂存区修改',
     template: 'git reset --soft HEAD~{count}',
-    params: [{ key: 'count', labelEn: 'Commits', labelZh: '提交数', placeholder: '1', defaultValue: '1' }]
+    params: [
+      { key: 'count', labelEn: 'Commits', labelZh: '提交数', placeholder: '1', defaultValue: '1' }
+    ]
   },
   {
     id: 'reset-hard',
@@ -99,7 +133,9 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Discard commits and working tree changes',
     descriptionZh: '丢弃提交与工作区修改（危险）',
     template: 'git reset --hard HEAD~{count}',
-    params: [{ key: 'count', labelEn: 'Commits', labelZh: '提交数', placeholder: '1', defaultValue: '1' }]
+    params: [
+      { key: 'count', labelEn: 'Commits', labelZh: '提交数', placeholder: '1', defaultValue: '1' }
+    ]
   },
   {
     id: 'branch-create',
@@ -109,7 +145,14 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Create a new branch and check it out',
     descriptionZh: '创建新分支并切换',
     template: 'git checkout -b {branch}',
-    params: [{ key: 'branch', labelEn: 'Branch name', labelZh: '分支名', placeholder: 'feature/my-feature' }]
+    params: [
+      {
+        key: 'branch',
+        labelEn: 'Branch name',
+        labelZh: '分支名',
+        placeholder: 'feature/my-feature'
+      }
+    ]
   },
   {
     id: 'branch-delete',
@@ -119,7 +162,9 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Delete a merged local branch',
     descriptionZh: '删除已合并的本地分支',
     template: 'git branch -d {branch}',
-    params: [{ key: 'branch', labelEn: 'Branch name', labelZh: '分支名', placeholder: 'feature/old' }]
+    params: [
+      { key: 'branch', labelEn: 'Branch name', labelZh: '分支名', placeholder: 'feature/old' }
+    ]
   },
   {
     id: 'merge-no-ff',
@@ -139,7 +184,9 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Amend the previous commit message or content',
     descriptionZh: '修改上一次提交信息或内容',
     template: 'git commit --amend -m "{message}"',
-    params: [{ key: 'message', labelEn: 'New message', labelZh: '新提交信息', placeholder: 'fix: typo' }]
+    params: [
+      { key: 'message', labelEn: 'New message', labelZh: '新提交信息', placeholder: 'fix: typo' }
+    ]
   },
   {
     id: 'revert-commit',
@@ -179,7 +226,9 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
     descriptionEn: 'Show recent commits in one line each',
     descriptionZh: '以单行格式显示最近提交',
     template: 'git log --oneline -n {count}',
-    params: [{ key: 'count', labelEn: 'Count', labelZh: '条数', placeholder: '20', defaultValue: '20' }]
+    params: [
+      { key: 'count', labelEn: 'Count', labelZh: '条数', placeholder: '20', defaultValue: '20' }
+    ]
   },
   {
     id: 'diff-staged',
@@ -203,7 +252,10 @@ export const GIT_COMMAND_TEMPLATES: GitCommandTemplate[] = [
   }
 ]
 
-export function buildGitCommand(template: GitCommandTemplate, values: Record<string, string>): string {
+export function buildGitCommand(
+  template: GitCommandTemplate,
+  values: Record<string, string>
+): string {
   // 单次正则替换全部占位符，避免替换值内含 {param} 时被二次替换
   return template.template.replace(/\{(\w+)\}/g, (match, key: string) => {
     const param = template.params.find(p => p.key === key)
@@ -212,9 +264,13 @@ export function buildGitCommand(template: GitCommandTemplate, values: Record<str
   })
 }
 
-export function filterGitCommands(query: string, category: GitCommandCategory | 'all', locale: 'zh' | 'en'): GitCommandTemplate[] {
+export function filterGitCommands(
+  query: string,
+  category: GitCommandCategory | 'all',
+  locale: 'zh' | 'en'
+): GitCommandTemplate[] {
   const q = query.trim().toLowerCase()
-  return GIT_COMMAND_TEMPLATES.filter((item) => {
+  return GIT_COMMAND_TEMPLATES.filter(item => {
     if (category !== 'all' && item.category !== category) return false
     if (!q) return true
     const title = locale === 'zh' ? item.titleZh : item.titleEn

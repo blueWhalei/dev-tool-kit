@@ -2,7 +2,20 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync } from 'fs'
 import { resolve } from 'path'
 
-const PANEL_NAMES = ['base64', 'info', 'compress', 'resize', 'convert', 'dataUrl', 'svg', 'color', 'favicon', 'batch', 'compare', 'preset']
+const PANEL_NAMES = [
+  'base64',
+  'info',
+  'compress',
+  'resize',
+  'convert',
+  'dataUrl',
+  'svg',
+  'color',
+  'favicon',
+  'batch',
+  'compare',
+  'preset'
+]
 
 /**
  * 回归测试：naive-ui 的 NTabs 只收集 type.__TAB_PANE__ 的直接子 vnode，
@@ -18,9 +31,15 @@ describe('ImageToolsView tab structure', () => {
 
   it('keeps one NTabPane shell per tab in the parent view', () => {
     for (const name of PANEL_NAMES) {
-      expect(template.match(new RegExp(`name="${name}"`)), `missing NTabPane shell for ${name}`).not.toBeNull()
+      expect(
+        template.match(new RegExp(`name="${name}"`)),
+        `missing NTabPane shell for ${name}`
+      ).not.toBeNull()
       const panelName = `Image${name[0].toUpperCase()}${name.slice(1)}Panel`
-      expect(template.match(new RegExp(`<${panelName}`)), `missing panel component for ${name}`).not.toBeNull()
+      expect(
+        template.match(new RegExp(`<${panelName}`)),
+        `missing panel component for ${name}`
+      ).not.toBeNull()
     }
   })
 

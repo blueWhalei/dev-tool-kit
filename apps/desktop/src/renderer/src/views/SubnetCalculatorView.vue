@@ -2,7 +2,19 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { NInput, NButton, NCard, NGrid, NGridItem, NTag, NDataTable, NTabs, NTabPane, useMessage, type DataTableColumns } from 'naive-ui'
+import {
+  NInput,
+  NButton,
+  NCard,
+  NGrid,
+  NGridItem,
+  NTag,
+  NDataTable,
+  NTabs,
+  NTabPane,
+  useMessage,
+  type DataTableColumns
+} from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -54,18 +66,21 @@ const versionLabel = computed(() => {
     : page.t('labels.versionIpv6')
 })
 
-const vlsmColumns = computed((): DataTableColumns<VlsmSubnet> => [
-  { title: page.t('labels.cidr'), key: 'cidr', minWidth: 140 },
-  { title: page.t('labels.network'), key: 'network', minWidth: 120 },
-  { title: page.t('labels.broadcast'), key: 'broadcast', minWidth: 120 },
-  { title: page.t('labels.usableHosts'), key: 'usableHosts', width: 100 }
-])
+const vlsmColumns = computed(
+  (): DataTableColumns<VlsmSubnet> => [
+    { title: page.t('labels.cidr'), key: 'cidr', minWidth: 140 },
+    { title: page.t('labels.network'), key: 'network', minWidth: 120 },
+    { title: page.t('labels.broadcast'), key: 'broadcast', minWidth: 120 },
+    { title: page.t('labels.usableHosts'), key: 'usableHosts', width: 100 }
+  ]
+)
 
 function calculate() {
   const parsed = parseCidr(cidrInput.value)
   if (!parsed.success) {
     result.value = null
-    const errorMsg = translateToolError(t, 'subnetCalculator', parsed.error) || page.t('errors.calculateFailed')
+    const errorMsg =
+      translateToolError(t, 'subnetCalculator', parsed.error) || page.t('errors.calculateFailed')
     message.warning(errorMsg)
     return
   }
@@ -81,7 +96,8 @@ function splitVlsmSubnets() {
   const parsed = splitVlsm(cidrInput.value, counts)
   if (!parsed.success) {
     vlsmResult.value = null
-    const errorMsg = translateToolError(t, 'subnetCalculator', parsed.error) || page.t('errors.calculateFailed')
+    const errorMsg =
+      translateToolError(t, 'subnetCalculator', parsed.error) || page.t('errors.calculateFailed')
     message.warning(errorMsg)
     return
   }
@@ -90,7 +106,10 @@ function splitVlsmSubnets() {
 
 async function copyResult() {
   if (!result.value) return
-  const lines = [`${page.t('labels.version')}: ${versionLabel.value}`, ...resultRows.value.map(r => `${r.label}: ${r.value}`)]
+  const lines = [
+    `${page.t('labels.version')}: ${versionLabel.value}`,
+    ...resultRows.value.map(r => `${r.label}: ${r.value}`)
+  ]
   await copy(lines.join('\n'), page.t('messages.copied'))
 }
 
@@ -107,20 +126,9 @@ calculate()
     :description="page.description"
     container-class="subnet-calculator-view page-container--narrow"
   >
-    <NTabs
-      v-model:value="activeTab"
-      type="line"
-      animated
-      class="subnet-tabs"
-    >
-      <NTabPane
-        name="single"
-        :tab="page.t('tabs.single')"
-      >
-        <NCard
-          class="input-card"
-          :bordered="false"
-        >
+    <NTabs v-model:value="activeTab" type="line" animated class="subnet-tabs">
+      <NTabPane name="single" :tab="page.t('tabs.single')">
+        <NCard class="input-card" :bordered="false">
           <div class="input-row">
             <NInput
               v-model:value="cidrInput"
@@ -128,50 +136,27 @@ calculate()
               class="cidr-input"
               @keyup.enter="calculate"
             />
-            <NButton
-              type="primary"
-              @click="calculate"
-            >
+            <NButton type="primary" @click="calculate">
               {{ page.t('buttons.calculate') }}
             </NButton>
-            <NButton
-              :disabled="!result"
-              @click="copyResult"
-            >
+            <NButton :disabled="!result" @click="copyResult">
               {{ page.t('buttons.copyResult') }}
             </NButton>
-            <NButton
-              quaternary
-              @click="openPortManager"
-            >
+            <NButton quaternary @click="openPortManager">
               {{ page.t('buttons.openPortManager') }}
             </NButton>
           </div>
         </NCard>
 
-        <NCard
-          v-if="result"
-          class="result-card"
-          :bordered="false"
-        >
+        <NCard v-if="result" class="result-card" :bordered="false">
           <div class="result-header">
             <span class="result-header-label">{{ page.t('labels.version') }}</span>
-            <NTag
-              size="small"
-              :type="result.version === 'ipv4' ? 'info' : 'success'"
-            >
+            <NTag size="small" :type="result.version === 'ipv4' ? 'info' : 'success'">
               {{ versionLabel }}
             </NTag>
           </div>
-          <NGrid
-            :cols="2"
-            :x-gap="16"
-            :y-gap="12"
-          >
-            <NGridItem
-              v-for="row in resultRows"
-              :key="row.label"
-            >
+          <NGrid :cols="2" :x-gap="16" :y-gap="12">
+            <NGridItem v-for="row in resultRows" :key="row.label">
               <div class="result-row">
                 <span class="result-label">{{ row.label }}</span>
                 <code class="result-value">{{ row.value }}</code>
@@ -181,14 +166,8 @@ calculate()
         </NCard>
       </NTabPane>
 
-      <NTabPane
-        name="vlsm"
-        :tab="page.t('tabs.vlsm')"
-      >
-        <NCard
-          class="input-card"
-          :bordered="false"
-        >
+      <NTabPane name="vlsm" :tab="page.t('tabs.vlsm')">
+        <NCard class="input-card" :bordered="false">
           <div class="section-title">
             {{ page.t('labels.vlsm') }}
           </div>
@@ -205,29 +184,17 @@ calculate()
               class="host-counts-input"
               @keyup.enter="splitVlsmSubnets"
             />
-            <NButton
-              type="primary"
-              @click="splitVlsmSubnets"
-            >
+            <NButton type="primary" @click="splitVlsmSubnets">
               {{ page.t('buttons.splitVlsm') }}
             </NButton>
           </div>
         </NCard>
 
-        <NCard
-          v-if="vlsmResult?.length"
-          class="result-card"
-          :bordered="false"
-        >
+        <NCard v-if="vlsmResult?.length" class="result-card" :bordered="false">
           <div class="section-title">
             {{ page.t('labels.vlsmResult') }}
           </div>
-          <NDataTable
-            :columns="vlsmColumns"
-            :data="vlsmResult"
-            :bordered="false"
-            size="small"
-          />
+          <NDataTable :columns="vlsmColumns" :data="vlsmResult" :bordered="false" size="small" />
         </NCard>
       </NTabPane>
     </NTabs>

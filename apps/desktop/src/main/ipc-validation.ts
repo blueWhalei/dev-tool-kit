@@ -1,20 +1,25 @@
 import { existsSync, statSync } from 'fs'
 import { resolve } from 'path'
-import type {
-  OpenDialogOptions,
-  SaveDialogOptions,
-  MessageBoxOptions
-} from '@dev-tool-kit/shared'
+import type { OpenDialogOptions, SaveDialogOptions, MessageBoxOptions } from '@dev-tool-kit/shared'
 
 const OPEN_DIALOG_PROPERTIES = new Set([
-  'openFile', 'openDirectory', 'multiSelections', 'showHiddenFiles',
-  'createDirectory', 'promptToCreate', 'noResolveAliases',
-  'treatPackageAsDirectory', 'dontAddToRecent'
+  'openFile',
+  'openDirectory',
+  'multiSelections',
+  'showHiddenFiles',
+  'createDirectory',
+  'promptToCreate',
+  'noResolveAliases',
+  'treatPackageAsDirectory',
+  'dontAddToRecent'
 ])
 
 const SAVE_DIALOG_PROPERTIES = new Set([
-  'createDirectory', 'showHiddenFiles', 'treatPackageAsDirectory',
-  'showOverwriteConfirmation', 'dontAddToRecent'
+  'createDirectory',
+  'showHiddenFiles',
+  'treatPackageAsDirectory',
+  'showOverwriteConfirmation',
+  'dontAddToRecent'
 ])
 
 function sanitizeFilters(
@@ -33,9 +38,7 @@ function sanitizeFilters(
     .filter(f => f.extensions.length > 0)
 }
 
-export function sanitizeOpenDialogOptions(
-  options: unknown
-): OpenDialogOptions {
+export function sanitizeOpenDialogOptions(options: unknown): OpenDialogOptions {
   if (!options || typeof options !== 'object') return {}
   const o = options as Record<string, unknown>
   const result: OpenDialogOptions = {}
@@ -58,9 +61,7 @@ export function sanitizeOpenDialogOptions(
   return result
 }
 
-export function sanitizeSaveDialogOptions(
-  options: unknown
-): SaveDialogOptions {
+export function sanitizeSaveDialogOptions(options: unknown): SaveDialogOptions {
   if (!options || typeof options !== 'object') return {}
   const o = options as Record<string, unknown>
   const result: SaveDialogOptions = {}
@@ -83,9 +84,7 @@ export function sanitizeSaveDialogOptions(
   return result
 }
 
-export function sanitizeMessageBoxOptions(
-  options: unknown
-): MessageBoxOptions | null {
+export function sanitizeMessageBoxOptions(options: unknown): MessageBoxOptions | null {
   if (!options || typeof options !== 'object') return null
   const o = options as Record<string, unknown>
   if (typeof o.message !== 'string' || !o.message.trim()) return null

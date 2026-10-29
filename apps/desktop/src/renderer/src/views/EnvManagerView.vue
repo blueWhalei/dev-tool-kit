@@ -91,6 +91,7 @@ const columns = computed(() => [
           key: 'actions',
           width: 100,
           render: (row: EnvVariable) => {
+            if (shellWriteMode.value && row.type === 'system') return null
             return h(
               NSpace,
               { size: 'small', noWrap: true },
@@ -103,7 +104,7 @@ const columns = computed(() => [
                   ),
                   h(
                     NPopconfirm,
-                    { onPositiveClick: () => handleDelete(row.name) },
+                    { onPositiveClick: () => handleDelete(row.name, row.type) },
                     {
                       trigger: () =>
                         h(
@@ -216,7 +217,12 @@ async function handleSave() {
     )
     if (!ok) return
     pendingShellAction.value = async () => {
-      const data = await invoke('env-manager:set', editingVar.value!.name, editingVar.value!.value)
+      const data = await invoke(
+        'env-manager:set',
+        editingVar.value!.name,
+        editingVar.value!.value,
+        editingVar.value!.type
+      )
       const result = validateOptional(data, isOperationResult, 'handleSave')
       if (result?.success) {
         message.success(isNewVar.value ? page.t('messages.created') : page.t('messages.saved'))
@@ -234,7 +240,12 @@ async function handleSave() {
 async function executeSave() {
   if (!editingVar.value?.name) return
   try {
-    const data = await invoke('env-manager:set', editingVar.value.name, editingVar.value.value)
+    const data = await invoke(
+      'env-manager:set',
+      editingVar.value.name,
+      editingVar.value.value,
+      editingVar.value.type
+    )
     const result = validateOptional(data, isOperationResult, 'handleSave')
     if (result?.success) {
       message.success(isNewVar.value ? page.t('messages.created') : page.t('messages.saved'))
@@ -255,12 +266,12 @@ async function confirmShellDiff() {
   if (action) await action()
 }
 
-async function handleDelete(name: string) {
+async function handleDelete(name: string, scope: EnvVariable['type']) {
   if (shellWriteMode.value) {
     const ok = await previewShellChange('env-manager:previewDelete', name)
     if (!ok) return
     pendingShellAction.value = async () => {
-      const result = (await invoke('env-manager:delete', name)) as {
+      const result = (await invoke('env-manager:delete', name, scope)) as {
         success: boolean
         error?: string
       }
@@ -273,12 +284,12 @@ async function handleDelete(name: string) {
     }
     return
   }
-  await executeDelete(name)
+  await executeDelete(name, scope)
 }
 
-async function executeDelete(name: string) {
+async function executeDelete(name: string, scope: EnvVariable['type']) {
   try {
-    const result = (await invoke('env-manager:delete', name)) as {
+    const result = (await invoke('env-manager:delete', name, scope)) as {
       success: boolean
       error?: string
     }

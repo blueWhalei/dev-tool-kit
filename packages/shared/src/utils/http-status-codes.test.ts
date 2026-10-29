@@ -26,9 +26,9 @@ describe('getHttpStatusCategory', () => {
 
 describe('formatHttpStatusLine', () => {
   it('formats code and name', () => {
-    expect(formatHttpStatusLine({ code: 404, name: 'Not Found', descriptionEn: '', descriptionZh: '' })).toBe(
-      '404 Not Found'
-    )
+    expect(
+      formatHttpStatusLine({ code: 404, name: 'Not Found', descriptionEn: '', descriptionZh: '' })
+    ).toBe('404 Not Found')
   })
 })
 
@@ -80,8 +80,12 @@ describe('filterAndGroupHttpStatusCodes', () => {
     const groups = filterAndGroupHttpStatusCodes({ query: 'timeout' })
     const flat = Object.values(groups).flat()
     expect(flat.map(e => e.code)).toEqual(expect.arrayContaining([408, 504]))
-    expect(flat.every(e => e.name.toLowerCase().includes('timeout') || e.descriptionEn.toLowerCase().includes('timeout'))).toBe(
-      true
-    )
+    expect(
+      flat.every(
+        e =>
+          e.name.toLowerCase().includes('timeout') ||
+          e.descriptionEn.toLowerCase().includes('timeout')
+      )
+    ).toBe(true)
   })
 })

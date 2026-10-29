@@ -34,6 +34,10 @@ export function useSharedImageState() {
     try {
       const data = await invoke('image-tools:pickImage')
       if (!data) return null
+      if ('error' in data) {
+        message.error(page.t(`messages.${data.error}`))
+        return null
+      }
       const image = { ...data, dataUri: `data:${data.mimeType};base64,${data.base64}` }
       pickedImage.value = image
       message.success(page.t('messages.imageLoaded'))

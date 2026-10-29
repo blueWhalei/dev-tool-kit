@@ -65,11 +65,11 @@
               :value="val"
               @update:value="
                 (v: boolean) => {
-                  ;(svgOptions as any)[key] = v
+                  svgOptions[key] = v
                 }
               "
             />
-            <span class="svg-option-label">{{ page.t(`labels.${key}` as any) || key }}</span>
+            <span class="svg-option-label">{{ page.t(`labels.${key}`) || key }}</span>
           </div>
         </NGridItem>
       </NGrid>

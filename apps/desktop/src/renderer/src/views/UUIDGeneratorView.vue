@@ -40,10 +40,14 @@ function bytesToUuid(bytes: Uint8Array): string {
 
 function formatUuid(uuid: string, format: UuidFormat): string {
   switch (format) {
-    case 'uppercase': return uuid.toUpperCase()
-    case 'noHyphens': return uuid.replace(/-/g, '')
-    case 'braces': return `{${uuid}}`
-    default: return uuid
+    case 'uppercase':
+      return uuid.toUpperCase()
+    case 'noHyphens':
+      return uuid.replace(/-/g, '')
+    case 'braces':
+      return `{${uuid}}`
+    default:
+      return uuid
   }
 }
 
@@ -85,10 +89,10 @@ function generateUuidv1(): string {
   bytes[4] = (ts >>> 40) & 0xff
   bytes[5] = (ts >>> 32) & 0xff
   // time_hi_and_version (2 bytes)
-  bytes[6] = (ts >>> 56) & 0x0f | 0x10 // version 1
+  bytes[6] = ((ts >>> 56) & 0x0f) | 0x10 // version 1
   bytes[7] = (ts >>> 48) & 0xff
   // clock_seq_hi_and_reserved
-  bytes[8] = (v1ClockSeq >>> 8) & 0x3f | 0x80 // variant
+  bytes[8] = ((v1ClockSeq >>> 8) & 0x3f) | 0x80 // variant
   // clock_seq_low
   bytes[9] = v1ClockSeq & 0xff
   // node (6 bytes)
@@ -134,9 +138,12 @@ function generateUuidv7(): string {
 
 function generateRaw(): string {
   switch (selectedVersion.value) {
-    case 'v1': return generateUuidv1()
-    case 'v4': return generateUuidv4()
-    case 'v7': return generateUuidv7()
+    case 'v1':
+      return generateUuidv1()
+    case 'v4':
+      return generateUuidv4()
+    case 'v7':
+      return generateUuidv7()
   }
 }
 
@@ -177,70 +184,33 @@ generate()
     container-class="uuid-generator-view"
   >
     <template #actions>
-      <NSelect
-        v-model:value="selectedVersion"
-        :options="versionOptions"
-        style="width: 200px"
-      />
-      <NSelect
-        v-model:value="selectedFormat"
-        :options="formatOptions"
-        style="width: 160px"
-      />
+      <NSelect v-model:value="selectedVersion" :options="versionOptions" style="width: 200px" />
+      <NSelect v-model:value="selectedFormat" :options="formatOptions" style="width: 160px" />
       <div class="count-control">
         <span class="control-label">{{ page.t('labels.count') }}</span>
-        <NInputNumber
-          v-model:value="count"
-          :min="1"
-          :max="10"
-          size="medium"
-        />
+        <NInputNumber v-model:value="count" :min="1" :max="10" size="medium" />
       </div>
-      <NButton
-        type="primary"
-        @click="generate"
-      >
+      <NButton type="primary" @click="generate">
         {{ page.t('buttons.generate') }}
       </NButton>
-      <NButton
-        :disabled="generatedUuids.length === 0"
-        @click="copyAll"
-      >
+      <NButton :disabled="generatedUuids.length === 0" @click="copyAll">
         {{ page.t('buttons.copyAll') }}
       </NButton>
-      <NButton
-        v-if="generatedUuids.length > 0"
-        quaternary
-        @click="openInMockData"
-      >
+      <NButton v-if="generatedUuids.length > 0" quaternary @click="openInMockData">
         {{ page.t('buttons.openInMockData') }}
       </NButton>
     </template>
 
-    <NCard
-      v-if="generatedUuids.length > 0"
-      class="result-card"
-      :bordered="false"
-    >
-      <NList
-        hoverable
-        clickable
-      >
-        <NListItem
-          v-for="(uuid, index) in generatedUuids"
-          :key="index"
-          @click="copyOne(uuid)"
-        >
+    <NCard v-if="generatedUuids.length > 0" class="result-card" :bordered="false">
+      <NList hoverable clickable>
+        <NListItem v-for="(uuid, index) in generatedUuids" :key="index" @click="copyOne(uuid)">
           <NThing>
             <template #header>
               <span class="uuid-value">{{ uuid }}</span>
             </template>
           </NThing>
           <template #suffix>
-            <NButton
-              size="small"
-              @click.stop="copyOne(uuid)"
-            >
+            <NButton size="small" @click.stop="copyOne(uuid)">
               {{ t('common.copy') }}
             </NButton>
           </template>

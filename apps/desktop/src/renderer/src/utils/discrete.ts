@@ -6,8 +6,8 @@ let currentMessage: MessageApiInjection
 function createMessageApi(isDark: boolean) {
   const { message } = createDiscreteApi(['message'], {
     configProviderProps: {
-      theme: isDark ? darkTheme : lightTheme,
-    },
+      theme: isDark ? darkTheme : lightTheme
+    }
   })
   return message
 }

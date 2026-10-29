@@ -188,6 +188,8 @@ export default {
   },
   batchStatus: { pending: '等待中', processing: '处理中', cancelled: '已取消' },
   messages: {
+    imageTooLarge: '图片文件超过 64 MiB 大小限制',
+    diffScaled: '大图对比预览已缩放至最多 400 万像素。',
     batchUnauthorized: '请重新选择此文件以授予访问权限。',
     batchSavePartial: '已保存 {saved} 个，失败 {failed} 个。不会覆盖已有文件。',
     imageLoaded: '图片已加载',

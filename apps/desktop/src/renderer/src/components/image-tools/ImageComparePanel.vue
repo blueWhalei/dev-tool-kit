@@ -76,6 +76,9 @@
         <NAlert v-else type="info" :bordered="false">
           {{ page.t('labels.diffOverlay') }}
         </NAlert>
+        <NAlert v-if="diffScaled" type="info" :bordered="false">{{
+          page.t('messages.diffScaled')
+        }}</NAlert>
         <div class="compare-diff-legend">
           <span class="diff-legend-item"
             ><span class="diff-legend-color" style="background: rgba(255, 200, 0, 0.8)" />
@@ -98,8 +101,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { comparePixels } from '../../utils/image-diff'
+import { ref, watch, onUnmounted } from 'vue'
+import { comparisonSize } from '../../utils/image-diff'
+import DiffWorker from '../../workers/image-diff?worker'
 import { NButton, NCard, NRadioGroup, NRadioButton, NAlert, useMessage } from 'naive-ui'
 import { formatBytes } from '@dev-tool-kit/shared'
 import { useToolI18n } from '../../composables/useToolI18n'
@@ -132,6 +136,10 @@ async function pickCompareImage(side: 'A' | 'B') {
   try {
     const data = await invoke('image-tools:pickImage')
     if (!data) return
+    if ('error' in data) {
+      message.error(page.t(`messages.${data.error}`))
+      return
+    }
     const img: CompareImage = {
       fileName: data.fileName,
       filePath: data.filePath,
@@ -190,10 +198,18 @@ function updateSliderPos(e: MouseEvent) {
 }
 
 const diffOverlayDataUri = ref('')
+const diffScaled = ref(false)
+let diffWorker: Worker | undefined
+onUnmounted(() => {
+  diffRequestSeq++
+  diffWorker?.terminate()
+})
 
 let diffRequestSeq = 0
 
 function computeDiffOverlay() {
+  diffWorker?.terminate()
+  diffOverlayDataUri.value = ''
   if (!compareImageA.value || !compareImageB.value) return
   const seq = ++diffRequestSeq
   const imgA = new Image()
@@ -210,22 +226,37 @@ function computeDiffOverlay() {
     loaded++
     if (loaded < 2) return
     if (seq !== diffRequestSeq) return
-    const w = Math.max(imgA.naturalWidth, imgB.naturalWidth)
-    const h = Math.max(imgA.naturalHeight, imgB.naturalHeight)
+    const size = comparisonSize(
+      Math.max(imgA.naturalWidth, imgB.naturalWidth),
+      Math.max(imgA.naturalHeight, imgB.naturalHeight)
+    )
+    const { width: w, height: h, scale } = size
+    diffScaled.value = scale < 1
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    ctx.drawImage(imgA, 0, 0)
+    ctx.drawImage(imgA, 0, 0, imgA.naturalWidth * scale, imgA.naturalHeight * scale)
     const dataA = ctx.getImageData(0, 0, w, h).data
     ctx.clearRect(0, 0, w, h)
-    ctx.drawImage(imgB, 0, 0)
+    ctx.drawImage(imgB, 0, 0, imgB.naturalWidth * scale, imgB.naturalHeight * scale)
     const dataB = ctx.getImageData(0, 0, w, h).data
-    const diffData = ctx.createImageData(w, h)
-    diffData.data.set(comparePixels(dataA, dataB))
-    ctx.putImageData(diffData, 0, 0)
-    diffOverlayDataUri.value = canvas.toDataURL('image/png')
+    const worker = new DiffWorker()
+    diffWorker = worker
+    worker.onerror = () => {
+      worker.terminate()
+      fail()
+    }
+    worker.onmessage = (event: MessageEvent<Uint8ClampedArray>) => {
+      worker.terminate()
+      if (seq !== diffRequestSeq) return
+      const pixels = new Uint8ClampedArray(event.data.length)
+      pixels.set(event.data)
+      ctx.putImageData(new ImageData(pixels, w, h), 0, 0)
+      diffOverlayDataUri.value = canvas.toDataURL('image/png')
+    }
+    worker.postMessage({ a: dataA, b: dataB }, [dataA.buffer, dataB.buffer])
   }
   imgA.onload = onBothLoaded
   imgB.onload = onBothLoaded
@@ -234,6 +265,10 @@ function computeDiffOverlay() {
 }
 
 watch([compareMode, compareImageA, compareImageB], ([mode]) => {
+  if (mode !== 'diffOverlay') {
+    diffRequestSeq++
+    diffWorker?.terminate()
+  }
   if (mode === 'diffOverlay') {
     computeDiffOverlay()
   }

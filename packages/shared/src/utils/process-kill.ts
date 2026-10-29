@@ -50,9 +50,7 @@ export function buildKillFailureResult(options: KillFailureOptions): OperationRe
   const { errorMsg, pid, platform, force = true } = options
   const parsed = parseKillError(errorMsg, platform)
   const suggestCommand =
-    parsed.code === 'permission_denied' ||
-    parsed.code === 'access_denied' ||
-    parsed.needSudo
+    parsed.code === 'permission_denied' || parsed.code === 'access_denied' || parsed.needSudo
 
   return {
     success: false,

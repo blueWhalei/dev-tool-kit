@@ -3,7 +3,6 @@ export * from './platform-capabilities'
 
 // App constants
 export const APP_NAME = 'DevToolkit'
-export const APP_VERSION = '1.0.0'
 
 // Common ports
 export const COMMON_PORTS: { port: number; service: string }[] = [
@@ -85,7 +84,20 @@ export const IMAGE_TOOLS_TAB_KEYWORDS: { tab: string; keywords: string[] }[] = [
   { tab: 'convert', keywords: ['转换', 'convert', '格式', 'format', 'png', 'jpeg', 'webp'] },
   { tab: 'dataUrl', keywords: ['data url', 'datauri', 'mime', '字符集', 'charset', '编码'] },
   { tab: 'svg', keywords: ['svg', '优化', 'optimize', 'svgo', '矢量', '元数据'] },
-  { tab: 'color', keywords: ['取色', '吸管', 'eyedropper', '颜色', 'color', '调色板', 'palette', '主色', 'dominant'] },
+  {
+    tab: 'color',
+    keywords: [
+      '取色',
+      '吸管',
+      'eyedropper',
+      '颜色',
+      'color',
+      '调色板',
+      'palette',
+      '主色',
+      'dominant'
+    ]
+  },
   { tab: 'favicon', keywords: ['favicon', '图标', 'icon', 'ico', '应用图标', 'app icon'] },
   { tab: 'batch', keywords: ['批处理', 'batch', '批量', '多文件', '队列', 'queue'] },
   { tab: 'compare', keywords: ['对比', 'compare', '比较', 'diff', '差异', 'slider', '并排'] },
@@ -113,14 +125,6 @@ export interface AppPreferencesExport {
   recentTools: string[]
   codeConverterTab?: string
 }
-
-// Legacy alias — prefer ROUTE_CATEGORIES
-export const MODULE_CATEGORIES = {
-  system: { label: '系统工具', icon: '⚙️' },
-  developer: { label: '开发工具', icon: '🔧' },
-  utility: { label: '实用工具', icon: '🛠️' },
-  network: { label: '网络工具', icon: '🌐' }
-} as const
 
 // Theme tokens
 export const COLORS = {
@@ -166,3 +170,5 @@ export const RADIUS = {
   xl: 16,
   full: 9999
 } as const
+
+export * from './tool-errors'

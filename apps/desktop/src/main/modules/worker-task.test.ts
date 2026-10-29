@@ -26,12 +26,61 @@ beforeAll(async () => {
   }
   await writeFile(join(dir, 'exit.js'), 'process.exit(0)')
   await writeFile(join(dir, 'error.js'), 'throw new Error("boom")')
+  const schema = await readFile(
+    resolve('apps/desktop/src/main/modules/json-schema/schema-worker.ts'),
+    'utf8'
+  )
+  const schemaSource = schema.replace(
+    "'@dev-tool-kit/shared'",
+    JSON.stringify(createRequire(import.meta.url).resolve('@dev-tool-kit/shared'))
+  )
+  await writeFile(
+    join(dir, 'schema-worker.js'),
+    ts.transpileModule(schemaSource, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
+    }).outputText
+  )
 })
 afterAll(async () => {
   for (const file of await readdir(dir)) await unlink(join(dir, file))
   await rmdir(dir)
 })
 describe('worker lifecycle', () => {
+  it('cancels an active worker and rejects already cancelled requests', async () => {
+    const controller = new AbortController()
+    const pending = runWorkerTask(
+      join(dir, 'schema-worker.js'),
+      { data: 'a'.repeat(40) + '!', schemaText: '{"type":"string","pattern":"^(a+)+$"}' },
+      3000,
+      controller.signal
+    )
+    controller.abort()
+    await expect(pending).rejects.toThrow('workerCancelled')
+    await expect(
+      runWorkerTask(join(dir, 'schema-worker.js'), {}, 3000, controller.signal)
+    ).rejects.toThrow('workerCancelled')
+  })
+  it('validates Schema in isolation and terminates catastrophic pattern evaluation', async () => {
+    expect(
+      await runWorkerTask(join(dir, 'schema-worker.js'), {
+        data: 'ok',
+        schemaText: '{"type":"string"}'
+      })
+    ).toMatchObject({ success: true, valid: true })
+    let responsive = false
+    const timer = setTimeout(() => {
+      responsive = true
+    }, 20)
+    await expect(
+      runWorkerTask(
+        join(dir, 'schema-worker.js'),
+        { data: 'a'.repeat(40) + '!', schemaText: '{"type":"string","pattern":"^(a+)+$"}' },
+        250
+      )
+    ).rejects.toThrow('workerTimeout')
+    clearTimeout(timer)
+    expect(responsive).toBe(true)
+  })
   const files = [{ name: 'sample.txt', path: '/sample.txt' }]
   it('returns a normal preview from a real worker', async () => {
     await expect(

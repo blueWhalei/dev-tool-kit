@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { parseConnectionString, parsedConnectionToJson, buildConnectionString } from './connection-string'
+import {
+  parseConnectionString,
+  parsedConnectionToJson,
+  buildConnectionString
+} from './connection-string'
 
 describe('parseConnectionString', () => {
   it('parses MySQL URI', () => {
@@ -193,7 +197,9 @@ describe('buildConnectionString', () => {
   })
 
   it('rejects unsupported protocol', () => {
-    expect(buildConnectionString({ protocol: 'ftp', host: 'localhost' }).error).toBe('unsupported_protocol')
+    expect(buildConnectionString({ protocol: 'ftp', host: 'localhost' }).error).toBe(
+      'unsupported_protocol'
+    )
   })
 })
 describe('parseConnectionString bare IPv6', () => {

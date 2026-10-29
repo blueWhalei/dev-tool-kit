@@ -86,28 +86,33 @@ function updateFromRgba(rgba: ColorRGBA, source: string) {
   if (source !== 'picker') saveRecentColor(rgbaToHex(rgba, true))
 }
 
-function onHexInput() {
+function onHexInput(value: string) {
+  hexInput.value = value
   let parsed = hexToRgba(hexInput.value)
   if (!parsed) parsed = cssNameToRgba(hexInput.value)
   if (parsed) updateFromRgba(parsed, 'hex')
 }
 
-function onRgbaInput() {
+function onRgbaInput(value: string) {
+  rgbaInput.value = value
   const parsed = parseRgbString(rgbaInput.value)
   if (parsed) updateFromRgba(parsed, 'rgba')
 }
 
-function onHslaInput() {
+function onHslaInput(value: string) {
+  hslaInput.value = value
   const parsed = parseHslString(hslaInput.value)
   if (parsed) updateFromRgba(hslaToRgba(parsed), 'hsla')
 }
 
-function onHex8Input() {
+function onHex8Input(value: string) {
+  hex8Input.value = value
   const parsed = hexToRgba(hex8Input.value)
   if (parsed) updateFromRgba(parsed, 'hex8')
 }
 
-function onCssNameInput() {
+function onCssNameInput(value: string) {
+  cssNameInput.value = value
   const parsed = cssNameToRgba(cssNameInput.value)
   if (parsed) updateFromRgba(parsed, 'cssName')
 }
@@ -155,76 +160,46 @@ const alphaPercent = computed({
     <div class="color-preview-section">
       <div class="preview-area">
         <div class="checkerboard-bg">
-          <div
-            class="color-swatch"
-            :style="{ backgroundColor: colorPreviewRgba }"
-          />
+          <div class="color-swatch" :style="{ backgroundColor: colorPreviewRgba }" />
         </div>
         <label class="picker-wrapper">
-          <input
-            type="color"
-            :value="colorPreview"
-            class="color-picker"
-            @input="onPickerChange"
-          >
+          <input type="color" :value="colorPreview" class="color-picker" @input="onPickerChange" />
           <span class="picker-label">{{ page.t('labels.pickColor') }}</span>
         </label>
       </div>
       <div class="alpha-control">
         <span class="alpha-label">{{ page.t('labels.alpha') }}</span>
-        <NSlider
-          v-model:value="alphaPercent"
-          :min="0"
-          :max="100"
-          :step="1"
-          style="flex: 1"
-        />
+        <NSlider v-model:value="alphaPercent" :min="0" :max="100" :step="1" style="flex: 1" />
         <span class="alpha-value">{{ alphaPercent }}%</span>
       </div>
     </div>
 
-    <NGrid
-      :cols="2"
-      :x-gap="12"
-      :y-gap="12"
-      responsive="screen"
-      item-responsive
-    >
+    <NGrid :cols="2" :x-gap="12" :y-gap="12" responsive="screen" item-responsive>
       <NGridItem span="0:2 640:1">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hex') }}</label>
             <NInput
               :value="hexInput"
               :placeholder="page.t('placeholders.hex')"
               size="small"
-              @update:value="hexInput = $event; onHexInput()"
+              @update:value="onHexInput"
             />
-            <NButton
-              size="tiny"
-              quaternary
-              @click="copyValue(hexInput, 'messages.hexCopied')"
-            >
+            <NButton size="tiny" quaternary @click="copyValue(hexInput, 'messages.hexCopied')">
               {{ page.t('buttons.copy') }}
             </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.rgba') }}</label>
             <NInput
               :value="rgbaInput"
               :placeholder="page.t('placeholders.rgba')"
               size="small"
-              @update:value="rgbaInput = $event; onRgbaInput()"
+              @update:value="onRgbaInput"
             />
             <NButton
               size="tiny"
@@ -237,17 +212,14 @@ const alphaPercent = computed({
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hsla') }}</label>
             <NInput
               :value="hslaInput"
               :placeholder="page.t('placeholders.hsla')"
               size="small"
-              @update:value="hslaInput = $event; onHslaInput()"
+              @update:value="onHslaInput"
             />
             <NButton
               size="tiny"
@@ -260,71 +232,46 @@ const alphaPercent = computed({
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hex8') }}</label>
             <NInput
               :value="hex8Input"
               :placeholder="page.t('placeholders.hex8')"
               size="small"
-              @update:value="hex8Input = $event; onHex8Input()"
+              @update:value="onHex8Input"
             />
-            <NButton
-              size="tiny"
-              quaternary
-              @click="copyValue(hex8Input, 'messages.hex8Copied')"
-            >
+            <NButton size="tiny" quaternary @click="copyValue(hex8Input, 'messages.hex8Copied')">
               {{ page.t('buttons.copy') }}
             </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="0:2 640:1">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.hsv') }}</label>
-            <NInput
-              :value="hsvaDisplay"
-              readonly
-              size="small"
-            />
-            <NButton
-              size="tiny"
-              quaternary
-              @click="copyValue(hsvaDisplay, 'messages.hsvCopied')"
-            >
+            <NInput :value="hsvaDisplay" readonly size="small" />
+            <NButton size="tiny" quaternary @click="copyValue(hsvaDisplay, 'messages.hsvCopied')">
               {{ page.t('buttons.copy') }}
             </NButton>
           </div>
         </NCard>
       </NGridItem>
       <NGridItem span="2">
-        <NCard
-          class="format-card"
-          :bordered="false"
-        >
+        <NCard class="format-card" :bordered="false">
           <div class="format-row">
             <label class="format-label">{{ page.t('labels.cssName') }}</label>
             <NInput
               :value="cssNameInput"
               :placeholder="page.t('placeholders.cssName')"
               size="small"
-              @update:value="cssNameInput = $event; onCssNameInput()"
+              @update:value="onCssNameInput"
             />
-            <span
-              v-if="resolvedCssName"
-              class="css-name-hint"
-            >{{ resolvedCssName }}</span>
-            <span
-              v-else-if="cssNameInput"
-              class="css-name-hint no-match"
-            >{{ page.t('messages.noCssName') }}</span>
+            <span v-if="resolvedCssName" class="css-name-hint">{{ resolvedCssName }}</span>
+            <span v-else-if="cssNameInput" class="css-name-hint no-match">{{
+              page.t('messages.noCssName')
+            }}</span>
             <NButton
               v-if="resolvedCssName"
               size="tiny"
@@ -338,10 +285,7 @@ const alphaPercent = computed({
       </NGridItem>
     </NGrid>
 
-    <NCard
-      class="contrast-card"
-      :bordered="false"
-    >
+    <NCard class="contrast-card" :bordered="false">
       <div class="contrast-header">
         {{ page.t('labels.contrast') }}
       </div>
@@ -353,20 +297,14 @@ const alphaPercent = computed({
           size="small"
         />
       </div>
-      <div
-        v-if="contrastResult"
-        class="contrast-stats"
-      >
+      <div v-if="contrastResult" class="contrast-stats">
         <span>{{ page.t('labels.contrastRatio', { ratio: contrastResult.ratioFormatted }) }}</span>
         <span :class="contrastResult.aaNormal ? 'pass' : 'fail'">AA</span>
         <span :class="contrastResult.aaaNormal ? 'pass' : 'fail'">AAA</span>
       </div>
     </NCard>
 
-    <div
-      v-if="recentColors.length > 0"
-      class="recent-section"
-    >
+    <div v-if="recentColors.length > 0" class="recent-section">
       <span class="recent-label">{{ page.t('labels.recentColors') }}</span>
       <div class="recent-colors">
         <button
@@ -375,10 +313,7 @@ const alphaPercent = computed({
           class="recent-swatch checkerboard-bg-small"
           @click="applyRecentColor(hex8)"
         >
-          <span
-            class="recent-swatch-inner"
-            :style="{ backgroundColor: hex8 }"
-          />
+          <span class="recent-swatch-inner" :style="{ backgroundColor: hex8 }" />
         </button>
       </div>
     </div>
@@ -415,7 +350,11 @@ const alphaPercent = computed({
     linear-gradient(45deg, transparent 75%, #ccc 75%),
     linear-gradient(-45deg, transparent 75%, #ccc 75%);
   background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
   overflow: hidden;
   border: 1px solid var(--color-border);
 }
@@ -526,7 +465,11 @@ const alphaPercent = computed({
     linear-gradient(45deg, transparent 75%, #ccc 75%),
     linear-gradient(-45deg, transparent 75%, #ccc 75%);
   background-size: 8px 8px;
-  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0px;
 }
 
 .recent-swatch {

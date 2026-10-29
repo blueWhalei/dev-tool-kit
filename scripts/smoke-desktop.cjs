@@ -45,14 +45,14 @@ if (!process.versions.electron) {
   const deadline = setTimeout(() => {
     console.error('Desktop smoke timed out')
     app.exit(1)
-  }, 45000)
+  }, 90000)
   app.once('browser-window-created', (_, win) => {
     win.webContents.once('did-finish-load', () =>
       smoke(win)
         .then(() => {
           clearTimeout(deadline)
           console.log(
-            'DESKTOP_SMOKE_PASS: built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
+            'DESKTOP_SMOKE_PASS: real port scan, schema isolation/timeout, built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
           )
           app.exit(0)
         })
@@ -91,6 +91,42 @@ if (!process.versions.electron) {
     const click = text => waitFor(clickReadyControl, text)
     const invoke = (channel, ...args) =>
       run((channel, args) => window.electronAPI.invoke(channel, ...args), channel, args)
+    const server = require('net').createServer()
+    await new Promise((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(0, '127.0.0.1', resolve)
+    })
+    try {
+      const port = server.address().port
+      let found
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const ports = await invoke('port-manager:getPorts')
+        found = ports.find(
+          item => item.port === port && item.pid === process.pid && item.protocol === 'TCP'
+        )
+        if (found) break
+        await new Promise(resolve => setTimeout(resolve, 3100))
+      }
+      assert(found, 'Port scanner must identify the real fixture listener and its PID')
+    } finally {
+      await new Promise(resolve => server.close(resolve))
+    }
+    const schemaResult = await invoke('json-schema:validate', {
+      data: { count: 2 },
+      schemaText: '{"type":"object","required":["count"]}'
+    })
+    assert.equal(schemaResult.valid, true)
+    const schemaStarted = Date.now()
+    const expensiveSchema = invoke('json-schema:validate', {
+      data: 'a'.repeat(40) + '!',
+      schemaText: '{"type":"string","pattern":"^(a+)+$"}'
+    })
+    assert.equal(typeof (await invoke('app:getVersion')), 'string')
+    assert(
+      Date.now() - schemaStarted < 2500,
+      'Schema validation must leave the main process responsive'
+    )
+    assert.equal((await expensiveSchema).error, 'schemaTimeout')
     await run(() => {
       window.__smokeErrors = []
       window.addEventListener('error', event => window.__smokeErrors.push(event.message))

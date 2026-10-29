@@ -4,6 +4,7 @@ import { logger } from '../../logger'
 import { platform } from 'os'
 import type { PortInfo, ProcessInfo, OperationResult } from '@dev-tool-kit/shared'
 import { buildKillFailureResult } from '@dev-tool-kit/shared'
+import { parseMacLsof, parseLinuxNetstat } from './unix-parser'
 import { parseWindowsNetstat } from './netstat-parser'
 
 const execute = promisify(execFile)
@@ -94,39 +95,12 @@ export class PortScanner {
   private async getMacPorts(): Promise<PortInfo[]> {
     try {
       const { stdout } = await execFileAsync('lsof', ['-i', '-P', '-n'])
-      const ports = this.parseMacLsof(stdout)
+      const ports = parseMacLsof(stdout)
       return this.enrichWithProcessNames(ports)
     } catch (error) {
       logger.error('lsof command failed:', error)
       return []
     }
-  }
-
-  private parseMacLsof(output: string): PortInfo[] {
-    const ports: PortInfo[] = []
-    const lines = output.split('\n')
-
-    for (const line of lines) {
-      const parts = line.trim().split(/\s+/)
-      if (parts.length < 9) continue
-
-      const name = parts[parts.length - 1]
-      if (!name.includes('->')) {
-        // LISTENING
-        const match = line.match(/(?:TCP|UDP)\s+(\S+):(\d+)\s+\(LISTEN\)/)
-        if (match) {
-          ports.push({
-            port: parseInt(match[2]),
-            pid: parseInt(parts[1]) || 0,
-            protocol: match[1].toUpperCase() as 'TCP' | 'UDP',
-            state: 'LISTENING',
-            localAddress: match[1]
-          })
-        }
-      }
-    }
-
-    return ports
   }
 
   private async getLinuxPorts(): Promise<PortInfo[]> {
@@ -139,7 +113,7 @@ export class PortScanner {
       // Fallback to netstat
       try {
         const { stdout } = await execFileAsync('netstat', ['-tulnp'])
-        const ports = this.parseLinuxNetstat(stdout)
+        const ports = parseLinuxNetstat(stdout)
         return this.enrichWithProcessNames(ports)
       } catch {
         return []
@@ -176,41 +150,6 @@ export class PortScanner {
         protocol,
         state,
         localAddress: localAddr.substring(0, lastColon)
-      })
-    }
-
-    return ports
-  }
-
-  private parseLinuxNetstat(output: string): PortInfo[] {
-    const ports: PortInfo[] = []
-    const lines = output.split('\n')
-
-    for (const line of lines) {
-      if (line.startsWith('Active') || line.startsWith('Proto')) continue
-
-      const parts = line.trim().split(/\s+/)
-      if (parts.length < 4) continue
-
-      const protocol = parts[0].toUpperCase() as 'TCP' | 'UDP'
-      const localAddress = parts[3]
-      const state = parts.length > 5 ? parts[5] : 'UNKNOWN'
-
-      const lastColon = localAddress.lastIndexOf(':')
-      if (lastColon === -1) continue
-
-      const port = parseInt(localAddress.substring(lastColon + 1))
-      if (isNaN(port)) continue
-
-      const pidProgram = parts.length > 6 ? parts[6] : ''
-      const pid = parseInt(pidProgram.split('/')[0]) || 0
-
-      ports.push({
-        port,
-        pid,
-        protocol,
-        state: state || 'UNKNOWN',
-        localAddress: localAddress.substring(0, lastColon)
       })
     }
 

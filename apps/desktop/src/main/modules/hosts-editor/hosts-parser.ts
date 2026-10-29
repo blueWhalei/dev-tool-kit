@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { isValidIP, isValidHostname } from '@dev-tool-kit/shared'
+import { isValidIP, isValidHostname, isHostsEntry } from '@dev-tool-kit/shared'
 import type { HostsEntry } from '@dev-tool-kit/shared'
 
 export const MANAGED_BLOCK_START = '# BEGIN DevToolkit'
@@ -17,6 +17,7 @@ export function stableEntryId(ip: string, hostname: string): string {
 
 export function parseManagedEntries(blockContent: string): HostsEntry[] {
   const entries: HostsEntry[] = []
+  const ids = new Set<string>()
   const lines = blockContent.split('\n')
 
   for (const line of lines) {
@@ -33,12 +34,6 @@ export function parseManagedEntries(blockContent: string): HostsEntry[] {
     }
 
     let group: string | undefined
-    const groupMatch = cleanLine.match(/^\[([^\]]+)\]\s*/)
-    if (groupMatch) {
-      group = groupMatch[1]
-      cleanLine = cleanLine.substring(groupMatch[0].length)
-    }
-
     const commentIndex = cleanLine.indexOf('#')
     let entryLine = cleanLine
     let comment: string | undefined
@@ -46,23 +41,42 @@ export function parseManagedEntries(blockContent: string): HostsEntry[] {
     if (commentIndex !== -1) {
       entryLine = cleanLine.substring(0, commentIndex).trim()
       comment = cleanLine.substring(commentIndex + 1).trim()
+      const metadata = comment.match(/^@devtoolkit-group=(\S+)(?:\s+(.*))?$/)
+      if (metadata) {
+        try {
+          group = decodeURIComponent(metadata[1])
+        } catch {
+          throw new Error('invalidHostsFormat')
+        }
+        comment = metadata[2]
+      }
+      if (comment?.startsWith('@devtoolkit-comment=')) {
+        try {
+          comment = decodeURIComponent(comment.slice('@devtoolkit-comment='.length))
+        } catch {
+          throw new Error('invalidHostsFormat')
+        }
+      }
     }
 
+    if (entryLine.startsWith('[')) throw new Error('invalidHostsFormat')
     const parts = entryLine.split(/\s+/)
-    if (parts.length >= 2) {
-      const ip = parts[0]
-      const hostname = parts[1]
-
-      if (isValidIP(ip) && isValidHostname(hostname)) {
-        entries.push({
-          id: stableEntryId(ip, hostname),
-          ip,
-          hostname,
-          comment: comment || undefined,
-          enabled,
-          group
-        })
+    const ip = parts[0]
+    if (!enabled && !isValidIP(ip)) continue // Ordinary comment, not a disabled mapping.
+    if (parts.length < 2 || !isValidIP(ip) || !parts.slice(1).every(isValidHostname))
+      throw new Error('invalidHostsFormat')
+    for (const hostname of parts.slice(1)) {
+      const entry = {
+        id: stableEntryId(ip, hostname),
+        ip,
+        hostname,
+        comment: comment || undefined,
+        enabled,
+        group
       }
+      if (!isHostsEntry(entry) || ids.has(entry.id)) throw new Error('invalidHostsFormat')
+      ids.add(entry.id)
+      entries.push(entry)
     }
   }
 
@@ -70,13 +84,20 @@ export function parseManagedEntries(blockContent: string): HostsEntry[] {
 }
 
 export function splitHostsFile(content: string): ParsedHostsFile {
-  const startIndex = content.indexOf(MANAGED_BLOCK_START)
-  const endIndex = content.indexOf(MANAGED_BLOCK_END)
-
-  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-    const prefix = content.substring(0, startIndex).replace(/\s+$/, '')
-    const blockContent = content.substring(startIndex + MANAGED_BLOCK_START.length, endIndex)
-    const suffix = content.substring(endIndex + MANAGED_BLOCK_END.length).replace(/^\s+/, '')
+  const lines = content.split('\n')
+  const starts = lines.flatMap((line, index) =>
+    line.trim() === MANAGED_BLOCK_START ? [index] : []
+  )
+  const ends = lines.flatMap((line, index) => (line.trim() === MANAGED_BLOCK_END ? [index] : []))
+  if (starts.length || ends.length) {
+    if (starts.length !== 1 || ends.length !== 1 || starts[0] >= ends[0])
+      throw new Error('invalidHostsFormat')
+    const prefix = lines.slice(0, starts[0]).join('\n').replace(/\s+$/, '')
+    const blockContent = lines.slice(starts[0] + 1, ends[0]).join('\n')
+    const suffix = lines
+      .slice(ends[0] + 1)
+      .join('\n')
+      .replace(/^\s+/, '')
     return {
       prefix,
       entries: parseManagedEntries(blockContent),
@@ -92,17 +113,23 @@ export function splitHostsFile(content: string): ParsedHostsFile {
 }
 
 export function serializeManagedBlock(entries: HostsEntry[]): string {
-  const lines: string[] = [
-    MANAGED_BLOCK_START,
-    '# Managed by DevToolkit',
-    ''
-  ]
+  const lines: string[] = [MANAGED_BLOCK_START, '# Managed by DevToolkit', '']
+  const mappings = new Set<string>()
 
   for (const entry of entries) {
+    if (!isHostsEntry(entry)) throw new Error('invalidHostsFormat')
+    const mapping = `${entry.ip}\0${entry.hostname}`
+    if (mappings.has(mapping)) throw new Error('invalidHostsFormat')
+    mappings.add(mapping)
     const prefix = entry.enabled ? '' : '# '
-    const groupPrefix = entry.group ? `[${entry.group}] ` : ''
-    const comment = entry.comment ? ` # ${entry.comment}` : ''
-    lines.push(`${prefix}${groupPrefix}${entry.ip}\t${entry.hostname}${comment}`)
+    const metadata = [
+      entry.group ? `@devtoolkit-group=${encodeURIComponent(entry.group)}` : '',
+      entry.comment ? `@devtoolkit-comment=${encodeURIComponent(entry.comment)}` : ''
+    ]
+      .filter(Boolean)
+      .join(' ')
+    const comment = metadata ? ` # ${metadata}` : ''
+    lines.push(`${prefix}${entry.ip}\t${entry.hostname}${comment}`)
   }
 
   lines.push('', MANAGED_BLOCK_END)

@@ -13,18 +13,10 @@ function goHome() {
 </script>
 
 <template>
-  <PageLayout
-    :title="t('notFound.title')"
-    :description="t('notFound.description')"
-  >
+  <PageLayout :title="t('notFound.title')" :description="t('notFound.description')">
     <div class="not-found-body">
-      <div class="error-code">
-        404
-      </div>
-      <NButton
-        type="primary"
-        @click="goHome"
-      >
+      <div class="error-code">404</div>
+      <NButton type="primary" @click="goHome">
         {{ t('notFound.goHome') }}
       </NButton>
     </div>

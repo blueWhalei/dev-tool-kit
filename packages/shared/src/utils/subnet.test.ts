@@ -39,18 +39,14 @@ describe('parseIpv6Address', () => {
   })
 
   it('parses compressed :: notation', () => {
-    expect(parseIpv6Address('2001:db8::1')).toBe(
-      BigInt('0x20010db8000000000000000000000001')
-    )
+    expect(parseIpv6Address('2001:db8::1')).toBe(BigInt('0x20010db8000000000000000000000001'))
     expect(parseIpv6Address('::1')).toBe(1n)
     expect(parseIpv6Address('::')).toBe(0n)
     expect(parseIpv6Address('fe80::')).toBe(BigInt('0xfe800000000000000000000000000000'))
   })
 
   it('parses IPv4-mapped tail', () => {
-    expect(parseIpv6Address('::ffff:192.0.2.1')).toBe(
-      BigInt('0x00000000000000000000ffffc0000201')
-    )
+    expect(parseIpv6Address('::ffff:192.0.2.1')).toBe(BigInt('0x00000000000000000000ffffc0000201'))
   })
 
   it('rejects invalid addresses', () => {

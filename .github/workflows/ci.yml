@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_call:
   push:
     branches: [main, master]
   pull_request:
@@ -33,9 +34,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check changed-file formatting
-        env:
-          FORMAT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+      - name: Check repository formatting
         run: pnpm format:check
 
       - name: Lint

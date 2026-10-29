@@ -2,8 +2,16 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  NCard, NSlider, NInput, NButton, NSpace, NCheckbox,
-  NProgress, NRadioGroup, NRadioButton, useMessage
+  NCard,
+  NSlider,
+  NInput,
+  NButton,
+  NSpace,
+  NCheckbox,
+  NProgress,
+  NRadioGroup,
+  NRadioButton,
+  useMessage
 } from 'naive-ui'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
@@ -98,7 +106,7 @@ function generatePassword() {
   let password = ''
   // 拒绝采样消除模偏差（chars.length 非 2 的幂时直接取模会偏向部分字符）
   const buf = new Uint32Array(1)
-  const limit = Math.floor(0xFFFFFFFF / chars.length) * chars.length
+  const limit = Math.floor(0xffffffff / chars.length) * chars.length
   for (let i = 0; i < length.value; i++) {
     let value: number
     do {
@@ -112,7 +120,13 @@ function generatePassword() {
   copied.value = false
 }
 
-const { start: resetCopiedTimer } = useTimeoutFn(() => { copied.value = false }, 2000, { immediate: false })
+const { start: resetCopiedTimer } = useTimeoutFn(
+  () => {
+    copied.value = false
+  },
+  2000,
+  { immediate: false }
+)
 
 async function copyPassword() {
   if (!generatedPassword.value) return
@@ -125,11 +139,24 @@ function regenerate() {
   generatePassword()
 }
 
-watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, mode, wordCount, separator], () => {
-  if (generatedPassword.value) {
-    generatePassword()
+watch(
+  [
+    length,
+    useUppercase,
+    useLowercase,
+    useNumbers,
+    useSpecial,
+    customChars,
+    mode,
+    wordCount,
+    separator
+  ],
+  () => {
+    if (generatedPassword.value) {
+      generatePassword()
+    }
   }
-})
+)
 </script>
 
 <template>
@@ -138,14 +165,8 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
     :description="page.description"
     container-class="password-generator-view"
   >
-    <NCard
-      class="setting-card"
-      :bordered="false"
-    >
-      <NRadioGroup
-        v-model:value="mode"
-        class="mode-switch"
-      >
+    <NCard class="setting-card" :bordered="false">
+      <NRadioGroup v-model:value="mode" class="mode-switch">
         <NRadioButton value="random">
           {{ page.t('modes.random') }}
         </NRadioButton>
@@ -162,7 +183,7 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
               :value="lengthInput"
               type="text"
               size="small"
-              style="width: 80px; text-align: center;"
+              style="width: 80px; text-align: center"
               @update:value="onLengthInput"
               @blur="onLengthInput(lengthInput)"
             />
@@ -201,7 +222,9 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
         <div class="setting-item">
           <div class="setting-label">
             <span>{{ page.t('labels.customChars') }}</span>
-            <span class="char-count">{{ page.t('labels.charCount', { count: customChars.length }) }}</span>
+            <span class="char-count">{{
+              page.t('labels.charCount', { count: customChars.length })
+            }}</span>
           </div>
           <NInput
             v-model:value="customChars"
@@ -218,66 +241,37 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
             <span>{{ page.t('labels.wordCount') }}</span>
             <span>{{ wordCount }}</span>
           </div>
-          <NSlider
-            v-model:value="wordCount"
-            :min="3"
-            :max="12"
-            :step="1"
-          />
+          <NSlider v-model:value="wordCount" :min="3" :max="12" :step="1" />
         </div>
         <div class="setting-item">
           <div class="setting-label">
             {{ page.t('labels.separator') }}
           </div>
-          <NInput
-            v-model:value="separator"
-            :maxlength="3"
-            style="max-width: 120px"
-          />
+          <NInput v-model:value="separator" :maxlength="3" style="max-width: 120px" />
         </div>
       </template>
 
-      <NButton
-        type="primary"
-        block
-        size="large"
-        @click="generatePassword"
-      >
+      <NButton type="primary" block size="large" @click="generatePassword">
         {{ page.t('buttons.generate') }}
       </NButton>
     </NCard>
 
-    <NCard
-      class="result-card"
-      :bordered="false"
-    >
+    <NCard class="result-card" :bordered="false">
       <div class="result-section">
-        <div
-          v-if="generatedPassword"
-          class="password-display"
-        >
+        <div v-if="generatedPassword" class="password-display">
           <div class="password-text">
             {{ generatedPassword }}
           </div>
-          <NButton
-            :type="copied ? 'success' : 'primary'"
-            @click="copyPassword"
-          >
+          <NButton :type="copied ? 'success' : 'primary'" @click="copyPassword">
             {{ copied ? page.t('buttons.copied') : t('common.copy') }}
           </NButton>
         </div>
-        <div
-          v-else
-          class="password-placeholder"
-        >
+        <div v-else class="password-placeholder">
           {{ page.t('empty') }}
         </div>
       </div>
 
-      <div
-        v-if="generatedPassword"
-        class="strength-section"
-      >
+      <div v-if="generatedPassword" class="strength-section">
         <div class="strength-label">
           <span>{{ page.t('labels.strength') }}</span>
           <span :style="{ color: passwordStrength.color }">{{ passwordStrength.label }}</span>
@@ -292,14 +286,8 @@ watch([length, useUppercase, useLowercase, useNumbers, useSpecial, customChars, 
         />
       </div>
 
-      <div
-        v-if="generatedPassword"
-        class="action-buttons"
-      >
-        <NButton
-          block
-          @click="regenerate"
-        >
+      <div v-if="generatedPassword" class="action-buttons">
+        <NButton block @click="regenerate">
           {{ page.t('buttons.regenerate') }}
         </NButton>
       </div>

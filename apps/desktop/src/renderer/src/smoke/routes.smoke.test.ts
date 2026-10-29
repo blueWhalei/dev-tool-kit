@@ -22,9 +22,7 @@ describe('routes smoke', () => {
   })
 
   it('default home candidates exclude hidden pages', () => {
-    const hiddenNames = new Set(
-      routes.filter(route => route.meta?.hidden).map(route => route.name)
-    )
+    const hiddenNames = new Set(routes.filter(route => route.meta?.hidden).map(route => route.name))
     expect(hiddenNames.has('Settings')).toBe(true)
     expect(hiddenNames.has('About')).toBe(true)
   })

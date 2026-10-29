@@ -1,9 +1,9 @@
+import { TOOL_ERROR_CODES } from '@dev-tool-kit/shared'
 import { handleIpc } from '../../typed-ipc'
+import { isHostsSchemeArray, isHostsEntry, isHostsText } from '@dev-tool-kit/shared'
 import { readJsonFile, updateJsonFile } from '../../store/atomic-json'
 import { app } from 'electron'
 import { randomUUID } from 'crypto'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
 import {
   readFile,
   writeFile,
@@ -23,16 +23,19 @@ import {
   getDnsFlushPlatformInfo,
   type DnsFlushResult
 } from '@dev-tool-kit/shared'
-import type { HostsEntry, HostsGroup, HostsScheme } from '@dev-tool-kit/shared'
+import type {
+  HostsEntry,
+  HostsGroup,
+  HostsScheme,
+  HostsOperationResult
+} from '@dev-tool-kit/shared'
 import {
   splitHostsFile,
   composeHostsFile,
   stableEntryId,
   type ParsedHostsFile
 } from './hosts-parser'
-import { sanitizeHostsEntry, sanitizeHostsText } from './sanitize'
-
-const execFileAsync = promisify(execFile)
+import { flushDNS } from './dns'
 
 export type { HostsEntry, HostsGroup, HostsScheme }
 
@@ -42,19 +45,12 @@ const HOSTS_PATH =
     : '/etc/hosts'
 
 const MAX_HOSTS_BACKUPS = 20
-const HOSTS_PERMISSION_ERROR = 'HOSTS_PERMISSION_DENIED'
+const HOSTS_PERMISSION_ERROR = TOOL_ERROR_CODES.permissionDenied
 
 export interface HostsWriteAccess {
   writable: boolean
   path: string
   sudoHint?: string
-}
-
-export interface HostsOperationResult {
-  success: boolean
-  error?: string
-  sudoCommand?: string
-  backupPath?: string
 }
 
 const DEFAULT_GROUPS: HostsGroup[] = [
@@ -174,10 +170,11 @@ async function backupHostsFile(): Promise<string | undefined> {
 let writeQueue: Promise<void> = Promise.resolve()
 
 function enqueueWrite(operation: () => Promise<void>): Promise<void> {
-  writeQueue = writeQueue.then(operation).catch(error => {
-    logger.error('Hosts write queue error:', error)
+  const pending = writeQueue.then(operation)
+  writeQueue = pending.catch(error => {
+    logger.error('Hosts write failed', error)
   })
-  return writeQueue
+  return pending
 }
 
 async function readHostsFile(): Promise<ParsedHostsFile> {
@@ -213,11 +210,12 @@ async function writeHostsEntries(entries: HostsEntry[]): Promise<HostsOperationR
 async function writeEntriesAndFlush(entries: HostsEntry[]): Promise<HostsOperationResult> {
   const writeResult = await writeHostsEntries(entries)
   if (!writeResult.success) return writeResult
-  const flushResult = await flushDNS()
-  if (!flushResult.success) {
-    logger.warn('[Hosts] DNS flush failed after write:', flushResult.errorCode ?? flushResult.error)
+  try {
+    const flushResult = await flushDNS()
+    return { ...writeResult, dnsFlushed: flushResult.success }
+  } catch {
+    return { ...writeResult, dnsFlushed: false }
   }
-  return writeResult
 }
 
 export function setupHostsEditorIPC(): void {
@@ -237,12 +235,12 @@ export function setupHostsEditorIPC(): void {
       return await readHostsEntries()
     } catch (error) {
       logger.error('Failed to read hosts file:', error)
-      return []
+      throw error
     }
   })
 
   handleIpc('hosts:add', async (_, entry: Omit<HostsEntry, 'id'>) => {
-    if (!entry || !isValidIP(entry.ip) || !isValidHostname(entry.hostname)) {
+    if (!entry || !isHostsEntry({ ...entry, id: 'pending' })) {
       return { success: false, error: '无效的 IP 地址或主机名' }
     }
     try {
@@ -255,11 +253,9 @@ export function setupHostsEditorIPC(): void {
         }
         const writeResult = await writeEntriesAndFlush([
           ...entries,
-          sanitizeHostsEntry({ ...entry, id: stableEntryId(entry.ip, entry.hostname) })
+          { ...entry, id: stableEntryId(entry.ip, entry.hostname) }
         ])
-        result = writeResult.success
-          ? { success: true, backupPath: writeResult.backupPath }
-          : writeResult
+        result = writeResult
       })
       return result
     } catch (error) {
@@ -286,16 +282,16 @@ export function setupHostsEditorIPC(): void {
       sanitized.hostname = updates.hostname
     }
     if (updates.comment !== undefined) {
-      if (typeof updates.comment !== 'string') return { success: false, error: '无效的备注' }
-      sanitized.comment = sanitizeHostsText(updates.comment, 500)
+      if (!isHostsText(updates.comment, 500)) return { success: false, error: '无效的备注' }
+      sanitized.comment = updates.comment
     }
     if (updates.enabled !== undefined) {
       if (typeof updates.enabled !== 'boolean') return { success: false, error: '无效的启用状态' }
       sanitized.enabled = updates.enabled
     }
     if (updates.group !== undefined) {
-      if (typeof updates.group !== 'string') return { success: false, error: '无效的分组' }
-      sanitized.group = sanitizeHostsText(updates.group, 200)
+      if (!isHostsText(updates.group, 200)) return { success: false, error: '无效的分组' }
+      sanitized.group = updates.group
     }
     try {
       let result: HostsOperationResult = { success: false, error: '操作失败' }
@@ -306,7 +302,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        const updated = sanitizeHostsEntry({ ...entries[index], ...sanitized })
+        const updated = { ...entries[index], ...sanitized }
         updated.id = stableEntryId(updated.ip, updated.hostname)
         entries[index] = updated
         result = await writeEntriesAndFlush(entries)
@@ -370,7 +366,7 @@ export function setupHostsEditorIPC(): void {
     if (typeof id !== 'string' || !id.trim()) {
       return { success: false, error: '无效的条目 ID' }
     }
-    if (group !== undefined && typeof group !== 'string') {
+    if (group !== undefined && !isHostsText(group, 200)) {
       return { success: false, error: '无效的分组' }
     }
     try {
@@ -382,7 +378,7 @@ export function setupHostsEditorIPC(): void {
           result = { success: false, error: '未找到条目' }
           return
         }
-        const sanitizedGroup = group === undefined ? undefined : sanitizeHostsText(group, 200)
+        const sanitizedGroup = group
         result = await writeEntriesAndFlush(
           entries.map((e, i) => (i === index ? { ...e, group: sanitizedGroup } : e))
         )
@@ -395,10 +391,10 @@ export function setupHostsEditorIPC(): void {
   })
 
   handleIpc('hosts:saveScheme', async (_, name: string) => {
-    if (typeof name !== 'string' || !name.trim()) {
+    if (!isHostsText(name, 100) || !name.trim()) {
       return { success: false, error: '无效的方案名称' }
     }
-    const sanitizedName = sanitizeHostsText(name.trim(), 100)
+    const sanitizedName = name.trim()
     if (!sanitizedName) {
       return { success: false, error: '无效的方案名称' }
     }
@@ -493,32 +489,11 @@ export function setupHostsEditorIPC(): void {
   handleIpc(
     'hosts:importSchemes',
     async (_, payload: HostsScheme[], mode: 'merge' | 'replace' = 'merge') => {
-      if (!Array.isArray(payload)) {
+      if (!isHostsSchemeArray(payload) || (mode !== 'merge' && mode !== 'replace')) {
         return { success: false, error: '无效的方案数据' }
       }
       try {
         const sanitized = payload
-          .filter(item => item && typeof item.name === 'string' && Array.isArray(item.entries))
-          .map(item => ({
-            id: typeof item.id === 'string' && item.id ? item.id : generateId(),
-            name: item.name.trim(),
-            timestamp: item.timestamp || new Date().toISOString(),
-            entries: item.entries
-              .filter(
-                entry => entry && typeof entry.ip === 'string' && typeof entry.hostname === 'string'
-              )
-              .map(entry =>
-                sanitizeHostsEntry({
-                  id: stableEntryId(entry.ip, entry.hostname),
-                  ip: entry.ip,
-                  hostname: entry.hostname,
-                  comment: typeof entry.comment === 'string' ? entry.comment : undefined,
-                  enabled: typeof entry.enabled === 'boolean' ? entry.enabled : true,
-                  group: typeof entry.group === 'string' ? entry.group : undefined
-                })
-              )
-          }))
-          .filter(item => item.name)
 
         if (sanitized.length === 0) {
           return { success: false, error: '没有可导入的方案' }
@@ -564,75 +539,20 @@ export function setupHostsEditorIPC(): void {
   logger.info('Hosts Editor IPC handlers ready')
 }
 
-async function flushDNS(): Promise<DnsFlushResult> {
-  const platform = process.platform
-  const info = getDnsFlushPlatformInfo(platform)
-
-  if (info.platform === 'unknown') {
-    return {
-      success: false,
-      errorCode: 'unsupported_platform',
-      manualCommands: info.manualCommands
-    }
-  }
-
-  if (platform === 'win32') {
-    await execFileAsync('ipconfig', ['/flushdns'], { windowsHide: true, timeout: 10000 })
-    return { success: true, method: 'ipconfig' }
-  }
-
-  if (platform === 'darwin') {
-    await execFileAsync('dscacheutil', ['-flushcache'], { windowsHide: true, timeout: 10000 })
-    return { success: true, method: 'dscacheutil' }
-  }
-
-  const attempts: Array<{ method: DnsFlushResult['method']; run: () => Promise<unknown> }> = [
-    {
-      method: 'systemd-resolve',
-      run: async () => {
-        await execFileAsync('systemd-resolve', ['--flush-caches'], {
-          windowsHide: true,
-          timeout: 10000
-        })
-      }
-    },
-    {
-      method: 'resolvectl',
-      run: async () => {
-        await execFileAsync('resolvectl', ['flush-caches'], { windowsHide: true, timeout: 10000 })
-      }
-    },
-    {
-      method: 'nscd',
-      run: async () => {
-        await execFileAsync('service', ['nscd', 'restart'], { windowsHide: true, timeout: 10000 })
-      }
-    }
-  ]
-
-  const errors: string[] = []
-  for (const attempt of attempts) {
-    try {
-      await attempt.run()
-      return { success: true, method: attempt.method }
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error))
-    }
-  }
-
-  return {
-    success: false,
-    errorCode: 'no_flush_tool',
-    error: errors.join('; '),
-    manualCommands: info.manualCommands
-  }
-}
-
 async function getSchemes(): Promise<HostsScheme[]> {
-  const value = await readJsonFile<HostsScheme[]>(await getConfigPath('hosts-schemes.json'), [])
-  return Array.isArray(value) ? value : []
+  const value = await readJsonFile(
+    await getConfigPath('hosts-schemes.json'),
+    [],
+    isHostsSchemeArray
+  )
+  return value
 }
 
 async function saveSchemes(update: (items: HostsScheme[]) => HostsScheme[]): Promise<void> {
-  await updateJsonFile<HostsScheme[]>(await getConfigPath('hosts-schemes.json'), [], update)
+  await updateJsonFile<HostsScheme[]>(
+    await getConfigPath('hosts-schemes.json'),
+    [],
+    update,
+    isHostsSchemeArray
+  )
 }

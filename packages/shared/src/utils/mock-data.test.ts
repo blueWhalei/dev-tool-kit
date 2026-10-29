@@ -113,10 +113,13 @@ describe('sql export helpers', () => {
 describe('recordsToSqlInsert', () => {
   it('generates insert statements', () => {
     const sql = recordsToSqlInsert(
-      [{ id: 1, name: 'Alice' }, { id: 2, name: "Bob's" }],
+      [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: "Bob's" }
+      ],
       'users'
     )
-    expect(sql).toContain('INSERT INTO `users` (`id`, `name`) VALUES (1, \'Alice\');')
+    expect(sql).toContain("INSERT INTO `users` (`id`, `name`) VALUES (1, 'Alice');")
     expect(sql).toContain("INSERT INTO `users` (`id`, `name`) VALUES (2, 'Bob''s');")
   })
 

@@ -1,41 +1,4 @@
 import type { TypedIpcChannel, IpcArgs, IpcResult } from '../ipc/contracts'
-// Module System Types
-export type ModuleCategory = 'system' | 'developer' | 'utility' | 'network'
-
-export interface ModuleRoute {
-  path: string
-  name: string
-  component: string
-  meta?: Record<string, unknown>
-}
-
-export interface ModuleSetting {
-  key: string
-  label: string
-  type: 'text' | 'number' | 'boolean' | 'select'
-  default?: unknown
-  options?: { label: string; value: unknown }[]
-}
-
-export interface ModuleContext {
-  electronAPI: ElectronAPI
-  storage: StorageAPI
-  logger: LoggerAPI
-  eventBus: EventBusAPI
-}
-
-export interface ModuleInterface {
-  name: string
-  displayName: string
-  description: string
-  icon: string
-  category: ModuleCategory
-  version: string
-  getRoutes?: () => ModuleRoute[]
-  getSettings?: () => ModuleSetting[]
-  permissions?: string[]
-}
-
 // Electron Path Types
 export type ElectronPathName = 'home' | 'appData' | 'userData' | 'temp' | 'desktop' | 'documents'
 
@@ -140,29 +103,6 @@ export interface ElectronAPI {
   invoke: <C extends TypedIpcChannel>(channel: C, ...args: IpcArgs<C>) => Promise<IpcResult<C>>
 }
 
-// Storage API
-export interface StorageAPI {
-  get: <T>(key: string, defaultValue?: T) => T | undefined
-  set: <T>(key: string, value: T) => void
-  remove: (key: string) => void
-  clear: () => void
-}
-
-// Logger API
-export interface LoggerAPI {
-  info: (...args: unknown[]) => void
-  warn: (...args: unknown[]) => void
-  error: (...args: unknown[]) => void
-  debug: (...args: unknown[]) => void
-}
-
-// Event Bus API
-export interface EventBusAPI {
-  emit: (event: string, ...args: unknown[]) => void
-  on: (event: string, callback: (...args: unknown[]) => void) => () => void
-  once: (event: string, callback: (...args: unknown[]) => void) => void
-}
-
 // Module-specific types (shared between main process and renderer)
 
 // Port Manager
@@ -193,10 +133,18 @@ export interface CommonPort {
 }
 
 // Env Manager
+export type EnvScope = 'user' | 'system'
+
+export interface EnvBackup {
+  timestamp: string
+  name: string
+  variables: EnvVariable[]
+}
+
 export interface EnvVariable {
   name: string
   value: string
-  type: 'user' | 'system'
+  type: EnvScope
 }
 
 export interface PathEntry {
@@ -206,6 +154,14 @@ export interface PathEntry {
 }
 
 // Hosts Editor
+export interface HostsOperationResult {
+  success: boolean
+  error?: string
+  sudoCommand?: string
+  backupPath?: string
+  dnsFlushed?: boolean
+}
+
 export interface HostsEntry {
   id: string
   ip: string

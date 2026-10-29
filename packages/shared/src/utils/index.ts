@@ -1,4 +1,6 @@
 export * from './converter'
+export * from './config-validation'
+export * from './env-validation'
 export * from './json-schema'
 export * from './hash'
 export * from './jwt'
@@ -70,19 +72,6 @@ export function formatDate(date: Date | string | number, format = 'YYYY-MM-DD HH
 // Validation utilities
 export function isValidPort(port: number): boolean {
   return Number.isInteger(port) && port >= 1 && port <= 65535
-}
-
-export function isValidIP(ip: string): boolean {
-  const ipv4Regex =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
-  return ipv4Regex.test(ip) || ipv6Regex.test(ip)
-}
-
-export function isValidHostname(hostname: string): boolean {
-  const hostnameRegex =
-    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/
-  return hostnameRegex.test(hostname)
 }
 
 export function isValidPath(path: string): boolean {
@@ -164,3 +153,5 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
     }
   }
 }
+
+export * from './network-validation'

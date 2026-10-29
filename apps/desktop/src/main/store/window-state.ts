@@ -16,10 +16,12 @@ async function ensureStoreDir(): Promise<void> {
   }
 }
 
-function isValidWindowState(state: Record<string, unknown>): boolean {
-  if (!state || typeof state !== 'object') return false
+function isValidWindowState(value: unknown): value is WindowState {
+  if (!value || typeof value !== 'object') return false
+  const state = value as Record<string, unknown>
   if (typeof state.width !== 'number' || typeof state.height !== 'number') return false
   if (typeof state.isMaximized !== 'boolean') return false
+  if (!Number.isFinite(state.width) || !Number.isFinite(state.height)) return false
   if (state.width < 100 || state.height < 100) return false
   if (state.width > 7680 || state.height > 4320) return false
   if (state.x !== undefined && (typeof state.x !== 'number' || !isFinite(state.x))) return false
@@ -38,7 +40,7 @@ function isPositionVisible(x: number, y: number): boolean {
 export async function saveWindowState(state: WindowState): Promise<void> {
   try {
     await ensureStoreDir()
-    await writeJsonFile(WINDOW_STATE_FILE, state)
+    await writeJsonFile(WINDOW_STATE_FILE, state, isValidWindowState)
     logger.info(`Window state saved: ${JSON.stringify(state)}`)
   } catch (error) {
     logger.error('Failed to save window state:', error)
@@ -47,9 +49,13 @@ export async function saveWindowState(state: WindowState): Promise<void> {
 
 export async function loadWindowState(): Promise<WindowState> {
   try {
-    const state = await readJsonFile<Record<string, unknown>>(WINDOW_STATE_FILE, {
-      ...DEFAULT_STATE
-    })
+    const state = await readJsonFile<WindowState>(
+      WINDOW_STATE_FILE,
+      {
+        ...DEFAULT_STATE
+      },
+      isValidWindowState
+    )
 
     if (!isValidWindowState(state)) {
       logger.warn('Invalid window state format, using defaults')
@@ -66,7 +72,7 @@ export async function loadWindowState(): Promise<WindowState> {
     }
 
     logger.info(`Window state loaded: ${JSON.stringify(state)}`)
-    return state as unknown as WindowState
+    return state
   } catch (error) {
     logger.error('Failed to load window state:', error)
     return { ...DEFAULT_STATE }

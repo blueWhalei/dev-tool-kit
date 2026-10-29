@@ -9,6 +9,10 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
+          'modules/json-schema/schema-worker': resolve(
+            __dirname,
+            'src/main/modules/json-schema/schema-worker.ts'
+          ),
           'modules/file-renamer/rename-worker': resolve(
             __dirname,
             'src/main/modules/file-renamer/rename-worker.ts'

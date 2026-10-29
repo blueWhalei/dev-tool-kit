@@ -1,4 +1,4 @@
-import { mkdir, open, readFile, rename, unlink } from 'fs/promises'
+import { mkdir, open, readFile, rename, unlink, stat } from 'fs/promises'
 import { dirname, resolve } from 'path'
 import { randomUUID } from 'crypto'
 
@@ -17,12 +17,20 @@ export function serializeFile<T>(path: string, operation: () => Promise<T>): Pro
   return pending
 }
 
-async function replaceFile(path: string, content: string): Promise<void> {
+export async function replaceFile(path: string, content: string): Promise<void> {
   await mkdir(dirname(path), { recursive: true })
   const temporary = path + '.' + randomUUID() + '.tmp'
   try {
-    const handle = await open(temporary, 'wx', 0o600)
+    let mode = 0o600
     try {
+      mode = (await stat(path)).mode & 0o777
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+    }
+    const handle = await open(temporary, 'wx', mode)
+    try {
+      // open() applies umask; restore the original mode before replacing an existing file.
+      if (process.platform !== 'win32') await handle.chmod(mode)
       await handle.writeFile(content, 'utf8')
       await handle.sync()
     } finally {
@@ -36,33 +44,40 @@ async function replaceFile(path: string, content: string): Promise<void> {
   }
 }
 
-function sameContainer(value: unknown, reference: unknown): boolean {
-  return (
-    value !== null &&
-    typeof value === typeof reference &&
-    Array.isArray(value) === Array.isArray(reference)
-  )
-}
+export type JsonValidator<T> = (value: unknown) => value is T
 
-export async function readJsonFile<T>(path: string, fallback: T): Promise<T> {
+export async function readJsonFile<T>(
+  path: string,
+  fallback: T,
+  validate: JsonValidator<T>
+): Promise<T> {
+  let invalid = false
   for (const candidate of [path, path + '.bak']) {
     try {
       const value: unknown = JSON.parse(await readFile(candidate, 'utf8'))
-      if (sameContainer(value, fallback)) return value as T
+      if (validate(value)) return value
+      invalid = true
     } catch (error) {
       if (!(error instanceof SyntaxError) && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw error
       }
+      if (error instanceof SyntaxError) invalid = true
     }
   }
+  if (invalid) throw new Error('invalidConfig')
   return fallback
 }
 
-async function writeJsonUnlocked(path: string, value: unknown): Promise<void> {
+async function writeJsonUnlocked<T>(
+  path: string,
+  value: T,
+  validate: JsonValidator<T>
+): Promise<void> {
+  if (!validate(value)) throw new Error('invalidConfig')
   const content = JSON.stringify(value, null, 2)
   try {
     const previous = await readFile(path, 'utf8')
-    if (!sameContainer(JSON.parse(previous), value)) throw new SyntaxError('Invalid JSON container')
+    if (!validate(JSON.parse(previous))) throw new SyntaxError('Invalid JSON structure')
     await replaceFile(path + '.bak', previous)
   } catch (error) {
     if (!(error instanceof SyntaxError) && (error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -72,20 +87,26 @@ async function writeJsonUnlocked(path: string, value: unknown): Promise<void> {
   await replaceFile(path, content)
 }
 
-export function writeJsonFile(path: string, value: unknown): Promise<void> {
+export function writeJsonFile<T>(
+  path: string,
+  value: T,
+  validate: JsonValidator<T>
+): Promise<void> {
   // Snapshot at invocation so later mutations cannot change a queued write.
   const snapshot: unknown = JSON.parse(JSON.stringify(value))
-  return serializeFile(path, () => writeJsonUnlocked(path, snapshot))
+  if (!validate(snapshot)) throw new Error('invalidConfig')
+  return serializeFile(path, () => writeJsonUnlocked(path, snapshot, validate))
 }
 
 export function updateJsonFile<T>(
   path: string,
   fallback: T,
-  update: (value: T) => T
+  update: (value: T) => T,
+  validate: JsonValidator<T>
 ): Promise<void> {
   return serializeFile(path, async () => {
-    const next = update(await readJsonFile(path, fallback))
-    await writeJsonUnlocked(path, next)
+    const next = update(await readJsonFile(path, fallback, validate))
+    await writeJsonUnlocked(path, next, validate)
   })
 }
 

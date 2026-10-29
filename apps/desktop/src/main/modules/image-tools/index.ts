@@ -8,6 +8,7 @@ import { compressImage } from './compression'
 import exifr from 'exifr'
 import { logger } from '../../logger'
 import { authorizePath, isPathAuthorized } from '../path-guard'
+import type { PluginConfig } from 'svgo'
 import type {
   ImageInfo,
   ExifData,
@@ -63,7 +64,6 @@ function sanitizeOutputFileName(name: unknown): string | null {
 
 async function parseExif(filePath: string): Promise<ExifData | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = await exifr.parse(filePath)
     if (!data) return null
 
@@ -111,6 +111,8 @@ export function setupImageToolsIPC(): void {
 
       const filePath = result.filePaths[0]
       authorizePath(filePath)
+      const size = (await stat(filePath)).size
+      if (size > 64 * 1024 * 1024) return { error: 'imageTooLarge' as const }
       const buffer = await readFile(filePath)
       const fileName = basename(filePath)
       const ext = extname(filePath).toLowerCase().slice(1)
@@ -125,7 +127,7 @@ export function setupImageToolsIPC(): void {
       }
     } catch (error) {
       logger.error('image-tools:pickImage failed:', error)
-      return null
+      return { error: 'imageLoadFailed' as const }
     }
   })
 
@@ -433,7 +435,7 @@ export function setupImageToolsIPC(): void {
       try {
         const { optimize } = await import('svgo')
 
-        const plugins: string[] = []
+        const plugins: PluginConfig[] = []
 
         if (options.removeComments) plugins.push('removeComments')
         if (options.removeMetadata) plugins.push('removeMetadata')
@@ -448,8 +450,7 @@ export function setupImageToolsIPC(): void {
         if (options.convertShapeToPath) plugins.push('convertShapeToPath')
         if (options.minifyStyles) plugins.push('minifyStyles')
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = optimize(svgText, { plugins: plugins as any })
+        const result = optimize(svgText, { plugins })
 
         const originalSize = Buffer.byteLength(svgText, 'utf-8')
         const optimizedSize = Buffer.byteLength(result.data, 'utf-8')

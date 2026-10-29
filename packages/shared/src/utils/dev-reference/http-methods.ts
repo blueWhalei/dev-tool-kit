@@ -95,7 +95,7 @@ export const HTTP_METHODS: HttpMethodEntry[] = [
 export function filterHttpMethods(query: string, locale: 'zh' | 'en'): HttpMethodEntry[] {
   const q = query.trim().toLowerCase()
   if (!q) return HTTP_METHODS
-  return HTTP_METHODS.filter((entry) => {
+  return HTTP_METHODS.filter(entry => {
     const desc = locale === 'zh' ? entry.descriptionZh : entry.descriptionEn
     const use = locale === 'zh' ? entry.typicalUseZh : entry.typicalUseEn
     return (

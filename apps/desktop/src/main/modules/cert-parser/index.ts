@@ -1,3 +1,4 @@
+import { TOOL_ERROR_CODES } from '@dev-tool-kit/shared'
 import { handleIpc } from '../../typed-ipc'
 import { dialog } from 'electron'
 import { readFile } from 'fs/promises'
@@ -36,7 +37,7 @@ export function setupCertParserIPC(): void {
     'cert-parser:parsePem',
     async (_, pemText: unknown): Promise<CertificateParseResult> => {
       if (typeof pemText !== 'string') {
-        return { success: false, error: '请输入 PEM 证书内容' }
+        return { success: false, error: TOOL_ERROR_CODES.pemEmpty }
       }
       return parseCertificatePem(pemText)
     }

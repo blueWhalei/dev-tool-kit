@@ -39,13 +39,19 @@ const {
   clearAllPreferences
 } = usePreferences()
 
-const selectThemePreference = inject<(preference: ThemePreference) => void>('selectThemePreference', (p) => {
-  setThemePreference(p)
-})
+const selectThemePreference = inject<(preference: ThemePreference) => void>(
+  'selectThemePreference',
+  p => {
+    setThemePreference(p)
+  }
+)
 
-const selectLocalePreference = inject<(preference: LocalePreference) => void>('selectLocalePreference', (p) => {
-  setLocalePreference(p)
-})
+const selectLocalePreference = inject<(preference: LocalePreference) => void>(
+  'selectLocalePreference',
+  p => {
+    setLocalePreference(p)
+  }
+)
 
 const themeOptions = computed(() => [
   { value: 'light' as const, label: t('theme.light'), icon: 'theme-light' },
@@ -99,10 +105,7 @@ function renderHomeLabel(option: SelectOption) {
 
 const renderHomeOption: SelectRenderOption = ({ node, option }) => {
   const icon = routeIconMap.value[option.value as string] ?? 'unknown'
-  return h('div', { class: 'home-option' }, [
-    h(ToolIcon, { name: icon, size: 16 }),
-    node
-  ])
+  return h('div', { class: 'home-option' }, [h(ToolIcon, { name: icon, size: 16 }), node])
 }
 
 function handleThemeChange(value: ThemePreference) {
@@ -207,16 +210,10 @@ function handleClearAll() {
       accept="application/json,.json"
       class="hidden-input"
       @change="handleImportFile"
-    >
+    />
     <div class="settings-list">
-      <SettingsSection
-        :title="t('settings.appearance')"
-        icon="theme-system"
-      >
-        <SettingsRow
-          :label="t('settings.theme')"
-          :description="t('settings.themeDescription')"
-        >
+      <SettingsSection :title="t('settings.appearance')" icon="theme-system">
+        <SettingsRow :label="t('settings.theme')" :description="t('settings.themeDescription')">
           <div class="theme-cards">
             <button
               v-for="option in themeOptions"
@@ -226,10 +223,7 @@ function handleClearAll() {
               :class="{ active: themePreference === option.value }"
               @click="handleThemeChange(option.value)"
             >
-              <ToolIcon
-                :name="option.icon"
-                :size="24"
-              />
+              <ToolIcon :name="option.icon" :size="24" />
               <span>{{ option.label }}</span>
             </button>
           </div>
@@ -247,20 +241,14 @@ function handleClearAll() {
               :class="{ active: localePreference === option.value }"
               @click="handleLocaleChange(option.value)"
             >
-              <ToolIcon
-                :name="option.icon"
-                :size="24"
-              />
+              <ToolIcon :name="option.icon" :size="24" />
               <span>{{ option.label }}</span>
             </button>
           </div>
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection
-        :title="t('settings.startup')"
-        icon="port"
-      >
+      <SettingsSection :title="t('settings.startup')" icon="port">
         <SettingsRow
           :label="t('settings.defaultHome')"
           :description="t('settings.defaultHomeDescription')"
@@ -277,10 +265,7 @@ function handleClearAll() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection
-        :title="t('settings.sidebarPins')"
-        icon="key"
-      >
+      <SettingsSection :title="t('settings.sidebarPins')" icon="key">
         <SettingsRow
           :label="t('settings.pinnedTools')"
           :description="t('settings.pinnedToolsDescription')"
@@ -312,10 +297,7 @@ function handleClearAll() {
             >
               <NThing>
                 <template #avatar>
-                  <ToolIcon
-                    :name="item.icon"
-                    :size="20"
-                  />
+                  <ToolIcon :name="item.icon" :size="20" />
                 </template>
                 <template #header>
                   {{ item.title }}
@@ -346,10 +328,7 @@ function handleClearAll() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection
-        :title="t('settings.dataManagement')"
-        icon="folder"
-      >
+      <SettingsSection :title="t('settings.dataManagement')" icon="folder">
         <SettingsRow
           :label="t('settings.exportConfig')"
           :description="t('settings.exportConfigDescription')"
@@ -372,10 +351,7 @@ function handleClearAll() {
         >
           <NPopconfirm @positive-click="handleClearAll">
             <template #trigger>
-              <NButton
-                type="error"
-                quaternary
-              >
+              <NButton type="error" quaternary>
                 {{ t('settings.clearLocalSettings') }}
               </NButton>
             </template>
@@ -384,10 +360,7 @@ function handleClearAll() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection
-        :title="t('settings.recent')"
-        icon="clock"
-      >
+      <SettingsSection :title="t('settings.recent')" icon="clock">
         <template #extra>
           <NButton
             size="small"
@@ -398,10 +371,7 @@ function handleClearAll() {
             {{ t('common.clear') }}
           </NButton>
         </template>
-        <NList
-          v-if="recentItems.length > 0"
-          class="recent-list"
-        >
+        <NList v-if="recentItems.length > 0" class="recent-list">
           <NListItem
             v-for="item in recentItems"
             :key="item.routeName"
@@ -410,10 +380,7 @@ function handleClearAll() {
           >
             <NThing>
               <template #avatar>
-                <ToolIcon
-                  :name="item.icon"
-                  :size="20"
-                />
+                <ToolIcon :name="item.icon" :size="20" />
               </template>
               <template #header>
                 {{ item.name }}
@@ -424,15 +391,8 @@ function handleClearAll() {
             </NThing>
           </NListItem>
         </NList>
-        <div
-          v-else
-          class="empty-state"
-        >
-          <ToolIcon
-            name="search"
-            :size="32"
-            class="empty-icon"
-          />
+        <div v-else class="empty-state">
+          <ToolIcon name="search" :size="32" class="empty-icon" />
           <p class="empty-title">
             {{ t('settings.recentEmptyTitle') }}
           </p>
@@ -476,7 +436,10 @@ function handleClearAll() {
   color: var(--color-text-secondary);
   font-size: var(--font-size-footnote);
   cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .theme-card:hover {

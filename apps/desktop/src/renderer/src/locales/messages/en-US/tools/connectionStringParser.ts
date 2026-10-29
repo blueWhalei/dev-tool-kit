@@ -53,7 +53,8 @@ export default {
   },
   errors: {
     empty: 'Enter a connection string',
-    unsupported_protocol: 'Unsupported protocol; MySQL, PostgreSQL, Redis, and MongoDB are supported',
+    unsupported_protocol:
+      'Unsupported protocol; MySQL, PostgreSQL, Redis, and MongoDB are supported',
     invalid_format: 'Invalid connection string format',
     missing_host: 'Host is required',
     unknown: 'Parse failed'

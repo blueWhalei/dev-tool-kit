@@ -188,6 +188,8 @@ export default {
   },
   batchStatus: { pending: 'Pending', processing: 'Processing', cancelled: 'Cancelled' },
   messages: {
+    imageTooLarge: 'The image exceeds the 64 MiB size limit',
+    diffScaled: 'Large images are scaled for this comparison preview (up to 4 megapixels).',
     batchUnauthorized: 'Select this file again to grant access.',
     batchSavePartial: 'Saved {saved}, failed {failed}. Existing files are not overwritten.',
     imageLoaded: 'Image loaded',

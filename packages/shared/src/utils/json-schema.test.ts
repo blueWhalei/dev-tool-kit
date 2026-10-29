@@ -63,21 +63,21 @@ describe('validateAgainstSchema', () => {
     const result = validateAgainstSchema(data, schema)
     expect(result.success).toBe(true)
     expect(result.valid).toBe(false)
-    expect(result.errors?.some((e) => e.path === '/email' && e.message.includes('string'))).toBe(true)
+    expect(result.errors?.some(e => e.path === '/email' && e.message.includes('string'))).toBe(true)
   })
 
   it('reports missing required property', () => {
     const data = { age: 1 }
     const result = validateAgainstSchema(data, schema)
     expect(result.valid).toBe(false)
-    expect(result.errors?.some((e) => e.message.includes('email'))).toBe(true)
+    expect(result.errors?.some(e => e.message.includes('email'))).toBe(true)
   })
 
   it('reports additional properties', () => {
     const data = { email: 'a@b.com', extra: true }
     const result = validateAgainstSchema(data, schema)
     expect(result.valid).toBe(false)
-    expect(result.errors?.some((e) => e.message.includes('extra'))).toBe(true)
+    expect(result.errors?.some(e => e.message.includes('extra'))).toBe(true)
   })
 
   it('fails on invalid schema text', () => {

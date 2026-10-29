@@ -8,7 +8,7 @@ on:
     inputs:
       version:
         description: 'Release tag (e.g. v1.0.0) — creates GitHub Release when set'
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -19,7 +19,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  quality:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
   build:
+    needs: quality
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +44,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -54,6 +61,12 @@ jobs:
 
       - name: Build desktop
         run: pnpm build --filter @dev-tool-kit/desktop...
+
+      - name: Verify release version
+        env:
+          RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: node scripts/check-release.cjs
 
       - name: Package installer (unsigned)
         working-directory: apps/desktop
@@ -78,6 +91,17 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify published tag and commit
+        env:
+          RELEASE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: node scripts/check-release.cjs
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -88,6 +112,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}
+          target_commitish: ${{ github.sha }}
           name: Dev Tool Kit ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}
           draft: false
           prerelease: ${{ contains(startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version, '-') }}

@@ -1,53 +1,29 @@
 <template>
   <div class="image-base64-panel">
-    <NCard
-      class="editor-card"
-      :bordered="false"
-    >
+    <NCard class="editor-card" :bordered="false">
       <template #header>
         <div class="card-header-flex">
           <span class="card-title">{{ page.t('labels.imageToBase64') }}</span>
-          <NTag
-            v-if="base64FileName"
-            size="small"
-            :bordered="false"
-          >
+          <NTag v-if="base64FileName" size="small" :bordered="false">
             {{ base64FileName }}
           </NTag>
         </div>
       </template>
       <div class="image-actions">
-        <NButton
-          type="primary"
-          :loading="imageLoading"
-          @click="pickImageForBase64"
-        >
+        <NButton type="primary" :loading="imageLoading" @click="pickImageForBase64">
           {{ page.t('actions.pickImage') }}
         </NButton>
-        <NButton
-          v-if="base64Data"
-          @click="copyBase64"
-        >
+        <NButton v-if="base64Data" @click="copyBase64">
           {{ page.t('actions.copyBase64') }}
         </NButton>
-        <NButton
-          v-if="base64DataUri"
-          @click="copyDataUri"
-        >
+        <NButton v-if="base64DataUri" @click="copyDataUri">
           {{ page.t('actions.copyDataUri') }}
         </NButton>
-        <NButton
-          v-if="base64Data"
-          quaternary
-          @click="useForDecode"
-        >
+        <NButton v-if="base64Data" quaternary @click="useForDecode">
           {{ page.t('actions.useForDecode') }}
         </NButton>
       </div>
-      <div
-        v-if="base64Data"
-        class="image-meta"
-      >
+      <div v-if="base64Data" class="image-meta">
         <span>{{ page.t('labels.mimeType') }}: {{ base64Mime }}</span>
         <span>{{ page.t('labels.fileSize') }}: {{ formatBytes(base64FileSize) }}</span>
       </div>
@@ -61,10 +37,7 @@
       />
     </NCard>
 
-    <NCard
-      class="editor-card"
-      :bordered="false"
-    >
+    <NCard class="editor-card" :bordered="false">
       <template #header>
         <span class="card-title">{{ page.t('labels.base64ToImage') }}</span>
       </template>
@@ -83,20 +56,10 @@
         :placeholder="page.t('placeholders.imageBase64')"
         class="code-input"
       />
-      <div
-        v-if="decodePreviewVisible"
-        class="image-preview-wrap"
-      >
-        <img
-          :src="decodePreviewUri"
-          :alt="page.t('labels.preview')"
-          class="image-preview"
-        >
+      <div v-if="decodePreviewVisible" class="image-preview-wrap">
+        <img :src="decodePreviewUri" :alt="page.t('labels.preview')" class="image-preview" />
       </div>
-      <p
-        v-else-if="decodeInput.trim()"
-        class="preview-hint"
-      >
+      <p v-else-if="decodeInput.trim()" class="preview-hint">
         {{ page.t('messages.invalidImageBase64') }}
       </p>
     </NCard>
@@ -127,7 +90,7 @@ const decodeInput = ref('')
 // 拖拽/粘贴/其他面板选图后共享 pickedImage 变化，自动填充 base64 输入
 watch(
   () => pickedImage.value,
-  (img) => {
+  img => {
     if (!img) return
     base64FileName.value = img.fileName
     base64Mime.value = img.mimeType

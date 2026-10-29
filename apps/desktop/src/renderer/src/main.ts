@@ -10,7 +10,7 @@ const app = createApp(App)
 app.use(i18n)
 app.use(router)
 
-router.afterEach((to) => {
+router.afterEach(to => {
   if (typeof to.name === 'string') {
     pushRecentTool(to.name)
   }
