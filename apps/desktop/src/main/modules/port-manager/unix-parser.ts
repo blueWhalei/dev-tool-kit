@@ -22,6 +22,14 @@ export function parseMacLsof(output: string): PortInfo[] {
     if (!endpoint) continue
     result.push({
       ...endpoint,
+      localAddress:
+        endpoint.localAddress === '*'
+          ? parts.includes('IPv6')
+            ? '::'
+            : parts.includes('IPv4')
+              ? '0.0.0.0'
+              : '*'
+          : endpoint.localAddress,
       protocol,
       pid: Number(parts[1]) || 0,
       state: protocol === 'TCP' ? 'LISTENING' : 'UNCONN'
@@ -40,7 +48,12 @@ export function parseLinuxNetstat(output: string): PortInfo[] {
     if (!endpoint) continue
     const state = protocol === 'TCP' ? parts[5] : 'UNCONN'
     const pid = Number((parts[protocol === 'TCP' ? 6 : 5] ?? '').split('/')[0]) || 0
-    result.push({ ...endpoint, protocol, state: state ?? 'UNKNOWN', pid })
+    result.push({
+      ...endpoint,
+      protocol,
+      state: state === 'LISTEN' ? 'LISTENING' : (state ?? 'UNKNOWN'),
+      pid
+    })
   }
   return result
 }

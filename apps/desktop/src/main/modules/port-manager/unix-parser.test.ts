@@ -14,6 +14,6 @@ it('accounts for the absent UDP state column in Linux netstat', () => {
     parseLinuxNetstat('udp6 0 0 :::5353 :::* 124/avahi\ntcp6 0 0 :::3000 :::* LISTEN 123/node')
   ).toMatchObject([
     { protocol: 'UDP', pid: 124, state: 'UNCONN' },
-    { protocol: 'TCP', pid: 123, state: 'LISTEN' }
+    { protocol: 'TCP', pid: 123, state: 'LISTENING' }
   ])
 })

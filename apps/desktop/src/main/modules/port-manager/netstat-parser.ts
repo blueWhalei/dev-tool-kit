@@ -25,22 +25,16 @@ export function parseWindowsNetstat(output: string): PortInfo[] {
 
     if (isNaN(port)) continue
 
-    let pid = 0
-    if (protocol === 'TCP' && state !== 'LISTENING') {
-      pid = parseInt(parts[parts.length - 1], 10) || 0
-    } else if (protocol === 'UDP' || state === 'LISTENING') {
-      pid = parseInt(parts[parts.length - 1], 10) || 0
-    }
-
-    if (pid > 0) {
+    const rawPid = parts[parts.length - 1]
+    const pid = /^\d+$/.test(rawPid) ? Number(rawPid) : 0
+    if (pid || state === 'LISTENING')
       ports.push({
         port,
         pid,
         protocol,
-        state: state || 'UNKNOWN',
+        state,
         localAddress: localAddress.substring(0, lastColon)
       })
-    }
   }
 
   return ports

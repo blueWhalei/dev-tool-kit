@@ -17,6 +17,12 @@ describe('parseWindowsNetstat', () => {
     expect(ports[0].state).toBe('LISTENING')
   })
 
+  it('keeps a listener with an unknown PID visible but read-only', () => {
+    expect(parseWindowsNetstat('TCP 127.0.0.1:3000 0.0.0.0:0 LISTENING 0')).toMatchObject([
+      { port: 3000, pid: 0, state: 'LISTENING' }
+    ])
+  })
+
   it('ignores header lines', () => {
     expect(parseWindowsNetstat('Active Connections\nProto Local')).toHaveLength(0)
   })

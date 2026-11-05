@@ -52,7 +52,7 @@ if (!process.versions.electron) {
         .then(() => {
           clearTimeout(deadline)
           console.log(
-            'DESKTOP_SMOKE_PASS: real port scan, schema isolation/timeout, built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
+            'DESKTOP_SMOKE_PASS: real port scan and EADDRINUSE diagnosis/cancel/terminate/recheck, schema isolation/timeout, built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
           )
           app.exit(0)
         })
@@ -142,6 +142,87 @@ if (!process.versions.electron) {
         })
       )
     })
+    // Exercise the confirmation and recheck against a disposable child listener.
+    const fixture = require('child_process').spawn(
+      process.execPath,
+      [
+        '-e',
+        "const s = require('net').createServer(); s.listen(0, '127.0.0.1', () => process.send(s.address().port)); process.on('disconnect', () => process.exit())"
+      ],
+      {
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+        windowsHide: true,
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc']
+      }
+    )
+    try {
+      const port = await new Promise((resolve, reject) => {
+        fixture.once('message', resolve)
+        fixture.once('error', reject)
+        fixture.once('exit', () => reject(new Error('Fixture exited before listening')))
+      })
+      await route('/port-manager', 'Diagnose port')
+      await click('Diagnose port')
+      await run(port => {
+        const input = document.querySelector('.port-diagnosis textarea')
+        input.value = 'Error: listen EADDRINUSE: address already in use 127.0.0.1:' + port
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      }, port)
+      await click('Check listeners')
+      await waitFor(
+        pid => document.querySelector('.port-diagnosis')?.innerText.includes('PID ' + pid),
+        fixture.pid
+      )
+      const openConfirmation = () =>
+        waitFor(pid => {
+          const row = Array.from(document.querySelectorAll('.port-diagnosis code')).find(code =>
+            code.textContent.startsWith('PID ' + pid + ' ·')
+          )
+          const button = row?.closest('.n-space')?.querySelector('button')
+          if (!button || button.disabled) return false
+          button.click()
+          return true
+        }, fixture.pid)
+      const target = { port, address: '127.0.0.1' }
+      const { listeners } = await invoke('port-manager:diagnose', target)
+      const owner = listeners.find(row => row.pid === fixture.pid)
+      assert(owner?.instanceId)
+      const refused = await invoke('port-manager:killProcess', {
+        port,
+        pid: fixture.pid,
+        localAddress: owner.localAddress,
+        instanceId: '0'
+      })
+      assert.equal(refused.errorCode, 'owner_changed')
+      assert.equal(fixture.exitCode, null)
+      await openConfirmation()
+      await waitFor(
+        pid => document.querySelector('.n-popconfirm')?.innerText.includes('PID ' + pid + ')'),
+        fixture.pid
+      )
+      await click('Cancel')
+      assert(
+        (await invoke('port-manager:diagnose', { port })).listeners.some(
+          row => row.pid === fixture.pid
+        )
+      )
+      await openConfirmation()
+      await waitFor(
+        pid => document.querySelector('.n-popconfirm')?.innerText.includes('PID ' + pid + ')'),
+        fixture.pid
+      )
+      assert.equal(fixture.exitCode, null)
+      await click('Confirm')
+      await waitFor(() =>
+        document.querySelector('.port-diagnosis')?.innerText.includes('Recheck complete.')
+      )
+      assert.deepEqual(await invoke('port-manager:diagnose', { port, address: '127.0.0.1' }), {
+        status: 'bindable',
+        listeners: []
+      })
+    } finally {
+      if (fixture.exitCode === null && fixture.signalCode === null) fixture.kill()
+    }
     // VueUse reacts to storage events without reloading or changing real user preferences.
     await route('/file-renamer', 'Select files')
     const a = path.join(root, 'a.txt'),
@@ -380,6 +461,57 @@ if (!process.versions.electron) {
       )
     })
     await waitFor(() => document.body.innerText.includes('信息响应'))
+    await route('/port-manager', '端口诊断')
+    await click('端口诊断')
+    await run(() => {
+      const input = document.querySelector('.port-diagnosis textarea')
+      input.value = 'EADDRINUSE: address already in use :::3000\nport: 3001'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await click('检查监听进程')
+    await waitFor(() =>
+      document.querySelector('.port-diagnosis')?.innerText.includes('只包含一个明确端口')
+    )
+    // A supervisor can reopen a socket during the verification window, even under the same PID.
+    // Replace both handlers in this isolated window so no real signal can be sent.
+    ipcMain.removeHandler('port-manager:diagnose')
+    ipcMain.removeHandler('port-manager:killProcess')
+    let scans = 0
+    let signals = 0
+    handle('port-manager:diagnose', () => {
+      scans++
+      if (scans === 2) return { status: 'bindable', listeners: [] }
+      return {
+        status: 'listening',
+        listeners: [
+          {
+            port: 3000,
+            pid: 31415,
+            instanceId: scans === 1 ? '101' : '102',
+            service: 'fixture',
+            localAddress: '127.0.0.1',
+            protocol: 'TCP',
+            state: 'LISTENING'
+          }
+        ]
+      }
+    })
+    handle('port-manager:killProcess', () => {
+      signals++
+      return { success: true }
+    })
+    await run(() => {
+      const input = document.querySelector('.port-diagnosis textarea')
+      input.value = '3000'
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await click('检查监听进程')
+    await click('终止')
+    await click('确定')
+    await waitFor(() =>
+      document.querySelector('.port-diagnosis')?.innerText.includes('其他进程实例')
+    )
+    assert.equal(signals, 1)
     errors.push(...(await run(() => window.__smokeErrors)))
     assert.deepEqual(errors, [])
   }

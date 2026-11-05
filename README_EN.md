@@ -38,11 +38,13 @@ Screenshots use the current build with sample port and JSON data. The documentat
 
 | Tool                  | Description                                                                                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Port Manager          | Local port scanning, common ports, process termination (full on Windows; user processes on macOS/Linux; copy sudo command on failure)                        |
+| Port Manager          | Local port scanning, EADDRINUSE diagnosis, verified process termination and bind checks                                                                      |
 | Environment Variables | Windows user/system read-write, PATH, backup & export/import; macOS/Linux shell config write (shows target file, backup + diff preview)                      |
 | Hosts Editor          | Visual hosts management, grouping, scheme diff, export/import, DNS flush (Linux multi-tool fallback); disable save without write access, one-click sudo copy |
 | File Renamer          | Batch rename, rule chains, regex replace, undo, rule library, conflict preview                                                                               |
 | Regex Tester          | Regex matching, replace preview with flags, common expression library                                                                                        |
+
+In **Port Manager → Diagnose port**, paste a TCP EADDRINUSE error or enter a port. If the error includes an IP address, only matching listeners are shown. The app verifies the process instance and listener before termination. Windows stops the selected process forcibly. Linux and macOS send SIGTERM and require system Python 3 and compatible kernel interfaces. Unverified processes are read-only. Two consecutive successful bind checks are required before the app suggests restarting the service.
 
 ### Encoding & Decoding
 

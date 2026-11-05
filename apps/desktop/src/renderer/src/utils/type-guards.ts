@@ -323,9 +323,7 @@ export function isReplaceResult(value: unknown): value is ReplaceResult {
 export function isOperationResult(value: unknown): value is OperationResult {
   if (!isObject(value)) return false
   if (!(hasProperty(value, 'success') && isBoolean(value.success))) return false
-  if (hasProperty(value, 'needSudo') && !isBoolean(value.needSudo)) return false
   if (hasProperty(value, 'errorCode') && !isString(value.errorCode)) return false
-  if (hasProperty(value, 'killCommand') && !isString(value.killCommand)) return false
   return true
 }
 

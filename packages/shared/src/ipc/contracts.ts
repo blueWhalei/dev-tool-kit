@@ -6,6 +6,9 @@ import type {
   OpenDialogReturnValue,
   SaveDialogReturnValue,
   PortInfo,
+  PortTarget,
+  PortDiagnosis,
+  ListenerIdentity,
   ProcessInfo,
   OperationResult,
   EnvVariable,
@@ -67,22 +70,15 @@ export interface IpcContracts {
     result: { response: number; checkboxChecked: boolean }
   }
   'port-manager:getPorts': { args: []; result: PortInfo[] }
-  'port-manager:getPort': { args: [port: number]; result: PortInfo | null }
+  'port-manager:diagnose': { args: [target: PortTarget]; result: PortDiagnosis }
   'port-manager:scanRange': { args: [startPort: number, endPort: number]; result: PortInfo[] }
   'port-manager:getProcess': { args: [pid: number]; result: ProcessInfo | null }
-  'port-manager:killProcess': { args: [pid: number, force?: boolean]; result: OperationResult }
-  'port-manager:getCommonPorts': { args: []; result: { port: number; service: string }[] }
-  'port-manager:scanCommonPorts': {
-    args: []
-    result: {
-      service: string | undefined
-      port: number
-      pid: number
-      protocol: 'TCP' | 'UDP'
-      state: string
-      localAddress: string
-    }[]
+  'port-manager:killProcess': {
+    args: [listener: ListenerIdentity]
+    result: OperationResult
   }
+  'port-manager:getCommonPorts': { args: []; result: { port: number; service: string }[] }
+  'port-manager:scanCommonPorts': { args: []; result: PortInfo[] }
   'env-manager:getSupport': {
     args: []
     result:

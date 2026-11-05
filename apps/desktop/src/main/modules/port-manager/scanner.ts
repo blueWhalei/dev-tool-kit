@@ -2,8 +2,17 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { logger } from '../../logger'
 import { platform } from 'os'
-import type { PortInfo, ProcessInfo, OperationResult } from '@dev-tool-kit/shared'
-import { buildKillFailureResult } from '@dev-tool-kit/shared'
+import type {
+  PortInfo,
+  ProcessInfo,
+  OperationResult,
+  ListenerIdentity,
+  PortDiagnosis,
+  PortTarget
+} from '@dev-tool-kit/shared'
+import { inspectInstances, terminateInstance } from './process-instance'
+import { matchesAddress, probeAvailability } from './bind-probe'
+import { join } from 'node:path'
 import { parseMacLsof, parseLinuxNetstat } from './unix-parser'
 import { parseWindowsNetstat } from './netstat-parser'
 
@@ -40,6 +49,7 @@ export class PortScanner {
     if (this.scanInFlight) return this.scanInFlight
     const generation = this.cacheGeneration
     const pending = this.scanAllPortsRaw()
+      .then(ports => this.enrichWithProcessNames(ports))
       .then(data => {
         if (generation === this.cacheGeneration) {
           this.portsCache = { data, expiresAt: Date.now() + PORTS_CACHE_TTL_MS }
@@ -73,55 +83,41 @@ export class PortScanner {
       case 'linux':
         return await this.getLinuxPorts()
       default:
-        logger.warn(`Unsupported platform: ${this.platform}`)
-        return []
+        throw new Error(`Unsupported platform: ${this.platform}`)
     }
   }
 
   private async getWindowsPorts(): Promise<PortInfo[]> {
-    try {
-      const { stdout } = await execFileAsync('netstat', ['-ano'], {
-        windowsHide: true,
-        maxBuffer: 1024 * 1024 * 10
-      })
-      const ports = parseWindowsNetstat(stdout)
-      return this.enrichWithProcessNames(ports)
-    } catch (error) {
-      logger.error('netstat command failed:', error)
-      return []
-    }
+    const { stdout } = await execFileAsync(
+      join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'netstat.exe'),
+      ['-ano'],
+      { maxBuffer: 10 * 1024 * 1024 }
+    )
+    return parseWindowsNetstat(stdout)
   }
 
   private async getMacPorts(): Promise<PortInfo[]> {
-    try {
-      const { stdout } = await execFileAsync('lsof', ['-i', '-P', '-n'])
-      const ports = parseMacLsof(stdout)
-      return this.enrichWithProcessNames(ports)
-    } catch (error) {
-      logger.error('lsof command failed:', error)
-      return []
-    }
+    const { stdout } = await execFileAsync('/usr/sbin/lsof', ['-i', '-P', '-n'])
+    return parseMacLsof(stdout)
   }
 
   private async getLinuxPorts(): Promise<PortInfo[]> {
     try {
-      const { stdout } = await execFileAsync('ss', ['-tulnp'])
-      const ports = this.parseLinuxSS(stdout)
-      return this.enrichWithProcessNames(ports)
+      const snapshots = await Promise.all(
+        ['-4', '-6'].map(async family => {
+          const { stdout } = await execFileAsync('ss', [family, '-tulnp'])
+          return this.parseLinuxSS(stdout, family === '-4' ? '0.0.0.0' : '::')
+        })
+      )
+      return snapshots.flat()
     } catch (error) {
-      logger.error('ss command failed:', error)
-      // Fallback to netstat
-      try {
-        const { stdout } = await execFileAsync('netstat', ['-tulnp'])
-        const ports = parseLinuxNetstat(stdout)
-        return this.enrichWithProcessNames(ports)
-      } catch {
-        return []
-      }
+      logger.warn('ss failed, trying netstat', error)
+      const { stdout } = await execFileAsync('netstat', ['-tulnp'])
+      return parseLinuxNetstat(stdout)
     }
   }
 
-  private parseLinuxSS(output: string): PortInfo[] {
+  private parseLinuxSS(output: string, wildcard: string): PortInfo[] {
     const ports: PortInfo[] = []
     const lines = output.split('\n')
 
@@ -140,25 +136,38 @@ export class PortScanner {
       const port = parseInt(localAddr.substring(lastColon + 1))
       if (isNaN(port)) continue
 
-      const state = parts[1] || 'UNKNOWN'
-      const pidMatch = line.match(/pid=(\d+)/)
-      const pid = pidMatch ? parseInt(pidMatch[1]) : 0
-
-      ports.push({
-        port,
-        pid,
-        protocol,
-        state,
-        localAddress: localAddr.substring(0, lastColon)
-      })
+      const state = parts[1] === 'LISTEN' ? 'LISTENING' : parts[1]
+      const pids = new Set(
+        Array.from(line.matchAll(/,pid=(\d+),fd=\d+\)/g), match => Number(match[1]))
+      )
+      if (!pids.size) pids.add(0)
+      for (const pid of pids) {
+        ports.push({
+          port,
+          pid,
+          protocol,
+          state,
+          localAddress: localAddr.startsWith('*:') ? wildcard : localAddr.substring(0, lastColon)
+        })
+      }
     }
 
     return ports
   }
 
-  async getPort(port: number): Promise<PortInfo | null> {
-    const ports = await this.getCachedPorts()
-    return ports.find(p => p.port === port) || null
+  private async scanListeners(port: number): Promise<PortInfo[]> {
+    // Bypass both cached and in-flight scans for ownership checks and post-kill verification.
+    return (await this.scanAllPortsRaw()).filter(
+      row => row.port === port && row.protocol === 'TCP' && row.state === 'LISTENING'
+    )
+  }
+
+  async diagnose(target: PortTarget): Promise<PortDiagnosis> {
+    const rows = (await this.scanListeners(target.port)).filter(row =>
+      matchesAddress(target.address, row.localAddress)
+    )
+    const listeners = await this.enrichWithProcessNames(rows)
+    return { listeners, status: listeners.length ? 'listening' : await probeAvailability(target) }
   }
 
   async scanRange(startPort: number, endPort: number): Promise<PortInfo[]> {
@@ -266,7 +275,9 @@ export class PortScanner {
     }
   }
 
-  async killProcess(pid: number, force = false): Promise<OperationResult> {
+  async killProcess(listener: ListenerIdentity): Promise<OperationResult> {
+    const { port, pid, localAddress, instanceId } = listener
+    if (!/^[0-9]{1,20}$/.test(instanceId)) return { success: false, errorCode: 'owner_changed' }
     if (!Number.isInteger(pid) || pid <= 0) {
       return { success: false, errorCode: 'invalid_pid' }
     }
@@ -274,97 +285,30 @@ export class PortScanner {
       return { success: false, errorCode: 'protected_pid' }
     }
 
-    const pidStr = String(pid)
-    logger.info(`Killing process ${pid} (force: ${force})`)
-
     try {
-      if (this.platform === 'win32') {
-        const args = force ? ['/F', '/PID', pidStr] : ['/PID', pidStr]
-        await execFileAsync('taskkill', args, { windowsHide: true, timeout: 10000 })
-      } else {
-        const signal = force ? 'SIGKILL' : 'SIGTERM'
-        await execFileAsync('kill', [`-${signal}`, pidStr], { timeout: 10000 })
+      const owners = await this.scanListeners(port)
+      if (!owners.some(row => row.pid === pid && row.localAddress === localAddress)) {
+        return { success: false, errorCode: 'owner_changed' }
       }
-
-      this.invalidateCache()
-      logger.info(`Process ${pid} terminated successfully`)
-      return { success: true }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error)
-      logger.error(`Failed to kill process ${pid}:`, errorMsg)
-
-      if (!force && this.platform !== 'win32') {
-        logger.info('Trying SIGKILL...')
-        const sigkillResult = await this.killProcess(pid, true)
-        if (!sigkillResult.success) {
-          return sigkillResult
-        }
-        return sigkillResult
-      }
-
-      return buildKillFailureResult({
-        errorMsg,
-        pid,
-        platform: this.platform,
-        force: force || this.platform === 'win32'
-      })
+    } catch {
+      return { success: false, errorCode: 'scan_failed' }
     }
-  }
-
-  private async batchResolveProcessNames(pids: number[]): Promise<Map<number, string>> {
-    const result = new Map<number, string>()
-    // Refresh names with each port snapshot: PIDs can be reused by the OS.
-    const uncached = pids
-    if (uncached.length === 0) return result
-
-    if (this.platform === 'win32') {
-      try {
-        const { stdout } = await execFileAsync('tasklist', ['/FO', 'CSV', '/NH'], {
-          windowsHide: true,
-          maxBuffer: 1024 * 1024 * 10
-        })
-        for (const line of stdout.split('\n')) {
-          const trimmed = line.trim()
-          if (!trimmed) continue
-          const parts = trimmed.split('","').map(p => p.replace(/"/g, ''))
-          const pid = parseInt(parts[1], 10)
-          const name = parts[0]
-          if (pid > 0 && name) {
-            if (uncached.includes(pid)) result.set(pid, name)
-          }
-        }
-      } catch (error) {
-        logger.error('Batch tasklist failed:', error)
-      }
-    } else {
-      const batchSize = 20
-      for (let i = 0; i < uncached.length; i += batchSize) {
-        const batch = uncached.slice(i, i + batchSize)
-        await Promise.all(
-          batch.map(async pid => {
-            try {
-              const info = await this.getProcessInfo(pid)
-              if (info?.name) {
-                result.set(pid, info.name)
-              }
-            } catch {
-              // skip
-            }
-          })
-        )
-      }
-    }
-
+    const result = await terminateInstance(listener)
+    this.invalidateCache()
     return result
   }
 
   private async enrichWithProcessNames(ports: PortInfo[]): Promise<PortInfo[]> {
-    const pidSet = Array.from(new Set(ports.map(p => p.pid).filter(pid => pid > 0)))
-    const pidNameMap = await this.batchResolveProcessNames(pidSet)
-
-    return ports.map(p => ({
-      ...p,
-      service: pidNameMap.get(p.pid) || p.service
-    }))
+    const pids = [...new Set(ports.map(row => row.pid).filter(pid => !isProtectedPid(pid)))]
+    try {
+      const instances = await inspectInstances(pids)
+      return ports.map(row => {
+        const instance = instances.get(row.pid)
+        return instance ? { ...row, service: instance.name, instanceId: instance.instanceId } : row
+      })
+    } catch (error) {
+      logger.warn('Process identities unavailable; listeners are read-only', error)
+      return ports
+    }
   }
 }

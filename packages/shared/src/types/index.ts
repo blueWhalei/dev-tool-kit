@@ -113,6 +113,24 @@ export interface PortInfo {
   state: string
   localAddress: string
   service?: string
+  instanceId?: string
+}
+
+export interface PortTarget {
+  port: number
+  address?: string
+}
+
+export interface PortDiagnosis {
+  listeners: PortInfo[]
+  status: 'listening' | 'bindable' | 'unavailable' | 'unknown'
+}
+
+export interface ListenerIdentity {
+  port: number
+  localAddress: string
+  pid: number
+  instanceId: string
 }
 
 export interface ProcessInfo {
@@ -253,6 +271,9 @@ export interface SchemeInfo {
 }
 
 export type KillProcessErrorCode =
+  | 'termination_pending'
+  | 'owner_changed'
+  | 'scan_failed'
   | 'invalid_pid'
   | 'protected_pid'
   | 'permission_denied'
@@ -263,9 +284,7 @@ export type KillProcessErrorCode =
 export interface OperationResult {
   success: boolean
   error?: string
-  needSudo?: boolean
   errorCode?: KillProcessErrorCode
-  killCommand?: string
 }
 
 export * from './certificate'

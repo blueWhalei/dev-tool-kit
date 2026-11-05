@@ -31,7 +31,7 @@ export const IPC_INVOKE_CHANNELS = [
   'dialog:showMessageBox',
   // Port Manager
   'port-manager:getPorts',
-  'port-manager:getPort',
+  'port-manager:diagnose',
   'port-manager:scanRange',
   'port-manager:getProcess',
   'port-manager:killProcess',

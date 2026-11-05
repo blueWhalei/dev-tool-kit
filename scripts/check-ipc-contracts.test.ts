@@ -13,7 +13,7 @@ it('rejects unknown channels, invalid arguments and incorrect return assignments
     declare const api: ElectronAPI
     const good: Promise<string> = api.invoke('app:getVersion')
     api.invoke('missing:channel')
-    api.invoke('port-manager:getPort', '8080')
+    api.invoke('port-manager:diagnose', '8080')
     const bad: Promise<number> = api.invoke('app:getVersion')
     void good; void bad
   `

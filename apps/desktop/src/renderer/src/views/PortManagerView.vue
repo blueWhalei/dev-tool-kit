@@ -16,19 +16,14 @@ import {
   NCard,
   NAlert
 } from 'naive-ui'
+import PortDiagnosisPanel from '../components/PortDiagnosisPanel.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useIpc } from '../composables/useIpc'
 import { usePlatform } from '../composables/usePlatform'
-import { useCopyToClipboard } from '../composables/useCopyToClipboard'
 import { useKeyboardShortcut } from '../composables/useKeyboardShortcut'
 import { logError } from '../utils/error-handler'
-import {
-  buildKillCommand,
-  PLATFORM_LABELS,
-  type OperationResult,
-  type PlatformId
-} from '@dev-tool-kit/shared'
+import { PLATFORM_LABELS, type OperationResult, type PlatformId } from '@dev-tool-kit/shared'
 import {
   type PortInfo,
   type CommonPort,
@@ -45,17 +40,19 @@ const route = useRoute()
 const { t } = useI18n()
 const page = useToolI18n('portManager')
 const { invoke } = useIpc()
-const { copy } = useCopyToClipboard()
 const { platform, loadPlatform, isWindows } = usePlatform()
 const ports = ref<PortInfo[]>([])
 const commonPorts = ref<CommonPort[]>([])
 const loading = ref(false)
+const scanFailed = ref(false)
+let newestScan = 0
 const search = ref('')
 const processFilter = ref('')
 const pidFilter = ref('')
 const addressFilter = ref('')
 const stateFilter = ref<'all' | 'LISTENING' | 'ESTABLISHED'>('all')
 
+const diagnosing = ref(false)
 const quickScanMode = ref<'all' | 'common'>('all')
 
 const filteredPorts = computed(() => {
@@ -108,35 +105,6 @@ function translateKillError(result: OperationResult, pid: number): string {
 }
 
 function showKillFailure(pid: number, result: OperationResult) {
-  const killCommand =
-    result.killCommand ??
-    buildKillCommand(pid, {
-      force: true,
-      sudo: Boolean(result.needSudo),
-      platform: platform.value || 'linux'
-    })
-
-  if (
-    result.killCommand ||
-    result.needSudo ||
-    result.errorCode === 'permission_denied' ||
-    result.errorCode === 'access_denied'
-  ) {
-    dialog.warning({
-      title: page.t('dialogs.killFailedTitle'),
-      content: page.t('dialogs.killFailedContent', {
-        message: translateKillError(result, pid),
-        command: killCommand
-      }),
-      positiveText: page.t('buttons.copyCommand'),
-      negativeText: t('common.cancel'),
-      onPositiveClick: () => {
-        void copy(killCommand, page.t('messages.commandCopied'))
-      }
-    })
-    return
-  }
-
   if (result.errorCode === 'process_not_found') {
     message.warning(translateKillError(result, pid))
     return
@@ -203,7 +171,7 @@ const columns = computed(() => [
       const confirmKey = isWindows() ? 'messages.killConfirm' : 'messages.killConfirmUnix'
       return h(
         NPopconfirm,
-        { onPositiveClick: () => handleKillProcess(row.pid) },
+        { onPositiveClick: () => handleKillProcess(row) },
         {
           trigger: () =>
             h(
@@ -212,11 +180,17 @@ const columns = computed(() => [
                 size: 'small',
                 quaternary: true,
                 type: 'error',
-                disabled: row.state !== 'LISTENING'
+                disabled: row.state !== 'LISTENING' || !row.instanceId
               },
               { default: () => page.t('buttons.kill') }
             ),
-          default: () => page.t(confirmKey, { pid: row.pid })
+          default: () =>
+            page.t(confirmKey, {
+              pid: row.pid,
+              name: row.service,
+              port: row.port,
+              address: row.localAddress
+            })
         }
       )
     }
@@ -233,7 +207,9 @@ async function fetchCommonPorts() {
 }
 
 async function fetchPorts(mode: 'all' | 'common' = 'all') {
+  const current = ++newestScan
   loading.value = true
+  scanFailed.value = false
   try {
     let data
     if (mode === 'common') {
@@ -241,19 +217,33 @@ async function fetchPorts(mode: 'all' | 'common' = 'all') {
     } else {
       data = await invoke('port-manager:getPorts')
     }
-    ports.value = validateArray(data, isPortInfoArray, 'fetchPorts')
+    if (current !== newestScan) return
+    if (!isPortInfoArray(data)) throw new Error('Invalid port snapshot')
+    ports.value = data
   } catch (error) {
+    if (current !== newestScan) return
+    scanFailed.value = true
+    ports.value = []
     message.error(page.t('errors.fetchFailed'))
     logError('PortManager:fetchPorts', error)
   } finally {
-    loading.value = false
-    quickScanMode.value = mode
+    if (current === newestScan) {
+      loading.value = false
+      quickScanMode.value = mode
+    }
   }
 }
 
-async function handleKillProcess(pid: number) {
+function showPortList(mode: 'all' | 'common') {
+  diagnosing.value = false
+  void fetchPorts(mode)
+}
+
+async function handleKillProcess(row: PortInfo) {
+  const { port, pid, localAddress, instanceId } = row
+  if (!instanceId) return
   try {
-    const data = await invoke('port-manager:killProcess', pid)
+    const data = await invoke('port-manager:killProcess', { port, pid, localAddress, instanceId })
     const result = validateOptional(data, isOperationResult, 'handleKillProcess')
     if (result?.success) {
       message.success(page.t('messages.processKilled', { pid }))
@@ -296,7 +286,7 @@ onMounted(async () => {
 
 useKeyboardShortcut(event => {
   const tag = (event.target as HTMLElement)?.tagName
-  if (tag === 'INPUT' || tag === 'TEXTAREA') return
+  if (diagnosing.value || tag === 'INPUT' || tag === 'TEXTAREA') return
   if (event.key === 'r' || event.key === 'R') {
     event.preventDefault()
     void fetchPorts(quickScanMode.value)
@@ -313,109 +303,122 @@ useKeyboardShortcut(event => {
     <template #actions>
       <NButtonGroup>
         <NButton
-          :type="quickScanMode === 'all' ? 'primary' : 'default'"
+          :type="!diagnosing && quickScanMode === 'all' ? 'primary' : 'default'"
           :loading="loading && quickScanMode === 'all'"
-          @click="fetchPorts('all')"
+          @click="showPortList('all')"
         >
           {{ page.t('buttons.scanAll') }}
         </NButton>
         <NButton
-          :type="quickScanMode === 'common' ? 'primary' : 'default'"
+          :type="!diagnosing && quickScanMode === 'common' ? 'primary' : 'default'"
           :loading="loading && quickScanMode === 'common'"
-          @click="fetchPorts('common')"
+          @click="showPortList('common')"
         >
           {{ page.t('buttons.scanCommon') }}
         </NButton>
+        <NButton :type="diagnosing ? 'primary' : 'default'" @click="diagnosing = true">{{
+          page.t('diagnosis.title')
+        }}</NButton>
       </NButtonGroup>
     </template>
 
-    <div class="page-toolbar port-toolbar">
-      <NInput
-        v-model:value="search"
-        :placeholder="page.t('placeholders.searchPort')"
-        style="width: 140px"
-        clearable
-      />
-      <NInput
-        v-model:value="processFilter"
-        :placeholder="page.t('placeholders.searchProcess')"
-        style="width: 160px"
-        clearable
-      />
-      <NInput
-        v-model:value="pidFilter"
-        :placeholder="page.t('placeholders.searchPid')"
-        style="width: 120px"
-        clearable
-      />
-      <NInput
-        v-model:value="addressFilter"
-        :placeholder="page.t('placeholders.searchAddress')"
-        style="width: 160px"
-        clearable
-      />
-      <NButton quaternary @click="clearSearch">
-        {{ t('common.clear') }}
-      </NButton>
-    </div>
-
-    <NAlert
-      v-if="platform && !isWindows()"
-      type="info"
-      :title="page.t('hints.partialSupportTitle')"
-      :bordered="false"
-      style="margin-bottom: 16px; border-radius: 8px"
-    >
-      {{ platformHint }}
-    </NAlert>
-
-    <div class="port-filter-bar">
-      <div class="port-stats">
-        <NTag size="small" :bordered="false">
-          {{ page.t('stats.total', { count: portStats.total }) }}
-        </NTag>
-        <NTag size="small" type="success" :bordered="false">
-          {{ page.t('stats.listening', { count: portStats.listening }) }}
-        </NTag>
-        <NTag size="small" type="warning" :bordered="false">
-          {{ page.t('stats.established', { count: portStats.established }) }}
-        </NTag>
-      </div>
-      <NButtonGroup size="small" class="state-filter">
-        <NButton :type="stateFilter === 'all' ? 'primary' : 'default'" @click="stateFilter = 'all'">
-          {{ page.t('filters.allWithCount', { count: portStats.total }) }}
-        </NButton>
-        <NButton
-          :type="stateFilter === 'LISTENING' ? 'primary' : 'default'"
-          @click="stateFilter = 'LISTENING'"
-        >
-          {{ page.t('filters.listeningWithCount', { count: portStats.listening }) }}
-        </NButton>
-        <NButton
-          :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'"
-          @click="stateFilter = 'ESTABLISHED'"
-        >
-          {{ page.t('filters.establishedWithCount', { count: portStats.established }) }}
-        </NButton>
-      </NButtonGroup>
-    </div>
-
-    <NCard class="content-card" :bordered="false">
-      <NSpin :show="loading && ports.length === 0">
-        <NDataTable
-          v-if="filteredPorts.length > 0"
-          :columns="columns"
-          :data="filteredPorts"
-          :loading="loading"
-          :pagination="{ pageSize: 10 }"
-          :bordered="false"
-          striped
-          :row-key="(row: PortInfo) => `${row.port}-${row.pid}`"
-          class="port-table"
+    <PortDiagnosisPanel v-if="diagnosing" :is-windows="isWindows()" @failed="showKillFailure" />
+    <template v-else>
+      <div class="page-toolbar port-toolbar">
+        <NInput
+          v-model:value="search"
+          :placeholder="page.t('placeholders.searchPort')"
+          style="width: 140px"
+          clearable
         />
-        <NEmpty v-else-if="!loading" :description="page.t('empty')" />
-      </NSpin>
-    </NCard>
+        <NInput
+          v-model:value="processFilter"
+          :placeholder="page.t('placeholders.searchProcess')"
+          style="width: 160px"
+          clearable
+        />
+        <NInput
+          v-model:value="pidFilter"
+          :placeholder="page.t('placeholders.searchPid')"
+          style="width: 120px"
+          clearable
+        />
+        <NInput
+          v-model:value="addressFilter"
+          :placeholder="page.t('placeholders.searchAddress')"
+          style="width: 160px"
+          clearable
+        />
+        <NButton quaternary @click="clearSearch">
+          {{ t('common.clear') }}
+        </NButton>
+      </div>
+
+      <NAlert
+        v-if="platform && !isWindows()"
+        type="info"
+        :title="page.t('hints.partialSupportTitle')"
+        :bordered="false"
+        style="margin-bottom: 16px; border-radius: 8px"
+      >
+        {{ platformHint }}
+      </NAlert>
+
+      <div class="port-filter-bar">
+        <div class="port-stats">
+          <NTag size="small" :bordered="false">
+            {{ page.t('stats.total', { count: portStats.total }) }}
+          </NTag>
+          <NTag size="small" type="success" :bordered="false">
+            {{ page.t('stats.listening', { count: portStats.listening }) }}
+          </NTag>
+          <NTag size="small" type="warning" :bordered="false">
+            {{ page.t('stats.established', { count: portStats.established }) }}
+          </NTag>
+        </div>
+        <NButtonGroup size="small" class="state-filter">
+          <NButton
+            :type="stateFilter === 'all' ? 'primary' : 'default'"
+            @click="stateFilter = 'all'"
+          >
+            {{ page.t('filters.allWithCount', { count: portStats.total }) }}
+          </NButton>
+          <NButton
+            :type="stateFilter === 'LISTENING' ? 'primary' : 'default'"
+            @click="stateFilter = 'LISTENING'"
+          >
+            {{ page.t('filters.listeningWithCount', { count: portStats.listening }) }}
+          </NButton>
+          <NButton
+            :type="stateFilter === 'ESTABLISHED' ? 'primary' : 'default'"
+            @click="stateFilter = 'ESTABLISHED'"
+          >
+            {{ page.t('filters.establishedWithCount', { count: portStats.established }) }}
+          </NButton>
+        </NButtonGroup>
+      </div>
+
+      <NCard class="content-card" :bordered="false">
+        <NSpin :show="loading && ports.length === 0">
+          <NDataTable
+            v-if="filteredPorts.length > 0"
+            :columns="columns"
+            :data="filteredPorts"
+            :loading="loading"
+            :pagination="{ pageSize: 10 }"
+            :bordered="false"
+            striped
+            :row-key="
+              (row: PortInfo) =>
+                [row.protocol, row.localAddress, row.port, row.pid, row.instanceId].join('/')
+            "
+            class="port-table"
+          />
+          <NAlert v-else-if="scanFailed" type="error">{{ page.t('errors.fetchFailed') }}</NAlert>
+          <NEmpty v-else-if="!loading" :description="page.t('empty')" />
+        </NSpin>
+      </NCard>
+    </template>
   </PageLayout>
 </template>
 

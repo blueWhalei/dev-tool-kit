@@ -11,7 +11,6 @@ export * from './text-diff'
 export * from './hosts-diff'
 export * from './color'
 export * from './shell-env'
-export * from './process-kill'
 export * from './regex'
 export * from './chmod'
 export * from './http-status-codes'
@@ -70,9 +69,7 @@ export function formatDate(date: Date | string | number, format = 'YYYY-MM-DD HH
 }
 
 // Validation utilities
-export function isValidPort(port: number): boolean {
-  return Number.isInteger(port) && port >= 1 && port <= 65535
-}
+export { isValidPort, normalizePortAddress, parsePortDiagnosisInput } from './port'
 
 export function isValidPath(path: string): boolean {
   const pathRegex = /^([a-zA-Z]:\\|\/)([^\\/:*?"<>|\r\n]+[\\/])*([^\\/:*?"<>|\r\n]*)$/
