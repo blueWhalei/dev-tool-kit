@@ -52,7 +52,7 @@ if (!process.versions.electron) {
         .then(() => {
           clearTimeout(deadline)
           console.log(
-            'DESKTOP_SMOKE_PASS: real port scan and EADDRINUSE diagnosis/cancel/terminate/recheck, schema isolation/timeout, built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
+            'DESKTOP_SMOKE_PASS: JSON structural diff/copy/import/locales, real port scan and EADDRINUSE diagnosis/cancel/terminate/recheck, schema isolation/timeout, built workers, rename/undo safety, numeric inputs, image overlay/compression, batch progress/cancel/retry/save, IPC failure handling, locale reactivity'
           )
           app.exit(0)
         })
@@ -142,6 +142,109 @@ if (!process.versions.electron) {
         })
       )
     })
+    // JSON structural comparison uses a bundled worker and the existing file import path.
+    await route('/text-diff', 'Text Diff')
+    await click('JSON')
+    await click('Fill sample')
+    await waitFor(() => document.querySelector('.json-diff-panel')?.innerText.includes('Changed 1'))
+    assert(
+      await run(() => document.querySelector('.json-diff-panel').innerText.includes('$.user.role'))
+    )
+    await run(() => {
+      window.__originalWriteText = navigator.clipboard.writeText
+      navigator.clipboard.writeText = async text => {
+        window.__jsonDiffCopy = text
+      }
+    })
+    try {
+      await click('Copy result')
+      await waitFor(() => Boolean(window.__jsonDiffCopy))
+      assert.equal(JSON.parse(await run(() => window.__jsonDiffCopy)).length, 3)
+    } finally {
+      await run(() => {
+        navigator.clipboard.writeText = window.__originalWriteText
+      })
+    }
+    const setDiffInputs = (a, b) =>
+      run(
+        (a, b) => {
+          const inputs = document.querySelectorAll('.text-diff-view textarea')
+          for (const [index, value] of [a, b].entries()) {
+            inputs[index].value = value
+            inputs[index].dispatchEvent(new Event('input', { bubbles: true }))
+          }
+        },
+        a,
+        b
+      )
+    await setDiffInputs('{"user":{"x":1,"y":2}}', '{"user":{"y":2,"x":1}}')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('structures and values are equal')
+    )
+    await setDiffInputs('[1,2]', '[2,1]')
+    await waitFor(() => document.querySelector('.json-diff-panel')?.innerText.includes('Changed 2'))
+    await setDiffInputs('{}', '{"broken":}')
+    await waitFor(() =>
+      document.querySelector('.json-diff-panel')?.innerText.includes('Text B · Enter valid JSON')
+    )
+    assert.equal(await run(() => document.querySelectorAll('.json-changes').length), 0)
+
+    await setDiffInputs('{"x":1,"x":2}', '{"x":2}')
+    await waitFor(() =>
+      document.querySelector('.json-diff-panel')?.innerText.includes('duplicate keys')
+    )
+    await setDiffInputs('4e-324', '5e-324')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('exceeds the supported precision')
+    )
+    await setDiffInputs('9007199254740991.0', '9007199254740991')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('structures and values are equal')
+    )
+    await setDiffInputs('{}', ' '.repeat(524289))
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('Text B · Each JSON input is limited')
+    )
+    await setDiffInputs('1.' + '0'.repeat(400000) + '1', '1')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('exceeds the supported precision')
+    )
+    await setDiffInputs(JSON.stringify(Array(5000).fill(0)), JSON.stringify(Array(5000).fill(1)))
+    await waitFor(() =>
+      document.querySelector('.json-diff-panel')?.innerText.includes('Changed 5000')
+    )
+    const visibleRows = await run(() => document.querySelectorAll('.json-changes tbody tr').length)
+    assert(visibleRows > 0 && visibleRows <= 20, 'Large JSON results must stay paginated')
+
+    const jsonFile = path.join(root, 'json-diff-fixture.json')
+    fs.writeFileSync(jsonFile, '{"imported":true}')
+    selection = [jsonFile]
+    await click('Open file')
+    await waitFor(
+      () => document.querySelector('.text-diff-view textarea')?.value === '{"imported":true}'
+    )
+    await setDiffInputs('1e400', '1e400')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('exceeds the supported precision')
+    )
+    await click('Line')
+    await click('Fill sample')
+    await waitFor(() => document.querySelector('.diff-output')?.innerText.includes('line four'))
+    await click('Word')
+    await waitFor(() => Boolean(document.querySelector('.diff-output--word .diff-word')))
+
     // Exercise the confirmation and recheck against a disposable child listener.
     const fixture = require('child_process').spawn(
       process.execPath,
@@ -461,6 +564,21 @@ if (!process.versions.electron) {
       )
     })
     await waitFor(() => document.body.innerText.includes('信息响应'))
+    await route('/text-diff', '文本对比')
+    await click('JSON')
+    await click('填入示例')
+    await waitFor(() => document.querySelector('.json-diff-panel')?.innerText.includes('修改 1'))
+    await setDiffInputs('null', 'null')
+    await waitFor(() =>
+      document.querySelector('.json-diff-panel')?.innerText.includes('JSON 结构和值相同')
+    )
+    await setDiffInputs('{}', '{"x":1,"x":2}')
+    await waitFor(() =>
+      document
+        .querySelector('.json-diff-panel')
+        ?.innerText.includes('新文本 B · 同一对象中包含重复字段名')
+    )
+
     await route('/port-manager', '端口诊断')
     await click('端口诊断')
     await run(() => {

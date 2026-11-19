@@ -9,13 +9,15 @@ A local-first desktop toolkit with 23 tools for port diagnostics, encoding, text
 | Category         | Tools and capabilities                                                                                                                        |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | System           | Port management and EADDRINUSE diagnostics, environment variables, Hosts editing, batch file renaming, regex testing                          |
-| Encoding & text  | Base64, URL, JSON / Schema, YAML, TOML, XML, SQL, and other format conversions; text comparison                                               |
+| Encoding & text  | Base64, URL, JSON / Schema, YAML, TOML, XML, SQL, and other format conversions; text / structured JSON comparison                             |
 | Data             | Color conversion, UUIDs, mock data, HTTP status codes, developer reference, QR codes, database connection string parsing and building         |
 | Passwords & keys | Passwords and passphrases, JWT decoding / signing / verification, text and file hashes, certificate parsing, RSA / EC key pairs               |
 | Calculators      | Cron, IPv4 / IPv6 subnets, Chmod permissions                                                                                                  |
 | Images           | Compression, cropping, resizing, format conversion, Base64, EXIF, SVG optimization, color picking, favicons, batch processing, and comparison |
 
 **Port diagnostics** accepts a TCP `EADDRINUSE` error or port number and identifies matching listeners. The app verifies process identity before a confirmed termination, then automatically checks whether the port can be bound.
+
+**JSON comparison** ignores object key order, compares arrays by position, and shows changed paths with before/after values. Each input is limited to 524,288 characters. Duplicate keys and numbers exceeding supported precision produce explicit errors.
 
 Use `Ctrl+K` to find tools, or `Command+K` on macOS. Configure favorites, the default homepage, language, and theme in Settings. The full shortcut list is in the app's About page.
 

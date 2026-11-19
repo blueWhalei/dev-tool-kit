@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { watchDebounced } from '@vueuse/core'
 import {
@@ -13,6 +13,7 @@ import {
   NButtonGroup,
   useMessage
 } from 'naive-ui'
+import JsonDiffPanel from '../components/JsonDiffPanel.vue'
 import PageLayout from '../components/PageLayout.vue'
 import { useToolI18n } from '../composables/useToolI18n'
 import { useCopyToClipboard } from '../composables/useCopyToClipboard'
@@ -77,7 +78,7 @@ const loadingA = ref(false)
 const loadingB = ref(false)
 const diffLines = ref<DiffLine[]>([])
 const viewMode = ref<'unified' | 'split'>('unified')
-const diffMode = ref<DiffMode>('line')
+const diffMode = ref<DiffMode | 'json'>('line')
 const ignoreWhitespace = ref(false)
 const ignoreCase = ref(false)
 
@@ -91,9 +92,20 @@ const stats = computed(() => getDiffStats(diffLines.value))
 const formattedResult = computed(() => formatDiffResult(diffLines.value))
 
 function runDiff() {
+  if (diffMode.value === 'json') {
+    diffLines.value = []
+    return
+  }
   diffLines.value = computeDiff(textA.value, textB.value, diffMode.value, diffOptions.value)
 }
 
+watch(
+  [textA, textB, ignoreWhitespace, ignoreCase, diffMode],
+  () => {
+    diffLines.value = []
+  },
+  { flush: 'sync' }
+)
 watchDebounced([textA, textB, ignoreWhitespace, ignoreCase, diffMode], runDiff, { debounce: 300 })
 
 async function copyResult() {
@@ -105,8 +117,14 @@ async function copyResult() {
 }
 
 function fillSample() {
-  textA.value = SAMPLE_A
-  textB.value = SAMPLE_B
+  textA.value =
+    diffMode.value === 'json'
+      ? JSON.stringify({ user: { name: 'Alice', role: 'viewer' }, debug: true }, null, 2)
+      : SAMPLE_A
+  textB.value =
+    diffMode.value === 'json'
+      ? JSON.stringify({ user: { role: 'admin', name: 'Alice', active: true } }, null, 2)
+      : SAMPLE_B
   fileNameA.value = ''
   fileNameB.value = ''
   runDiff()
@@ -174,12 +192,15 @@ async function loadFile(side: 'A' | 'B') {
         <NButton :type="diffMode === 'word' ? 'primary' : 'default'" @click="diffMode = 'word'">
           {{ page.t('buttons.wordMode') }}
         </NButton>
+        <NButton :type="diffMode === 'json' ? 'primary' : 'default'" @click="diffMode = 'json'">
+          {{ page.t('buttons.jsonMode') }}
+        </NButton>
       </NButtonGroup>
-      <label class="option-toggle">
+      <label v-if="diffMode !== 'json'" class="option-toggle">
         <NSwitch v-model:value="ignoreWhitespace" size="small" />
         <span>{{ page.t('labels.ignoreWhitespace') }}</span>
       </label>
-      <label class="option-toggle">
+      <label v-if="diffMode !== 'json'" class="option-toggle">
         <NSwitch v-model:value="ignoreCase" size="small" />
         <span>{{ page.t('labels.ignoreCase') }}</span>
       </label>
@@ -232,7 +253,8 @@ async function loadFile(side: 'A' | 'B') {
       </NGridItem>
     </NGrid>
 
-    <div class="action-bar">
+    <JsonDiffPanel v-if="diffMode === 'json'" :text-a="textA" :text-b="textB" />
+    <div v-else class="action-bar">
       <NButtonGroup size="small">
         <NButton
           :type="viewMode === 'unified' ? 'primary' : 'default'"
@@ -260,7 +282,7 @@ async function loadFile(side: 'A' | 'B') {
       </div>
     </div>
 
-    <NCard v-if="diffLines.length" class="result-card" :bordered="false">
+    <NCard v-if="diffMode !== 'json' && diffLines.length" class="result-card" :bordered="false">
       <template #header>
         <div class="result-header">
           <span class="card-title">{{ page.t('labels.result') }}</span>

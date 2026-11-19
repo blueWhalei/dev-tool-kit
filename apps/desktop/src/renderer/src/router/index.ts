@@ -303,7 +303,7 @@ const routes: RouteRecordRaw[] = [
       icon: 'diff',
       category: 'encode',
       order: 2,
-      keywords: ['diff', '对比', '文本', 'text', '差异']
+      keywords: ['diff', '对比', '文本', 'text', '差异', 'json', '结构化']
     }
   },
   {
